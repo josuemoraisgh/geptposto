@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
@@ -55,3 +57,43 @@ imglib.Image _convertYUV420(CameraImage image) {
 
   return img;
 }
+
+  InputImage? convertCameraImageToInputImage(CameraImage image, int sensorOrientation) {
+    final WriteBuffer allBytes = WriteBuffer();
+    for (final Plane plane in image.planes) {
+      allBytes.putUint8List(plane.bytes);
+    }
+    final bytes = allBytes.done().buffer.asUint8List();
+
+    final Size imageSize =
+        Size(image.width.toDouble(), image.height.toDouble());
+
+    final imageRotation =
+        InputImageRotationValue.fromRawValue(sensorOrientation);
+    if (imageRotation == null) return null;
+
+    final inputImageFormat =
+        InputImageFormatValue.fromRawValue(image.format.raw);
+    if (inputImageFormat == null) return null;
+
+    final planeData = image.planes.map(
+      (Plane plane) {
+        return InputImagePlaneMetadata(
+          bytesPerRow: plane.bytesPerRow,
+          height: plane.height,
+          width: plane.width,
+        );
+      },
+    ).toList();
+
+    final inputImageData = InputImageData(
+      size: imageSize,
+      imageRotation: imageRotation,
+      inputImageFormat: inputImageFormat,
+      planeData: planeData,
+    );
+
+    final inputImage =
+        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+    return inputImage;
+  }

@@ -1,12 +1,8 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-
-List<CameraDescription> cameras = [];
-
-enum ScreenMode { liveFeed, gallery }
+import 'image_converter.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   const CameraPreviewWithPaint(
@@ -14,13 +10,13 @@ class CameraPreviewWithPaint extends StatefulWidget {
       required this.title,
       required this.customPaint,
       required this.onImage,
-      this.initialDirection = CameraLensDirection.back,
-      required this.cameras})
+      required this.cameras,
+      this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
   final String title;
   final CustomPaint? customPaint;
-  final Function(InputImage inputImage) onImage;
+  final dynamic Function(InputImage? inputImage) onImage;
   final CameraLensDirection initialDirection;
   final List<CameraDescription> cameras;
 
@@ -36,19 +32,19 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   bool _changingCameraLens = false;
 
   Future<bool> init() async {
-    if (cameras.any(
+    if (widget.cameras.any(
       (element) =>
           element.lensDirection == widget.initialDirection &&
           element.sensorOrientation == 90,
     )) {
-      _cameraIndex = cameras.indexOf(
-        cameras.firstWhere((element) =>
+      _cameraIndex = widget.cameras.indexOf(
+        widget.cameras.firstWhere((element) =>
             element.lensDirection == widget.initialDirection &&
             element.sensorOrientation == 90),
       );
     } else {
-      for (var i = 0; i < cameras.length; i++) {
-        if (cameras[i].lensDirection == widget.initialDirection) {
+      for (var i = 0; i < widget.cameras.length; i++) {
+        if (widget.cameras[i].lensDirection == widget.initialDirection) {
           _cameraIndex = i;
           break;
         }
@@ -87,7 +83,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   Widget? _floatingActionButton(AsyncSnapshot<bool> snapshot) {
     if (snapshot.data != null) {
-      if ((cameras.length != 1) && (snapshot.hasData)) {
+      if ((widget.cameras.length != 1) && (snapshot.hasData)) {
         return SizedBox(
             height: 70.0,
             width: 70.0,
@@ -107,7 +103,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   Widget _liveFeedBody(AsyncSnapshot<bool> snapshot) {
     if ((snapshot.data != null) && (_controller != null)) {
-      if ((cameras.length != 1) &&
+      if ((widget.cameras.length != 1) &&
           (snapshot.hasData) &&
           (_controller!.value.isInitialized)) {
         final size = MediaQuery.of(context).size;
@@ -165,7 +161,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   Future<void> _startLiveFeed() async {
     if (_controller == null) {
-      final camera = cameras[_cameraIndex];
+      final camera = widget.cameras[_cameraIndex];
       _controller = CameraController(
         camera,
         ResolutionPreset.high,
@@ -182,7 +178,9 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
         _controller?.getMaxZoomLevel().then((value) {
           maxZoomLevel = value;
         });
-        _controller?.startImageStream(_processCameraImage);
+        _controller?.startImageStream((cameraImage) => widget.onImage(
+            convertCameraImageToInputImage(
+                cameraImage, camera.sensorOrientation)));
         setState(() {});
       });
     }
@@ -198,50 +196,9 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   Future _switchLiveCamera() async {
     setState(() => _changingCameraLens = true);
-    _cameraIndex = (_cameraIndex + 1) % cameras.length;
+    _cameraIndex = (_cameraIndex + 1) % widget.cameras.length;
     await _stopLiveFeed();
     await _startLiveFeed();
     setState(() => _changingCameraLens = false);
-  }
-
-  Future _processCameraImage(CameraImage image) async {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
-
-    final Size imageSize =
-        Size(image.width.toDouble(), image.height.toDouble());
-
-    final camera = cameras[_cameraIndex];
-    final imageRotation =
-        InputImageRotationValue.fromRawValue(camera.sensorOrientation);
-    if (imageRotation == null) return;
-
-    final inputImageFormat =
-        InputImageFormatValue.fromRawValue(image.format.raw);
-    if (inputImageFormat == null) return;
-
-    final planeData = image.planes.map(
-      (Plane plane) {
-        return InputImagePlaneMetadata(
-          bytesPerRow: plane.bytesPerRow,
-          height: plane.height,
-          width: plane.width,
-        );
-      },
-    ).toList();
-
-    final inputImageData = InputImageData(
-      size: imageSize,
-      imageRotation: imageRotation,
-      inputImageFormat: inputImageFormat,
-      planeData: planeData,
-    );
-
-    final inputImage =
-        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
-    widget.onImage(inputImage);
   }
 }

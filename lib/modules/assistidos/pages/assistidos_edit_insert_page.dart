@@ -6,7 +6,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../assistidos_controller.dart';
 import '../models/assistido_models.dart';
-import '../modelsView/camera_screen.dart';
+import '../modelsView/assistido_camera_screen.dart';
 
 class AssistidoEditInsertPage extends StatefulWidget {
   late final Assistido _assistido;

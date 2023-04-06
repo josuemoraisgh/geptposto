@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import '../models/assistido_models.dart';
 import '../stores/assistidos_store.dart';
 import 'package:intl/intl.dart';
@@ -23,13 +24,13 @@ class AssistidoCameraScreen extends StatefulWidget {
 class _AssistidoCameraScreenState extends State<AssistidoCameraScreen> {
   bool isInited = false;
   bool isCompleter = false;
-  late List<CameraDescription> cameras;
+  late List<CameraDescription> _cameras;
   late CameraController _controller;
 
   Future<bool> init() async {
     if (!isInited) {
-      cameras = await availableCameras();
-      _controller = CameraController(cameras.first, ResolutionPreset.medium);
+      _cameras = await Modular.get<Future<List<CameraDescription>>>();
+      _controller = CameraController(_cameras.first, ResolutionPreset.medium);
       await _controller.initialize();
       isInited = true;
     }

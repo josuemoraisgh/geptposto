@@ -9,7 +9,7 @@ import 'package:rx_notifier/rx_notifier.dart';
 import 'assistidos_controller.dart';
 import 'models/assistido_models.dart';
 import 'modelsView/dropdown_body.dart';
-import 'modelsView/listview_silver.dart';
+import 'modelsView/assistido_listview_silver.dart';
 import 'modelsView/search_bar.dart';
 import 'pages/assistidos_insert_edit_dialog.dart';
 
@@ -144,7 +144,8 @@ class _AssistidosPageState extends State<AssistidosPage> {
               onTap: () {
                 Modular.to.pushNamed("faces", arguments: {
                   "assistidos": _list,
-                  "chamadaFunc": chamadaFunc
+                  "chamadaFunc": chamadaFunc,
+                  "Title": "Tire sua Foto",
                 });
                 /*showDialog(
                   context: context,

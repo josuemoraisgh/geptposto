@@ -4,7 +4,7 @@ import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../assistidos_controller.dart';
 import '../models/assistido_models.dart';
-import '../modelsView/camera_screen.dart';
+import '../modelsView/assistido_camera_screen.dart';
 import '../stores/assistidos_store.dart';
 
 class AssistidosInsertEditDialog extends StatefulWidget {

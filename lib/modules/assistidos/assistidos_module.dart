@@ -1,4 +1,7 @@
+import 'package:camera/camera.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:geptposto/modules/assistidos/services/assistido_ml_service.dart';
+import 'package:geptposto/modules/assistidos/services/face_detector_service.dart';
 import '../assistidos/services/sync_hive_local_storage_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_controller.dart';
@@ -16,6 +19,12 @@ import 'stores/assistidos_store.dart';
 class AssistidosModule extends Module {
   @override
   List<Bind<Object>> get binds => [
+        Bind.lazySingleton<AssistidoMLService>(
+            (i) => AssistidoMLService()),
+        Bind.lazySingleton<FaceDetectorService>(
+            (i) => FaceDetectorService()),
+        Bind.lazySingleton<Future<List<CameraDescription>>>(
+            (i) => availableCameras()),
         Bind.lazySingleton<ProviderInterface>((i) => ProviderInterface()),
         Bind.lazySingleton<ConfigLocalStorageInterface>(
             (i) => ConfigLocalStorageService()),
@@ -47,7 +56,9 @@ class AssistidosModule extends Module {
     ChildRoute(
       '/faces',
       child: (_, args) => AssistidoFaceDetectorPage(
-        dadosTela: args.data,
+        assistidos: args.data["assistidos"],
+        chamadaFunc: args.data["chamadaFunc"],
+        title: args.data["Title"],
       ),
       customTransition: myCustomTransition,
     ),

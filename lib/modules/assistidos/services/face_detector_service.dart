@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class FaceDetectorService {
-  final FaceDetector _faceDetector = FaceDetector(
+  final FaceDetector faceDetector = FaceDetector(
     options: FaceDetectorOptions(
         enableContours: true,
         enableClassification: true,
@@ -26,14 +26,14 @@ class FaceDetectorService {
     }
   }
 
-  Future<List<num>> processFileImage(String fileName) async {
+  Future<List<num>> getPointsFileImage(String fileName) async {
     final inputImage = InputImage.fromFilePath(fileName);
-    return (processImage(inputImage));
+    return (getPointsImage(inputImage));
   }
 
-  Future<List<num>> processImage(InputImage inputImage) async {
+  Future<List<num>> getPointsImage(InputImage inputImage) async {
     List<num> facePoint = [];
-    final faces = await _faceDetector.processImage(inputImage);
+    final faces = await faceDetector.processImage(inputImage);
     for (final Face face in faces) {
       facePoint.addAll(getPoints(face, FaceContourType.leftEyebrowTop));
       facePoint.addAll(getPoints(face, FaceContourType.leftEyebrowBottom));

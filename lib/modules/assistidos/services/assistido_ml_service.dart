@@ -3,15 +3,13 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../models/assistido_models.dart';
 import 'face_detector_service.dart';
 
-class MLService {
-  final _faceDetector = FaceDetectorService();
-
-  Future<Assistido?> predict(
+class AssistidoMLService {
+  Future<Assistido?> predict(FaceDetectorService faceDetectorService,
       InputImage cameraImage, List<Assistido> assistidos) async {
     const int minDist = 999;
     const double threshold = 1.5;
     num? dist;
-    final predictedArray = await _faceDetector.processImage(cameraImage);
+    final predictedArray = await faceDetectorService.getPointsImage(cameraImage);
     for (var assistido in assistidos) {
       final userArray = assistido.fotoPoints ?? [];
       dist = euclideanDistance(predictedArray, userArray);

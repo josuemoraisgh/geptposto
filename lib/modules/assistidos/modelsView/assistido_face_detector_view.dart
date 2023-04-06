@@ -1,27 +1,27 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import '../services/ml_service.dart';
+import '../models/assistido_models.dart';
+import '../services/assistido_ml_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/painters/face_detector_painter.dart';
+import '../services/face_detector_service.dart';
 
-class AssistidoFaceDetectorPage extends StatefulWidget {
-  final Map<String, dynamic> dadosTela;
-  const AssistidoFaceDetectorPage({super.key, required this.dadosTela});
+class AssistidoFaceDetectorView extends StatefulWidget {
+  final List<Assistido>? assistidos;
+  final Function(Assistido pessoa) chamadaFunc;
+  const AssistidoFaceDetectorView(
+      {super.key, required this.assistidos, required this.chamadaFunc});
 
   @override
-  State<AssistidoFaceDetectorPage> createState() => _AssistidoFaceDetectorPageState();
+  State<AssistidoFaceDetectorView> createState() =>
+      _AssistidoFaceDetectorViewState();
 }
 
-class _AssistidoFaceDetectorPageState extends State<AssistidoFaceDetectorPage> {
-  final mlService = MLService();
-  final FaceDetector _faceDetector = FaceDetector(
-    options: FaceDetectorOptions(
-        enableContours: true,
-        enableClassification: true,
-        enableLandmarks: true,
-        enableTracking: true),
-  );
+class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
+  final _assistidoMmlService = Modular.get<AssistidoMLService>();
+  final _faceDetectorService = Modular.get<FaceDetectorService>();
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
@@ -29,36 +29,44 @@ class _AssistidoFaceDetectorPageState extends State<AssistidoFaceDetectorPage> {
   @override
   void dispose() {
     _canProcess = false;
-    _faceDetector.close();
+    _faceDetectorService.faceDetector.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.dadosTela['Title'])),
-      body: CameraPreviewWithPaint(
-        title: 'Face Detector',
-        customPaint: _customPaint,
-        onImage: processImage,
-        initialDirection: CameraLensDirection.back, 
-        cameras: widget.dadosTela['cameras'],
-      ),
-    );
+    return FutureBuilder<List<CameraDescription>>(
+        future: Modular.get<Future<List<CameraDescription>>>(),
+        builder: (BuildContext context,
+            AsyncSnapshot<List<CameraDescription>> cameras) {
+          if (cameras.hasData) {
+            if (cameras.data != null) {
+              return CameraPreviewWithPaint(
+                title: 'Face Detector',
+                customPaint: _customPaint,
+                onImage: processImage,
+                cameras: cameras.data!,
+                initialDirection: CameraLensDirection.back,
+              );
+            }
+          }
+          return const Center(child: CircularProgressIndicator());
+        });
   }
 
-  Future<void> processImage(InputImage inputImage) async {
+  Future<void> processImage(InputImage? inputImage) async {
     bool? isPresented;
-    if (!_canProcess) return;
+    if (!_canProcess && inputImage == null) return;
     if (_isBusy) return;
     _isBusy = true;
-    final faces = await _faceDetector.processImage(inputImage);
-    if (widget.dadosTela["assistidos"] != null) {
-      final assisitido =
-          await mlService.predict(inputImage, widget.dadosTela["assistidos"]);
+    final faces =
+        await _faceDetectorService.faceDetector.processImage(inputImage!);
+    if (widget.assistidos != null) {
+      final assisitido = await _assistidoMmlService.predict(
+          _faceDetectorService, inputImage, widget.assistidos!);
       if (assisitido != null) {
         isPresented = true;
-        widget.dadosTela["chamadaFunc"](assisitido);
+        widget.chamadaFunc(assisitido);
       } else {
         isPresented = false;
       }

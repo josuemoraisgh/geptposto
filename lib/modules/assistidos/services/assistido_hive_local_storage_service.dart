@@ -51,7 +51,7 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
     final ret = await File('${directory.path}/$fileName').writeAsBytes(
         buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
     assistido.fotoPoints =
-        await _faceDetector.processFileImage('${directory.path}/$fileName');
+        await _faceDetector.getPointsFileImage('${directory.path}/$fileName');
     setRow(assistido);
     return ret;
   }
