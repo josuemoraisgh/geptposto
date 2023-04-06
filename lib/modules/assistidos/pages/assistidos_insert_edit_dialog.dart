@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import '../assistidos_controller.dart';
 import '../models/assistido_models.dart';
-import '../modelsView/assistido_camera_screen.dart';
+import '../modelsView/assistido_face_detector_view.dart';
 import '../stores/assistidos_store.dart';
 
 class AssistidosInsertEditDialog extends StatefulWidget {
@@ -103,13 +102,10 @@ class _AssistidosInsertEditDialogState
                           color: Colors.black54,
                           decorationColor: Colors.black),
                     ),
-                    /*FaceDetectorView(dadosTela: {
-                      'assistido': assistido!,
-                      'store': Modular.get<AssistidosController>().store
-                    })*/
-                    AssistidoCameraScreen(
+                    /*AssistidoCameraScreen(
                         assistido: assistido!,
-                        store: Modular.get<AssistidosController>().store),
+                        store: Modular.get<AssistidosController>().store),*/
+                    AssistidoFaceDetectorView(assistido: assistido),
                   ],
                 ),
                 TextFormField(

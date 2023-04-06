@@ -5,18 +5,20 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'image_converter.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
-  const CameraPreviewWithPaint(
-      {Key? key,
-      required this.title,
-      required this.customPaint,
-      required this.onImage,
-      required this.cameras,
-      this.initialDirection = CameraLensDirection.back})
-      : super(key: key);
+  const CameraPreviewWithPaint({
+    Key? key,
+    required this.title,
+    required this.customPaint,
+    required this.onImage,
+    required this.cameras,
+    required this.takeImage,
+    this.initialDirection = CameraLensDirection.back,
+  }) : super(key: key);
 
   final String title;
   final CustomPaint? customPaint;
   final dynamic Function(InputImage? inputImage) onImage;
+  final dynamic Function(XFile? xfile)? takeImage;
   final CameraLensDirection initialDirection;
   final List<CameraDescription> cameras;
 
@@ -84,18 +86,46 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   Widget? _floatingActionButton(AsyncSnapshot<bool> snapshot) {
     if (snapshot.data != null) {
       if ((widget.cameras.length != 1) && (snapshot.hasData)) {
-        return SizedBox(
-            height: 70.0,
-            width: 70.0,
-            child: FloatingActionButton(
-              onPressed: _switchLiveCamera,
-              child: Icon(
-                Platform.isIOS
-                    ? Icons.flip_camera_ios_outlined
-                    : Icons.flip_camera_android_outlined,
-                size: 40,
-              ),
-            ));
+        return (widget.takeImage != null)
+            ? Column(children: <Widget>[
+                SizedBox(
+                    height: 70.0,
+                    width: 70.0,
+                    child: FloatingActionButton(
+                      onPressed: _switchLiveCamera,
+                      child: Icon(
+                        Platform.isIOS
+                            ? Icons.flip_camera_ios_outlined
+                            : Icons.flip_camera_android_outlined,
+                        size: 40,
+                      ),
+                    )),
+                SizedBox(
+                  height: 70.0,
+                  width: 70.0,
+                  child: FloatingActionButton(
+                    onPressed: _cameraTakeImage,
+                    child: Icon(
+                      (widget.initialDirection == CameraLensDirection.back)
+                          ? Icons.photo_camera_back
+                          : Icons.photo_camera_front,
+                      size: 40,
+                    ),
+                  ),
+                )
+              ])
+            : SizedBox(
+                height: 70.0,
+                width: 70.0,
+                child: FloatingActionButton(
+                  onPressed: _switchLiveCamera,
+                  child: Icon(
+                    Platform.isIOS
+                        ? Icons.flip_camera_ios_outlined
+                        : Icons.flip_camera_android_outlined,
+                    size: 40,
+                  ),
+                ));
       }
     }
     return null;
@@ -200,5 +230,11 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     await _stopLiveFeed();
     await _startLiveFeed();
     setState(() => _changingCameraLens = false);
+  }
+
+  Future<void> _cameraTakeImage() async {
+    if (_controller != null && widget.takeImage != null) {
+      widget.takeImage!(await _controller!.takePicture());
+    }
   }
 }
