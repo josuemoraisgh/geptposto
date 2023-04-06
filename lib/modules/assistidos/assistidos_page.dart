@@ -103,7 +103,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   builder: (_, list) {
                     if ((list.hasData) && (list.data != null)) {
                       _list = list.data;
-                      return ListViewSilver(
+                      return AssistidoListViewSilver(
                         controller: controller,
                         list: list.data!,
                         functionChamada: chamadaFuncToogle,

@@ -1,6 +1,6 @@
 import 'package:flutter_modular/flutter_modular.dart';
 import '../assistidos/services/sync_hive_local_storage_service.dart';
-import '../faces/face_detector_view.dart';
+import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_controller.dart';
 import 'assistidos_page.dart';
 import 'interfaces/assistido_local_storage_interface.dart';
@@ -46,7 +46,7 @@ class AssistidosModule extends Module {
     ),
     ChildRoute(
       '/faces',
-      child: (_, args) => FaceDetectorView(
+      child: (_, args) => AssistidoFaceDetectorPage(
         dadosTela: args.data,
       ),
       customTransition: myCustomTransition,

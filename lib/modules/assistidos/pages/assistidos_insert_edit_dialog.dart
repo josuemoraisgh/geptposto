@@ -107,7 +107,7 @@ class _AssistidosInsertEditDialogState
                       'assistido': assistido!,
                       'store': Modular.get<AssistidosController>().store
                     })*/
-                    CameraScreen(
+                    AssistidoCameraScreen(
                         assistido: assistido!,
                         store: Modular.get<AssistidosController>().store),
                   ],

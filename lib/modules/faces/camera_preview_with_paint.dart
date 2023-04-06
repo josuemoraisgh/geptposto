@@ -8,25 +8,27 @@ List<CameraDescription> cameras = [];
 
 enum ScreenMode { liveFeed, gallery }
 
-class CameraView extends StatefulWidget {
-  const CameraView(
+class CameraPreviewWithPaint extends StatefulWidget {
+  const CameraPreviewWithPaint(
       {Key? key,
       required this.title,
       required this.customPaint,
       required this.onImage,
-      this.initialDirection = CameraLensDirection.back})
+      this.initialDirection = CameraLensDirection.back,
+      required this.cameras})
       : super(key: key);
 
   final String title;
   final CustomPaint? customPaint;
   final Function(InputImage inputImage) onImage;
   final CameraLensDirection initialDirection;
+  final List<CameraDescription> cameras;
 
   @override
-  State<CameraView> createState() => _CameraViewState();
+  State<CameraPreviewWithPaint> createState() => _CameraPreviewWithPaintState();
 }
 
-class _CameraViewState extends State<CameraView> {
+class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   late Future<bool> isInicialized;
   CameraController? _controller;
   int _cameraIndex = -1;
@@ -34,7 +36,6 @@ class _CameraViewState extends State<CameraView> {
   bool _changingCameraLens = false;
 
   Future<bool> init() async {
-    cameras = await availableCameras();
     if (cameras.any(
       (element) =>
           element.lensDirection == widget.initialDirection &&
@@ -78,7 +79,6 @@ class _CameraViewState extends State<CameraView> {
   Widget build(BuildContext context) => FutureBuilder<bool>(
       future: isInicialized,
       builder: (BuildContext context, AsyncSnapshot<bool> snapshot) => Scaffold(
-            appBar: AppBar(title: Text(widget.title)),
             body: _liveFeedBody(snapshot),
             floatingActionButton: _floatingActionButton(snapshot),
             floatingActionButtonLocation:

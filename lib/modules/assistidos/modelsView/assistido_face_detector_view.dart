@@ -1,19 +1,19 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import '../assistidos/services/ml_service.dart';
-import 'camera_view.dart';
-import 'painters/face_detector_painter.dart';
+import '../services/ml_service.dart';
+import '../../faces/camera_preview_with_paint.dart';
+import '../../faces/painters/face_detector_painter.dart';
 
-class FaceDetectorView extends StatefulWidget {
+class AssistidoFaceDetectorPage extends StatefulWidget {
   final Map<String, dynamic> dadosTela;
-  const FaceDetectorView({super.key, required this.dadosTela});
+  const AssistidoFaceDetectorPage({super.key, required this.dadosTela});
 
   @override
-  State<FaceDetectorView> createState() => _FaceDetectorViewState();
+  State<AssistidoFaceDetectorPage> createState() => _AssistidoFaceDetectorPageState();
 }
 
-class _FaceDetectorViewState extends State<FaceDetectorView> {
+class _AssistidoFaceDetectorPageState extends State<AssistidoFaceDetectorPage> {
   final mlService = MLService();
   final FaceDetector _faceDetector = FaceDetector(
     options: FaceDetectorOptions(
@@ -35,11 +35,15 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
 
   @override
   Widget build(BuildContext context) {
-    return CameraView(
-      title: 'Face Detector',
-      customPaint: _customPaint,
-      onImage: processImage,
-      initialDirection: CameraLensDirection.back,
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.dadosTela['Title'])),
+      body: CameraPreviewWithPaint(
+        title: 'Face Detector',
+        customPaint: _customPaint,
+        onImage: processImage,
+        initialDirection: CameraLensDirection.back, 
+        cameras: widget.dadosTela['cameras'],
+      ),
     );
   }
 
