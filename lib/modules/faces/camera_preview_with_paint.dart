@@ -5,33 +5,33 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'image_converter.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
+  final List<CameraDescription> cameras;
+  final Future<void> Function(InputImage? inputImage)? onPaintLiveImageFunc;
+  final Future<void> Function(XFile? xfile)? takeImageFunc;
+  final dynamic Function()? switchLiveCameraFunc;
+  final CameraLensDirection initialDirection;
+  final StackFit? stackFit;
+  final CustomPaint? customPaint;
   const CameraPreviewWithPaint({
     Key? key,
-    required this.title,
-    required this.customPaint,
-    required this.onImage,
     required this.cameras,
-    required this.takeImage,
+    this.customPaint,
+    this.onPaintLiveImageFunc,
+    this.takeImageFunc,
+    this.switchLiveCameraFunc,
+    this.stackFit,
     this.initialDirection = CameraLensDirection.back,
   }) : super(key: key);
-
-  final String title;
-  final CustomPaint? customPaint;
-  final dynamic Function(InputImage? inputImage) onImage;
-  final dynamic Function(XFile? xfile)? takeImage;
-  final CameraLensDirection initialDirection;
-  final List<CameraDescription> cameras;
-
   @override
   State<CameraPreviewWithPaint> createState() => _CameraPreviewWithPaintState();
 }
 
 class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
-  late Future<bool> isInicialized;
   CameraController? _controller;
   int _cameraIndex = -1;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
+  late Future<bool> isStarted; //Não retirar muito importante
 
   Future<bool> init() async {
     if (widget.cameras.any(
@@ -54,7 +54,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     }
 
     if (_cameraIndex != -1) {
-      await _startLiveFeed();
+      await _startLiveFeed(_cameraIndex);
       return true;
     } else {
       return false;
@@ -64,7 +64,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   @override
   void initState() {
     super.initState();
-    isInicialized = init();
+    isStarted = init();
   }
 
   @override
@@ -75,150 +75,122 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   @override
   Widget build(BuildContext context) => FutureBuilder<bool>(
-      future: isInicialized,
-      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) => Scaffold(
-            body: _liveFeedBody(snapshot),
-            floatingActionButton: _floatingActionButton(snapshot),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
-          ));
-
-  Widget? _floatingActionButton(AsyncSnapshot<bool> snapshot) {
-    if (snapshot.data != null) {
-      if ((widget.cameras.length != 1) && (snapshot.hasData)) {
-        return (widget.takeImage != null)
-            ? Column(children: <Widget>[
-                SizedBox(
-                    height: 70.0,
-                    width: 70.0,
-                    child: FloatingActionButton(
-                      onPressed: _switchLiveCamera,
-                      child: Icon(
-                        Platform.isIOS
-                            ? Icons.flip_camera_ios_outlined
-                            : Icons.flip_camera_android_outlined,
-                        size: 40,
-                      ),
-                    )),
-                SizedBox(
-                  height: 70.0,
-                  width: 70.0,
-                  child: FloatingActionButton(
-                    onPressed: _cameraTakeImage,
-                    child: Icon(
-                      (widget.initialDirection == CameraLensDirection.back)
-                          ? Icons.photo_camera_back
-                          : Icons.photo_camera_front,
-                      size: 40,
-                    ),
-                  ),
-                )
-              ])
-            : SizedBox(
-                height: 70.0,
-                width: 70.0,
-                child: FloatingActionButton(
-                  onPressed: _switchLiveCamera,
-                  child: Icon(
-                    Platform.isIOS
-                        ? Icons.flip_camera_ios_outlined
-                        : Icons.flip_camera_android_outlined,
-                    size: 40,
-                  ),
-                ));
-      }
-    }
-    return null;
-  }
-
-  Widget _liveFeedBody(AsyncSnapshot<bool> snapshot) {
-    if ((snapshot.data != null) && (_controller != null)) {
-      if ((widget.cameras.length != 1) &&
-          (snapshot.hasData) &&
-          (_controller!.value.isInitialized)) {
-        final size = MediaQuery.of(context).size;
-        // calculate scale depending on screen and camera ratios
-        // this is actually size.aspectRatio / (1 / camera.aspectRatio)
-        // because camera preview size is received as landscape
-        // but we're calculating for portrait orientation
-        var scale = size.aspectRatio * _controller!.value.aspectRatio;
-
-        // to prevent scaling down, invert the value
-        if (scale < 1) scale = 1 / scale;
-
-        return Container(
-          color: Colors.black,
-          child: Stack(
-            fit: StackFit.expand,
-            children: <Widget>[
-              Transform.scale(
-                scale: scale,
-                child: Center(
-                  child: _changingCameraLens
+        future: isStarted,
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          if ((snapshot.data != null) && (_controller != null)) {
+            if ((widget.cameras.isNotEmpty) &&
+                (snapshot.hasData) &&
+                (_controller!.value.isInitialized)) {
+              return Stack(
+                fit: widget.stackFit ?? StackFit.passthrough,
+                children: <Widget>[
+                  _changingCameraLens
                       ? const Center(
                           child: Text('Changing camera lens'),
                         )
                       : CameraPreview(_controller!),
-                ),
+                  if (widget.customPaint != null) widget.customPaint!,
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: _floatingActionButton(),
+                  ),
+                ],
+              );
+            }
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
+
+  Widget _floatingActionButton() {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                _cameraTakeImage();
+              },
+              child: Icon(
+                (widget.initialDirection == CameraLensDirection.back)
+                    ? Icons.photo_camera_back
+                    : Icons.photo_camera_front,
+                size: 40,
               ),
-              if (widget.customPaint != null) widget.customPaint!,
-              Positioned(
-                bottom: 100,
-                left: 50,
-                right: 50,
-                child: Slider(
-                  value: zoomLevel,
-                  min: minZoomLevel,
-                  max: maxZoomLevel,
-                  onChanged: (newSliderValue) {
-                    setState(() {
-                      zoomLevel = newSliderValue;
-                      _controller!.setZoomLevel(zoomLevel);
-                    });
-                  },
-                  divisions: (maxZoomLevel - 1).toInt() < 1
-                      ? null
-                      : (maxZoomLevel - 1).toInt(),
-                ),
-              )
-            ],
-          ),
-        );
-      }
-    }
-    return const Center(child: CircularProgressIndicator());
+            ),
+            const SizedBox(width: 24.0),
+            ElevatedButton(
+              onPressed: () {
+                _switchLiveCamera();
+              },
+              child: Icon(
+                Platform.isIOS
+                    ? Icons.flip_camera_ios_outlined
+                    : Icons.flip_camera_android_outlined,
+                size: 40,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 24.0),
+        Slider(
+          value: zoomLevel,
+          min: minZoomLevel,
+          max: maxZoomLevel,
+          onChanged: (newSliderValue) {
+            setState(() {
+              zoomLevel = newSliderValue;
+              _controller!.setZoomLevel(zoomLevel);
+            });
+          },
+          divisions: (maxZoomLevel - 1).toInt() < 1
+              ? null
+              : (maxZoomLevel - 1).toInt(),
+        ),
+      ],
+    );
   }
 
-  Future<void> _startLiveFeed() async {
+  Future<void> _startLiveFeed(int cameraIndex) async {
     if (_controller == null) {
-      final camera = widget.cameras[_cameraIndex];
+      final camera = widget.cameras[cameraIndex];
       _controller = CameraController(
         camera,
         ResolutionPreset.high,
         enableAudio: false,
       );
-      _controller?.initialize().then((_) {
-        if (!mounted) {
-          return;
-        }
-        _controller?.getMinZoomLevel().then((value) {
-          zoomLevel = value;
-          minZoomLevel = value;
-        });
-        _controller?.getMaxZoomLevel().then((value) {
-          maxZoomLevel = value;
-        });
-        _controller?.startImageStream((cameraImage) => widget.onImage(
-            convertCameraImageToInputImage(
-                cameraImage, camera.sensorOrientation)));
-        setState(() {});
-      });
+      _controller?.initialize().then(
+        (_) {
+          if (!mounted) {
+            return;
+          }
+          _controller?.getMinZoomLevel().then((value) {
+            zoomLevel = value;
+            minZoomLevel = value;
+          });
+          _controller?.getMaxZoomLevel().then((value) {
+            maxZoomLevel = value;
+          });
+          if (widget.onPaintLiveImageFunc != null) {
+            _controller?.startImageStream((cameraImage) {
+              widget.onPaintLiveImageFunc!(convertCameraImageToInputImage(
+                  cameraImage, camera.sensorOrientation));
+            });
+          }
+          setState(() {});
+        },
+      );
     }
   }
 
   Future _stopLiveFeed() async {
     if (_controller != null) {
-      await _controller?.stopImageStream();
+      try {
+        await _controller?.stopImageStream();
+      } catch (_) {}
       await _controller?.dispose();
       _controller = null;
     }
@@ -228,13 +200,18 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     setState(() => _changingCameraLens = true);
     _cameraIndex = (_cameraIndex + 1) % widget.cameras.length;
     await _stopLiveFeed();
-    await _startLiveFeed();
+    await _startLiveFeed(_cameraIndex);
+    if (widget.switchLiveCameraFunc != null) {
+      await widget.switchLiveCameraFunc!();
+    }
     setState(() => _changingCameraLens = false);
   }
 
   Future<void> _cameraTakeImage() async {
-    if (_controller != null && widget.takeImage != null) {
-      widget.takeImage!(await _controller!.takePicture());
+    if (_controller != null && widget.takeImageFunc != null) {
+      await _controller?.stopImageStream();
+      final value = await _controller?.takePicture();
+      widget.takeImageFunc!(value);
     }
   }
 }

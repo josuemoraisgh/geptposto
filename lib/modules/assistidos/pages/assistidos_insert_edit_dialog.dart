@@ -43,7 +43,7 @@ class _AssistidosInsertEditDialogState
             title: const Text("Insira os dados do novo Assistido"),
             titleTextStyle: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
-            actionsOverflowButtonSpacing: 20,
+            actionsOverflowButtonSpacing: 5,
             actions: [
               ElevatedButton(
                   onPressed: assistido!.nomeM1.length > 4
@@ -102,10 +102,9 @@ class _AssistidosInsertEditDialogState
                           color: Colors.black54,
                           decorationColor: Colors.black),
                     ),
-                    /*AssistidoCameraScreen(
-                        assistido: assistido!,
-                        store: Modular.get<AssistidosController>().store),*/
-                    AssistidoFaceDetectorView(assistido: assistido),
+                    //AssistidoCameraScreen(assistido: assistido!),
+                    AssistidoFaceDetectorView(
+                        assistido: assistido, stackFit: StackFit.expand),
                   ],
                 ),
                 TextFormField(

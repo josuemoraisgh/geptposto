@@ -2,17 +2,16 @@ import 'dart:io';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import '../assistidos_controller.dart';
 import '../models/assistido_models.dart';
-import '../modelsView/assistido_camera_screen.dart';
+import '../modelsView/assistido_face_detector_view.dart';
 
 class AssistidoEditInsertPage extends StatefulWidget {
   late final Assistido _assistido;
   late final bool isAdd;
   late final RxNotifier<File?> imageFile;
-  AssistidoEditInsertPage({Key? key, Assistido? assistido, required this.imageFile})
+  AssistidoEditInsertPage(
+      {Key? key, Assistido? assistido, required this.imageFile})
       : super(key: key) {
     isAdd = assistido == null ? true : false;
     _assistido = assistido ??
@@ -20,7 +19,8 @@ class AssistidoEditInsertPage extends StatefulWidget {
   }
 
   @override
-  State<AssistidoEditInsertPage> createState() => _AssistidoEditInsertPageState();
+  State<AssistidoEditInsertPage> createState() =>
+      _AssistidoEditInsertPageState();
 }
 
 class _AssistidoEditInsertPageState extends State<AssistidoEditInsertPage> {
@@ -68,10 +68,7 @@ class _AssistidoEditInsertPageState extends State<AssistidoEditInsertPage> {
                           color: Colors.black54,
                           decorationColor: Colors.black),
                     ),
-                    AssistidoCameraScreen(
-                      store: Modular.get<AssistidosController>().store,
-                      assistido: widget._assistido,
-                    ),
+                    AssistidoFaceDetectorView(assistido: widget._assistido),
                   ],
                 ),
                 TextFormField(

@@ -26,6 +26,7 @@ class _AssistidoFaceDetectorPageState extends State<AssistidoFaceDetectorPage> {
         body: AssistidoFaceDetectorView(
           assistidos: widget.assistidos,
           chamadaFunc: widget.chamadaFunc,
+          stackFit: StackFit.expand,
         ));
   }
 }
