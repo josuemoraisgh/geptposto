@@ -1,15 +1,16 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
-imglib.Image? convertToImage(CameraImage image) {
+imglib.Image? cameraImageToImage(CameraImage image) {
   try {
     if (image.format.group == ImageFormatGroup.yuv420) {
-      return _convertYUV420(image);
+      return convertYUV420(image);
     } else if (image.format.group == ImageFormatGroup.bgra8888) {
-      return _convertBGRA8888(image);
+      return convertBGRA8888(image);
     }
     throw Exception('Image format not supported');
   } catch (e) {
@@ -18,7 +19,7 @@ imglib.Image? convertToImage(CameraImage image) {
   return null;
 }
 
-imglib.Image _convertBGRA8888(CameraImage image) {
+imglib.Image convertBGRA8888(CameraImage image) {
   return imglib.Image.fromBytes(
     width: image.width,
     height: image.height,
@@ -27,7 +28,7 @@ imglib.Image _convertBGRA8888(CameraImage image) {
   );
 }
 
-imglib.Image _convertYUV420(CameraImage image) {
+imglib.Image convertYUV420(CameraImage image) {
   int width = image.width;
   int height = image.height;
   var img = imglib.Image(width: width, height: height);
@@ -58,42 +59,76 @@ imglib.Image _convertYUV420(CameraImage image) {
   return img;
 }
 
-  InputImage? convertCameraImageToInputImage(CameraImage image, int sensorOrientation) {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in image.planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    final bytes = allBytes.done().buffer.asUint8List();
-
-    final Size imageSize =
-        Size(image.width.toDouble(), image.height.toDouble());
-
-    final imageRotation =
-        InputImageRotationValue.fromRawValue(sensorOrientation);
-    if (imageRotation == null) return null;
-
-    final inputImageFormat =
-        InputImageFormatValue.fromRawValue(image.format.raw);
-    if (inputImageFormat == null) return null;
-
-    final planeData = image.planes.map(
-      (Plane plane) {
-        return InputImagePlaneMetadata(
-          bytesPerRow: plane.bytesPerRow,
-          height: plane.height,
-          width: plane.width,
-        );
-      },
-    ).toList();
-
-    final inputImageData = InputImageData(
-      size: imageSize,
-      imageRotation: imageRotation,
-      inputImageFormat: inputImageFormat,
-      planeData: planeData,
-    );
-
-    final inputImage =
-        InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
-    return inputImage;
+/*
+CameraImage? convertInputImageToCameraImage(InputImage inputImage){
+  return CameraImage();
+}
+*/
+InputImage? convertCameraImageToInputImage(
+    CameraImage image, int sensorOrientation) {
+  final WriteBuffer allBytes = WriteBuffer();
+  for (final Plane plane in image.planes) {
+    allBytes.putUint8List(plane.bytes);
   }
+  final bytes = allBytes.done().buffer.asUint8List();
+
+  final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+
+  final imageRotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+  if (imageRotation == null) return null;
+
+  final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
+  if (inputImageFormat == null) return null;
+
+  final planeData = image.planes.map(
+    (Plane plane) {
+      return InputImagePlaneMetadata(
+        bytesPerRow: plane.bytesPerRow,
+        height: plane.height,
+        width: plane.width,
+      );
+    },
+  ).toList();
+
+  final inputImageData = InputImageData(
+    size: imageSize,
+    imageRotation: imageRotation,
+    inputImageFormat: inputImageFormat,
+    planeData: planeData,
+  );
+
+  final inputImage =
+      InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+  return inputImage;
+}
+
+imglib.Image cropFace(imglib.Image image, Face faceDetected) {
+  double x = faceDetected.boundingBox.left - 10.0;
+  double y = faceDetected.boundingBox.top - 10.0;
+  double w = faceDetected.boundingBox.width + 10.0;
+  double h = faceDetected.boundingBox.height + 10.0;
+  return imglib.copyCrop(image,
+      x: x.round(), y: y.round(), width: w.round(), height: h.round());
+}
+
+imglib.Image convertCameraImageToImage(CameraImage cameraImage) {
+  var img = cameraImageToImage(cameraImage);
+  var img1 = imglib.copyRotate(img!, angle: -90);
+  return img1;
+}
+
+Float32List imageToByteListFloat32(imglib.Image image) {
+  var convertedBytes = Float32List(1 * 112 * 112 * 3);
+  var buffer = Float32List.view(convertedBytes.buffer);
+  int pixelIndex = 0;
+
+  for (var i = 0; i < 112; i++) {
+    for (var j = 0; j < 112; j++) {
+      var pixel = image.getPixelSafe(j, i);
+      buffer[pixelIndex++] = (pixel.r - 128) / 128;
+      buffer[pixelIndex++] = (pixel.g - 128) / 128;
+      buffer[pixelIndex++] = (pixel.b - 128) / 128;
+    }
+  }
+  return convertedBytes.buffer.asFloat32List();
+}

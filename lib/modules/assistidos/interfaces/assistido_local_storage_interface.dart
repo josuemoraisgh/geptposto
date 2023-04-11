@@ -1,13 +1,12 @@
 import 'dart:io';
-import 'dart:typed_data';
-
+import 'package:image_picker/image_picker.dart';
 import '../models/assistido_models.dart';
 
 abstract class AssistidoLocalStorageInterface {
   Future<void> init();
 
   Future<List<int>?> add(List<Assistido>? values); //Adiciona varias linhas
-  Future<File> addSetFile(Assistido assistido, Uint8List imageInUnit8List);
+  Future<File> addSetFile(Assistido assistido, XFile xFileImage);
 
   Future<String?> setRow(Assistido? data); //Reescreve as linhas
 

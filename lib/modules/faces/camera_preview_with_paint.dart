@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'image_converter.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final List<CameraDescription> cameras;
-  final Future<void> Function(InputImage? inputImage)? onPaintLiveImageFunc;
+  final Future<void> Function(CameraImage? cameraImage, int sensorOrientation)? onPaintLiveImageFunc;
   final Future<void> Function(XFile? xfile)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
@@ -176,8 +174,8 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
           });
           if (widget.onPaintLiveImageFunc != null) {
             _controller?.startImageStream((cameraImage) {
-              widget.onPaintLiveImageFunc!(convertCameraImageToInputImage(
-                  cameraImage, camera.sensorOrientation));
+              widget.onPaintLiveImageFunc!(
+                  cameraImage, camera.sensorOrientation);
             });
           }
           setState(() {});

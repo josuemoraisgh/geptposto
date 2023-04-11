@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../models/assistido_models.dart';
-import 'face_detector_service.dart';
+import 'assistido_ml_service.dart';
+import 'package:image/image.dart' as imglib;
 
 //implements == interface
 class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
-  final _faceDetector = FaceDetectorService();
+  final _assistidoMLService = AssistidoMLService();
   Completer<Box<Assistido>> completerAssistidos = Completer<Box<Assistido>>();
 
   @override
@@ -39,10 +42,13 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
 
   @override
   Future<File> addSetFile(
-      Assistido assistido, final Uint8List imageInUnit8List) async {
+      Assistido assistido, final XFile xFileImage) async {
     final fileName = assistido.photoName;
     final directory = await getApplicationDocumentsDirectory();
-    var buffer = imageInUnit8List.buffer;
+    final Uint8List data = await xFileImage.readAsBytes();
+    final imglib.Image? image = imglib.decodeImage(data);
+    final inputImage = InputImage.fromFilePath(xFileImage.path);
+    var buffer = data.buffer;
     ByteData byteData = ByteData.view(buffer);
     final isExists = await File('${directory.path}/$fileName').exists();
     if (isExists == true) {
@@ -51,7 +57,7 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
     final ret = await File('${directory.path}/$fileName').writeAsBytes(
         buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
     assistido.fotoPoints =
-        await _faceDetector.getPointsFileImage('${directory.path}/$fileName');
+        (await _assistidoMLService.renderizarImage(inputImage,image!)).cast<num>();
     setRow(assistido);
     return ret;
   }

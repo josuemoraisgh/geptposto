@@ -3,14 +3,15 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:geptposto/modules/faces/image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:intl/intl.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../models/assistido_models.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
-import '../services/face_detector_service.dart';
 import '../stores/assistidos_store.dart';
+import 'package:image/image.dart' as imglib;
 
 class AssistidoFaceDetectorView extends StatefulWidget {
   final Function(Assistido pessoa)? chamadaFunc;
@@ -33,7 +34,6 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   bool _canProcess = true, _isBusy = false;
   late Future<bool> _isInitedCameras;
   final _assistidoMmlService = Modular.get<AssistidoMLService>();
-  final _faceDetectorService = Modular.get<FaceDetectorService>();
   final _store = Modular.get<AssistidosStore>();
   List<CameraDescription>? _cameras;
   CustomPaint? _customPaint;
@@ -114,28 +114,29 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     );
   }
 
-  Future<void> _cameraTakeImage(XFile? pickedImage) async {
-    if (widget.assistido != null && pickedImage != null) {
+  Future<void> _cameraTakeImage(XFile? xFileImage) async {
+    if (widget.assistido != null && xFileImage != null) {
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
       if (widget.assistido!.photoName == "") {
         widget.assistido!.photoName =
             '${widget.assistido!.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
-      }
-      await _store.setImage(widget.assistido!, await pickedImage.readAsBytes());
+      }           
+      await _store.setImage(widget.assistido!, xFileImage);
       setState(() {});
     }
   }
 
-  Future<void> _processImage(InputImage? inputImage) async {
+  Future<void> _processImage(CameraImage? cameraImage, int sensorOrientation) async {
     bool? isPresented;
-    if (inputImage == null || !_canProcess || _isBusy) return;
-    _isBusy = true;
+    if (cameraImage == null || !_canProcess || _isBusy) return;
+    InputImage? inputImage = convertCameraImageToInputImage(cameraImage, sensorOrientation);
+    if (inputImage == null) return;
+    _isBusy = true;        
     final faces =
-        await _faceDetectorService.faceDetector.processImage(inputImage);
+        await _assistidoMmlService.faceDetector.processImage(inputImage);
     if (widget.assistidos != null) {
-      final assisitido = await _assistidoMmlService.predict(
-          _faceDetectorService, inputImage, widget.assistidos!);
+      final assisitido = await _assistidoMmlService.predict(cameraImage, sensorOrientation, widget.assistidos!);
       if (assisitido != null && widget.chamadaFunc != null) {
         isPresented = true;
         widget.chamadaFunc!(assisitido);
@@ -169,7 +170,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   @override
   void dispose() {
     _canProcess = false;
-    _faceDetectorService.faceDetector.close();
+    _assistidoMmlService.faceDetector.close();
     super.dispose();
   }
 }
