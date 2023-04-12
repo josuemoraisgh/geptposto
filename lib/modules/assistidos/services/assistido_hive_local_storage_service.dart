@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../models/assistido_models.dart';
@@ -41,15 +40,15 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   }
 
   @override
-  Future<File> addSetFile(
-      Assistido assistido, final XFile xFileImage) async {
+  Future<File> addSetFile(Assistido assistido, final imglib.Image imageLib,
+      final InputImage inputImage) async {
     final fileName = assistido.photoName;
     final directory = await getApplicationDocumentsDirectory();
-    final Uint8List data = await xFileImage.readAsBytes();
-    final imglib.Image? image = imglib.decodeImage(data);
-    final inputImage = InputImage.fromFilePath(xFileImage.path);
+    final Uint8List data = imageLib.toUint8List();
+
     var buffer = data.buffer;
     ByteData byteData = ByteData.view(buffer);
+
     final isExists = await File('${directory.path}/$fileName').exists();
     if (isExists == true) {
       await File('${directory.path}/$fileName').delete(recursive: true);
@@ -57,7 +56,8 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
     final ret = await File('${directory.path}/$fileName').writeAsBytes(
         buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
     assistido.fotoPoints =
-        (await _assistidoMLService.renderizarImage(inputImage,image!)).cast<num>();
+        (await _assistidoMLService.renderizarImage(inputImage, imageLib))
+            .cast<num>();
     setRow(assistido);
     return ret;
   }

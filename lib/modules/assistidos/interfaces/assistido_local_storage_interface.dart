@@ -1,12 +1,15 @@
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+
 import '../models/assistido_models.dart';
+import 'package:image/image.dart' as imglib;
 
 abstract class AssistidoLocalStorageInterface {
   Future<void> init();
 
   Future<List<int>?> add(List<Assistido>? values); //Adiciona varias linhas
-  Future<File> addSetFile(Assistido assistido, XFile xFileImage);
+  Future<File> addSetFile(Assistido assistido, final imglib.Image imageLib,
+      final InputImage inputImage);
 
   Future<String?> setRow(Assistido? data); //Reescreve as linhas
 

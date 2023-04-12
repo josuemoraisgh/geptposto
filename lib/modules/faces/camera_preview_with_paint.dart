@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final List<CameraDescription> cameras;
-  final Future<void> Function(CameraImage? cameraImage, int sensorOrientation)? onPaintLiveImageFunc;
+  final Future<void> Function(CameraImage? cameraImage, int sensorOrientation)?
+      onPaintLiveImageFunc;
   final Future<void> Function(XFile? xfile)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
@@ -208,8 +209,8 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   Future<void> _cameraTakeImage() async {
     if (_controller != null && widget.takeImageFunc != null) {
       await _controller?.stopImageStream();
-      final value = await _controller?.takePicture();
-      widget.takeImageFunc!(value);
+      final XFile? xFileImage = await _controller?.takePicture();
+      widget.takeImageFunc!(xFileImage);
     }
   }
 }

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
@@ -153,10 +154,12 @@ class AssistidosStore {
     var remoteImage = await _remoteStorage.getFile('BDados_Images', fileName);
     if (remoteImage != null) {
       if (remoteImage.isNotEmpty) {
-        result =
-            await _localStore.addSetFile(assistido, XFile.fromData(base64.decode(remoteImage)));
-        _countConnection--;
-        return result;
+        imglib.Image? image = imglib.decodeImage(base64.decode(remoteImage));
+        if (image != null) {
+          result = await _localStore.addSetFile(assistido, image);
+          _countConnection--;
+          return result;
+        }
       }
     }
     _countConnection--;
@@ -209,24 +212,24 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> addImage(Assistido pessoa, XFile xFileImage) async {
-    final Uint8List data = await xFileImage.readAsBytes();
-    final imglib.Image? image = imglib.decodeImage(data);
+  Future<bool> addImage(Assistido pessoa, imglib.Image imageLib) async {
+    final Uint8List data = imageLib.toUint8List();
     _syncStore
         .addSync('addImage', [pessoa.photoName, data]); //base64.encode(data)]);
-    await _localStore.addSetFile(pessoa, xFileImage);
+    await _localStore.addSetFile(pessoa, imageLib);
     _syncStore.addSync('set', pessoa);
     sync();
     await _localStore.setRow(pessoa);
     return false;
   }
 
-  Future<bool> setImage(Assistido pessoa, XFile xFileImage) async {
-    final Uint8List data = await xFileImage.readAsBytes();
+  Future<bool> setImage(Assistido pessoa, imglib.Image imageLib,
+      final InputImage inputImage) async {
+    final Uint8List data = imageLib.toUint8List();
     _syncStore.addSync(
         'setImage', [pessoa.photoName, data]); // base64.encode(data)]);
     sync();
-    await _localStore.addSetFile(pessoa, xFileImage);
+    await _localStore.addSetFile(pessoa, imageLib, inputImage);
     return false;
   }
 

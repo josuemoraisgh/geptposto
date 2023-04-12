@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -121,22 +122,33 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       if (widget.assistido!.photoName == "") {
         widget.assistido!.photoName =
             '${widget.assistido!.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
-      }           
-      await _store.setImage(widget.assistido!, xFileImage);
-      setState(() {});
+      }
+      final Uint8List data = await xFileImage.readAsBytes();
+      final imglib.Image? image = imglib.decodeImage(data);
+      if (image != null) {
+        final inputImage = InputImage.fromFilePath(xFileImage.path);
+        final faceDetected =
+            await _assistidoMmlService.faceDetector.processImage(inputImage);
+        await _store.setImage(
+            widget.assistido!, cropFace(image, faceDetected[0]));
+        setState(() {});
+      }
     }
   }
 
-  Future<void> _processImage(CameraImage? cameraImage, int sensorOrientation) async {
+  Future<void> _processImage(
+      CameraImage? cameraImage, int sensorOrientation) async {
     bool? isPresented;
     if (cameraImage == null || !_canProcess || _isBusy) return;
-    InputImage? inputImage = convertCameraImageToInputImage(cameraImage, sensorOrientation);
+    InputImage? inputImage =
+        convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage == null) return;
-    _isBusy = true;        
+    _isBusy = true;
     final faces =
         await _assistidoMmlService.faceDetector.processImage(inputImage);
     if (widget.assistidos != null) {
-      final assisitido = await _assistidoMmlService.predict(cameraImage, sensorOrientation, widget.assistidos!);
+      final assisitido = await _assistidoMmlService.predict(
+          cameraImage, sensorOrientation, widget.assistidos!);
       if (assisitido != null && widget.chamadaFunc != null) {
         isPresented = true;
         widget.chamadaFunc!(assisitido);
