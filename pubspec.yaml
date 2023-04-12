@@ -38,6 +38,7 @@ dependencies:
   #tflite_flutter: ^0.9.1
   tflite_flutter:
     path: assets/tflite_flutter
+  image_cropper: ^3.0.2
   
 dev_dependencies:
   flutter_test:

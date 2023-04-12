@@ -42,13 +42,11 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
 
   @override
   Future<File> addSetFile(
-      Assistido assistido, final XFile xFileImage) async {
+      Assistido assistido, final Uint8List uint8ListImage) async {
     final fileName = assistido.photoName;
     final directory = await getApplicationDocumentsDirectory();
-    final Uint8List data = await xFileImage.readAsBytes();
-    final imglib.Image? image = imglib.decodeImage(data);
-    final inputImage = InputImage.fromFilePath(xFileImage.path);
-    var buffer = data.buffer;
+
+    var buffer = uint8ListImage.buffer;
     ByteData byteData = ByteData.view(buffer);
     final isExists = await File('${directory.path}/$fileName').exists();
     if (isExists == true) {
@@ -56,9 +54,6 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
     }
     final ret = await File('${directory.path}/$fileName').writeAsBytes(
         buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-    assistido.fotoPoints =
-        (await _assistidoMLService.renderizarImage(inputImage,image!)).cast<num>();
-    setRow(assistido);
     return ret;
   }
 

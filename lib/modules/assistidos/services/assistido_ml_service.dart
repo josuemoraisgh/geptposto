@@ -100,10 +100,16 @@ class AssistidoMLService {
   }
 
   List _preProcessImage(imglib.Image image, Face faceDetected) {
-    imglib.Image croppedImage = cropFace(image, faceDetected);
-    imglib.Image img = imglib.copyResizeCropSquare(croppedImage, size: 112);
-
-    Float32List imageAsList = imageToByteListFloat32(img);
-    return imageAsList;
+    imglib.Image? croppedImage = cropFace(image, faceDetected);
+    if (croppedImage != null) {
+      imglib.Image img = imglib.copyResizeCropSquare(croppedImage, size: 112);
+      final uint8List = Uint8List.fromList(imglib.encodePng(img));
+      final img2 = imglib.decodeImage(uint8List);
+      if (img2 != null) {
+        Float32List imageAsList = imageToByteListFloat32(img2);
+        return imageAsList;
+      }
+    }
+    return [];
   }
 }

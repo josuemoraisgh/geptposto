@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -121,22 +122,36 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       if (widget.assistido!.photoName == "") {
         widget.assistido!.photoName =
             '${widget.assistido!.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
-      }           
-      await _store.setImage(widget.assistido!, xFileImage);
-      setState(() {});
+      }
+      final Uint8List data = await xFileImage.readAsBytes();
+      final imglib.Image? image = imglib.decodeImage(data);
+      final inputImage = InputImage.fromFilePath(xFileImage.path);
+      final faceDetected =
+          await _assistidoMmlService.faceDetector.processImage(inputImage);
+      final image2 = cropFace(image!, faceDetected[0]);
+      if (image2 != null) {
+        await _store.setImage(widget.assistido!, image2.toUint8List());
+        widget.assistido!.fotoPoints =
+            (await _assistidoMmlService.renderizarImage(inputImage, image2))
+                .cast<num>();
+        await _store.setRow(widget.assistido!);
+        setState(() {});
+      }
     }
   }
 
-  Future<void> _processImage(CameraImage? cameraImage, int sensorOrientation) async {
+  Future<void> _processImage(
+      CameraImage cameraImage, int sensorOrientation) async {
     bool? isPresented;
-    if (cameraImage == null || !_canProcess || _isBusy) return;
-    InputImage? inputImage = convertCameraImageToInputImage(cameraImage, sensorOrientation);
-    if (inputImage == null) return;
-    _isBusy = true;        
+    InputImage? inputImage =
+        convertCameraImageToInputImage(cameraImage, sensorOrientation);
+    if (inputImage == null || !_canProcess || _isBusy) return;
+    _isBusy = true;
     final faces =
         await _assistidoMmlService.faceDetector.processImage(inputImage);
     if (widget.assistidos != null) {
-      final assisitido = await _assistidoMmlService.predict(cameraImage, sensorOrientation, widget.assistidos!);
+      final assisitido = await _assistidoMmlService.predict(
+          cameraImage, sensorOrientation, widget.assistidos!);
       if (assisitido != null && widget.chamadaFunc != null) {
         isPresented = true;
         widget.chamadaFunc!(assisitido);

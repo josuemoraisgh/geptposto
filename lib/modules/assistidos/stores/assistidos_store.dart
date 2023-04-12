@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:camera/camera.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
 import '../models/assistido_models.dart';
-import 'package:image/image.dart' as imglib;
 
 class AssistidosStore {
   bool isRunningSync = false;
@@ -154,7 +152,7 @@ class AssistidosStore {
     if (remoteImage != null) {
       if (remoteImage.isNotEmpty) {
         result =
-            await _localStore.addSetFile(assistido, XFile.fromData(base64.decode(remoteImage)));
+            await _localStore.addSetFile(assistido, base64.decode(remoteImage));
         _countConnection--;
         return result;
       }
@@ -209,24 +207,21 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> addImage(Assistido pessoa, XFile xFileImage) async {
-    final Uint8List data = await xFileImage.readAsBytes();
-    final imglib.Image? image = imglib.decodeImage(data);
+  Future<bool> addImage(Assistido pessoa,final Uint8List uint8ListImage) async {
     _syncStore
-        .addSync('addImage', [pessoa.photoName, data]); //base64.encode(data)]);
-    await _localStore.addSetFile(pessoa, xFileImage);
+        .addSync('addImage', [pessoa.photoName, uint8ListImage]); //base64.encode(data)]);
+    await _localStore.addSetFile(pessoa, uint8ListImage);
     _syncStore.addSync('set', pessoa);
     sync();
     await _localStore.setRow(pessoa);
     return false;
   }
 
-  Future<bool> setImage(Assistido pessoa, XFile xFileImage) async {
-    final Uint8List data = await xFileImage.readAsBytes();
+  Future<bool> setImage(Assistido pessoa,final Uint8List uint8ListImage) async {
     _syncStore.addSync(
-        'setImage', [pessoa.photoName, data]); // base64.encode(data)]);
+        'setImage', [pessoa.photoName, uint8ListImage]); // base64.encode(data)]);
     sync();
-    await _localStore.addSetFile(pessoa, xFileImage);
+    await _localStore.addSetFile(pessoa, uint8ListImage);
     return false;
   }
 

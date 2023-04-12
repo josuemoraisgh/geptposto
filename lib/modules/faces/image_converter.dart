@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 imglib.Image? cameraImageToImage(CameraImage image) {
   try {
@@ -102,13 +104,14 @@ InputImage? convertCameraImageToInputImage(
   return inputImage;
 }
 
-imglib.Image cropFace(imglib.Image image, Face faceDetected) {
+imglib.Image? cropFace(imglib.Image image, Face faceDetected) {
   double x = faceDetected.boundingBox.left - 10.0;
   double y = faceDetected.boundingBox.top - 10.0;
-  double w = faceDetected.boundingBox.width + 10.0;
-  double h = faceDetected.boundingBox.height + 10.0;
-  return imglib.copyCrop(image,
-      x: x.round(), y: y.round(), width: w.round(), height: h.round());
+  double w = faceDetected.boundingBox.width + 20.0;
+  double h = faceDetected.boundingBox.height + 20.0;
+  final image1 = imglib.copyCrop(image, x: x.round(), y: y.round(), width: w.round(), height: h.round());
+  final uint8List = Uint8List.fromList(imglib.encodePng(image1));
+  return imglib.decodeImage(uint8List);
 }
 
 imglib.Image convertCameraImageToImage(CameraImage cameraImage) {
@@ -131,4 +134,45 @@ Float32List imageToByteListFloat32(imglib.Image image) {
     }
   }
   return convertedBytes.buffer.asFloat32List();
+}
+
+Future<Uint8List?> cropImage(XFile? imageFile) async {
+  if (imageFile != null) {
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: imageFile.path,
+      aspectRatioPresets: Platform.isAndroid
+          ? [
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio16x9
+            ]
+          : [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPreset.ratio3x2,
+              CropAspectRatioPreset.ratio4x3,
+              CropAspectRatioPreset.ratio5x3,
+              CropAspectRatioPreset.ratio5x4,
+              CropAspectRatioPreset.ratio7x5,
+              CropAspectRatioPreset.ratio16x9
+            ],
+      uiSettings: [
+        AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.deepOrange,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false),
+        IOSUiSettings(
+          title: 'Cropper',
+        )
+      ],
+    );
+    if (croppedFile != null) {
+        return croppedFile.readAsBytes();
+    }
+  }
+  return null;
 }
