@@ -136,21 +136,22 @@ class _AssistidosPageState extends State<AssistidosPage> {
         shape: const CircleBorder(),
         children: [
           SpeedDialChild(
-              child: const Icon(Icons.collections),
-              backgroundColor: Colors.red,
-              label: 'Chamada por Image',
-              labelStyle: const TextStyle(fontSize: 18.0),
-              onTap: () {
-                Modular.to.pushNamed("faces", arguments: {
+            child: const Icon(Icons.collections),
+            backgroundColor: Colors.red,
+            label: 'Chamada por Image',
+            labelStyle: const TextStyle(fontSize: 18.0),
+            onTap: () {
+              Modular.to.pushNamed(
+                "faces",
+                arguments: {
                   "assistidos": _list,
                   "chamadaFunc": chamadaFunc,
                   "Title": "Tire sua Foto",
-                });
-                /*showDialog(
-                  context: context,
-                  builder: (BuildContext context) => const FaceDetectorView(),
-                );*/
-              }),
+                },
+              );
+
+            },
+          ),
           SpeedDialChild(
               child: const Icon(Icons.add_box),
               backgroundColor: Colors.blue,

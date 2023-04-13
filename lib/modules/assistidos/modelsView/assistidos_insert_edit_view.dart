@@ -1,9 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../models/assistido_models.dart';
-import 'assistido_face_detector_view.dart';
 import '../stores/assistidos_store.dart';
 
 class AssistidosInsertEditView extends StatefulWidget {
@@ -16,15 +16,15 @@ class AssistidosInsertEditView extends StatefulWidget {
 }
 
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
-  late bool isAdd;
-  late Assistido? assistido;
-  final AssistidosStore store = Modular.get<AssistidosStore>();
+  late bool _isAdd;
+  late Assistido? _assistido;
+  final AssistidosStore _store = Modular.get<AssistidosStore>();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
-    isAdd = widget.assistido == null ? true : false;
-    assistido = widget.assistido ??
+    _isAdd = widget.assistido == null ? true : false;
+    _assistido = widget.assistido ??
         Assistido(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
     super.initState();
   }
@@ -35,12 +35,12 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
       key: _formKey,
       autovalidateMode: AutovalidateMode.always, //.onUserInteraction,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.only(left:20,right: 20),
+        padding: const EdgeInsets.only(left: 20, right: 20),
         child: Column(
           children: [
             const SizedBox(height: 20),
             TextFormField(
-              initialValue: assistido!.nomeM1,
+              initialValue: _assistido!.nomeM1,
               decoration: const InputDecoration(
                 border: UnderlineInputBorder(),
                 icon: Icon(Icons.person),
@@ -56,7 +56,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => assistido!.nomeM1 = v),
+              onChanged: (v) => setState(() => _assistido!.nomeM1 = v),
             ),
             const SizedBox(height: 15),
             Column(
@@ -71,12 +71,12 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                       decorationColor: Colors.black),
                 ),
                 const SizedBox(height: 10),
-                AssistidoFaceDetectorView(
-                    assistido: assistido, stackFit: StackFit.passthrough),
+                _getImage(context),
+                //AssistidoFaceDetectorView(assistido: _assistido, stackFit: StackFit.passthrough),
               ],
             ),
             TextFormField(
-              initialValue: assistido!.horario,
+              initialValue: _assistido!.horario,
               decoration: const InputDecoration(
                   border: UnderlineInputBorder(),
                   icon: Icon(Icons.lock_clock),
@@ -95,7 +95,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => assistido!.horario = v),
+              onChanged: (v) => setState(() => _assistido!.horario = v),
             ),
             const SizedBox(height: 15),
             Row(children: [
@@ -125,15 +125,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }).toList(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      assistido!.condicao = novoItemSelecionado;
+                      _assistido!.condicao = novoItemSelecionado;
                     }
                   },
-                  value: assistido!.condicao.replaceAll(" ", ""),
+                  value: _assistido!.condicao.replaceAll(" ", ""),
                 ),
               ])
             ]),
             TextFormField(
-              initialValue: assistido!.dataNascM1,
+              initialValue: _assistido!.dataNascM1,
               decoration: const InputDecoration(
                   border: UnderlineInputBorder(),
                   icon: Icon(Icons.date_range),
@@ -152,7 +152,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => assistido!.dataNascM1 = v),
+              onChanged: (v) => setState(() => _assistido!.dataNascM1 = v),
             ),
             const SizedBox(height: 15),
             Row(children: [
@@ -189,15 +189,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }).toList(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      assistido!.estadoCivil = novoItemSelecionado;
+                      _assistido!.estadoCivil = novoItemSelecionado;
                     }
                   },
-                  value: assistido!.estadoCivil.replaceAll(" ", ""),
+                  value: _assistido!.estadoCivil.replaceAll(" ", ""),
                 ),
               ])
             ]),
             TextFormField(
-                initialValue: assistido!.fone,
+                initialValue: _assistido!.fone,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.phone),
@@ -218,10 +218,10 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   return null;
                 },
                 onChanged: (v) => setState(
-                      () => assistido!.fone = v,
+                      () => _assistido!.fone = v,
                     )),
             TextFormField(
-                initialValue: assistido!.rg,
+                initialValue: _assistido!.rg,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.assignment_ind),
@@ -231,9 +231,9 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                onChanged: (v) => setState(() => assistido!.rg = v)),
+                onChanged: (v) => setState(() => _assistido!.rg = v)),
             TextFormField(
-                initialValue: assistido!.cpf,
+                initialValue: _assistido!.cpf,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.attribution),
@@ -252,7 +252,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }
                   return null;
                 },
-                onChanged: (v) => setState(() => assistido!.cpf = v)),
+                onChanged: (v) => setState(() => _assistido!.cpf = v)),
             const SizedBox(height: 15),
             Row(children: [
               const Icon(Icons.admin_panel_settings, color: Colors.black54),
@@ -290,15 +290,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }).toList(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      assistido!.logradouro = novoItemSelecionado;
+                      _assistido!.logradouro = novoItemSelecionado;
                     }
                   },
-                  value: assistido!.logradouro.replaceAll(" ", ""),
+                  value: _assistido!.logradouro.replaceAll(" ", ""),
                 ),
               ])
             ]),
             TextFormField(
-                initialValue: assistido!.endereco,
+                initialValue: _assistido!.endereco,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.place),
@@ -312,9 +312,9 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }
                   return null;
                 },
-                onChanged: (v) => setState(() => assistido!.endereco = v)),
+                onChanged: (v) => setState(() => _assistido!.endereco = v)),
             TextFormField(
-                initialValue: assistido!.numero,
+                initialValue: _assistido!.numero,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.numbers),
@@ -326,49 +326,49 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }
                   return null;
                 },
-                onChanged: (v) => setState(() => assistido!.numero = v)),
+                onChanged: (v) => setState(() => _assistido!.numero = v)),
             TextFormField(
-              initialValue: assistido!.bairro,
+              initialValue: _assistido!.bairro,
               decoration: const InputDecoration(
                   border: UnderlineInputBorder(),
                   icon: Icon(Icons.south_america_outlined),
                   labelText: "Bairro"),
               validator: (value) => null,
               onChanged: (v) {
-                assistido!.bairro = v;
+                _assistido!.bairro = v;
               },
             ),
             TextFormField(
-                initialValue: assistido!.complemento,
+                initialValue: _assistido!.complemento,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.travel_explore),
                     labelText: "Complemento"),
                 validator: (value) => null,
-                onChanged: (v) => setState(() => assistido!.complemento = v)),
+                onChanged: (v) => setState(() => _assistido!.complemento = v)),
             TextFormField(
-                initialValue: assistido!.cep,
+                initialValue: _assistido!.cep,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.elevator_sharp),
                     labelText: "CEP"),
                 validator: (value) => null,
-                onChanged: (v) => setState(() => assistido!.cep = v)),
+                onChanged: (v) => setState(() => _assistido!.cep = v)),
             TextFormField(
-                initialValue: assistido!.obs,
+                initialValue: _assistido!.obs,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.check),
                     labelText: "OBS"),
                 validator: (value) => null,
                 maxLines: 5,
-                onChanged: (v) => setState(() => assistido!.obs = v)),
+                onChanged: (v) => setState(() => _assistido!.obs = v)),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                    onPressed: assistido!.nomeM1.length > 4
+                    onPressed: _assistido!.nomeM1.length > 4
                         ? () async {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
@@ -376,10 +376,10 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                                 const SnackBar(
                                     content: Text('Assistido Salvo')),
                               );
-                              if (isAdd) {
-                                store.add(assistido);
+                              if (_isAdd) {
+                                _store.add(_assistido);
                               } else {
-                                store.setRow(assistido!);
+                                _store.setRow(_assistido!);
                               }
                             }
                           }
@@ -389,6 +389,74 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _getImage(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: screenWidth,
+          maxHeight: screenHeight,
+        ),
+        child: FutureBuilder<File?>(
+          future: (_assistido != null) ? _store.getImg(_assistido!) : null,
+          builder: (BuildContext context, AsyncSnapshot<File?> imageFile) {
+            if (imageFile.data != null) {
+              return FutureBuilder<bool>(
+                future: imageFile.data!.exists(),
+                builder: (BuildContext context, AsyncSnapshot<bool> isExists) {
+                  if (isExists.hasData) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.file(imageFile.data!),
+                        const SizedBox(height: 4.0),
+                        FloatingActionButton(
+                          onPressed: () {
+                            if (_assistido != null) {
+                              _store.deleteImage(_assistido!);
+                            }
+                          },
+                          backgroundColor: Colors.redAccent,
+                          tooltip: 'Delete',
+                          child: const Icon(Icons.delete),
+                        ),
+                      ],
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              );
+            } else {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    "assets/images/semFoto.png",
+                    fit: BoxFit.cover,
+                    width: 250,
+                    height: 250,
+                  ),
+                  const SizedBox(height: 20.0),
+                  FloatingActionButton(
+                    onPressed: () {
+                      Modular.to.pushNamed("faces", arguments: {'assistido':_assistido});
+                    },
+                    backgroundColor: Colors.green,
+                    tooltip: 'New',
+                    child: const Icon(Icons.add_a_photo),
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ),
     );

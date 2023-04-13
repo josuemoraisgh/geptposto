@@ -54,9 +54,10 @@ class AssistidosModule extends Module {
     ChildRoute(
       '/faces',
       child: (_, args) => AssistidoFaceDetectorPage(
+        assistido: args.data["assistido"],        
         assistidos: args.data["assistidos"],
         chamadaFunc: args.data["chamadaFunc"],
-        title: args.data["Title"],
+        title: "Camera Ativa",
       ),
       customTransition: myCustomTransition,
     ),

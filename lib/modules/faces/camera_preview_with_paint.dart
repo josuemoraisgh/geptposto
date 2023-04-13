@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final List<CameraDescription> cameras;
-  final Future<void> Function(CameraImage cameraImage, int sensorOrientation)? onPaintLiveImageFunc;
+  final Future<void> Function(CameraImage cameraImage, int sensorOrientation)?
+      onPaintLiveImageFunc;
   final Future<void> Function(XFile? xfile)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
@@ -72,35 +73,37 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<bool>(
-        future: isStarted,
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-          if ((snapshot.data != null) && (_controller != null)) {
-            if ((widget.cameras.isNotEmpty) &&
-                (snapshot.hasData) &&
-                (_controller!.value.isInitialized)) {
-              return Stack(
-                fit: widget.stackFit ?? StackFit.passthrough,
-                children: <Widget>[
-                  _changingCameraLens
-                      ? const Center(
-                          child: Text('Changing camera lens'),
-                        )
-                      : CameraPreview(_controller!),
-                  if (widget.customPaint != null) widget.customPaint!,
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: _floatingActionButton(),
-                  ),
-                ],
-              );
-            }
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: isStarted,
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if ((snapshot.data != null) && (_controller != null)) {
+          if ((widget.cameras.isNotEmpty) &&
+              (snapshot.hasData) &&
+              (_controller!.value.isInitialized)) {
+            return Stack(
+              fit: widget.stackFit ?? StackFit.passthrough,
+              children: <Widget>[
+                _changingCameraLens
+                    ? const Center(
+                        child: Text('Changing camera lens'),
+                      )
+                    : CameraPreview(_controller!),
+                if (widget.customPaint != null) widget.customPaint!,
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: _floatingActionButton(),
+                ),
+              ],
+            );
           }
-          return const Center(child: CircularProgressIndicator());
-        },
-      );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
 
   Widget _floatingActionButton() {
     return Column(

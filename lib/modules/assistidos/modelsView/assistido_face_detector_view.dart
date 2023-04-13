@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -32,8 +30,8 @@ class AssistidoFaceDetectorView extends StatefulWidget {
 }
 
 class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
+  late Future<bool> isInited;
   bool _canProcess = true, _isBusy = false;
-  late Future<bool> _isInitedCameras;
   final _assistidoMmlService = Modular.get<AssistidoMLService>();
   final _store = Modular.get<AssistidosStore>();
   List<CameraDescription>? _cameras;
@@ -47,71 +45,26 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   @override
   void initState() {
     super.initState();
-    _isInitedCameras = init();
+    isInited = init();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: screenWidth,
-          maxHeight: screenHeight,
-        ),
-        child: FutureBuilder<File?>(
-          future: (widget.assistido != null)
-              ? _store.getImg(widget.assistido!)
-              : null,
-          builder: (BuildContext context, AsyncSnapshot<File?> imageFile) {
-            if (imageFile.data != null) {
-              return FutureBuilder<bool>(
-                future: imageFile.data!.exists(),
-                builder: (BuildContext context, AsyncSnapshot<bool> isExists) {
-                  if (isExists.hasData) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.file(imageFile.data!),
-                        const SizedBox(height: 4.0),
-                        FloatingActionButton(
-                          onPressed: () {
-                            _clearImage();
-                          },
-                          backgroundColor: Colors.redAccent,
-                          tooltip: 'Delete',
-                          child: const Icon(Icons.delete),
-                        ),
-                      ],
-                    );
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
-              );
-            } else {
-              return FutureBuilder<bool>(
-                future: _isInitedCameras,
-                builder:
-                    (BuildContext context, AsyncSnapshot<bool> initCameras) {
-                  if (initCameras.data != null) {
-                    return CameraPreviewWithPaint(
-                      cameras: _cameras!,
-                      customPaint: _customPaint,
-                      onPaintLiveImageFunc: _processImage,
-                      takeImageFunc: _cameraTakeImage,
-                      stackFit: widget.stackFit,
-                      initialDirection: CameraLensDirection.back,
-                    );
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
-              );
-            }
-          },
-        ),
-      ),
+    return FutureBuilder<bool>(
+      future: isInited,
+      builder: (BuildContext context, AsyncSnapshot<bool> initCameras) {
+        if (initCameras.data != null) {
+          return CameraPreviewWithPaint(
+            cameras: _cameras!,
+            customPaint: _customPaint,
+            onPaintLiveImageFunc: _processImage,
+            takeImageFunc: _cameraTakeImage,
+            stackFit: widget.stackFit,
+            initialDirection: CameraLensDirection.back,
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
     );
   }
 
@@ -128,16 +81,23 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       final inputImage = InputImage.fromFilePath(xFileImage.path);
       final faceDetected =
           await _assistidoMmlService.faceDetector.processImage(inputImage);
-      final image2 = cropFace(image!, faceDetected[0]);
-      if (image2 != null) {
-        await _store.setImage(widget.assistido!, image2.toUint8List());
-        widget.assistido!.fotoPoints =
-            (await _assistidoMmlService.renderizarImage(inputImage, image2))
-                .cast<num>();
-        await _store.setRow(widget.assistido!);
-        setState(() {});
+      if (image != null) {
+        if (faceDetected.isEmpty) {
+          await _store.setImage(widget.assistido!, image.toUint8List());
+        } else {
+          final image2 = cropFace(image, faceDetected[0]);
+          if (image2 != null) {
+            await _store.setImage(widget.assistido!, image2.toUint8List());
+            widget.assistido!.fotoPoints =
+                (await _assistidoMmlService.renderizarImage(inputImage, image2))
+                    .cast<num>();
+            await _store.setRow(widget.assistido!);
+            Modular.to.pop();
+          }
+        }
       }
     }
+    Modular.to.pop();
   }
 
   Future<void> _processImage(
@@ -171,14 +131,6 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     _isBusy = false;
     if (mounted) {
       setState(() {});
-    }
-  }
-
-  void _clearImage() {
-    if (widget.assistido != null) {
-      setState(() {
-        _store.deleteImage(widget.assistido!);
-      });
     }
   }
 
