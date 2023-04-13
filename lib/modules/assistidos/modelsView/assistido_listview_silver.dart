@@ -10,7 +10,7 @@ class AssistidoListViewSilver extends StatelessWidget {
   final List<Assistido> list;
   final AssistidosController controller;
   final Future<File?> Function(Assistido pessoa) functionGetImg;
-  final void Function(Assistido pessoa) functionEdit;
+  final void Function({Assistido? assistido}) functionEdit;
   final void Function(Assistido pessoa) functionChamada;
   const AssistidoListViewSilver({
     Key? key,
@@ -178,7 +178,7 @@ class AssistidoListViewSilver extends StatelessWidget {
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () {
-              functionEdit(pessoa);
+              functionEdit(assistido: pessoa);
             },
             child: const Icon(
               Icons.edit,

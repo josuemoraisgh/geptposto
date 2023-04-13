@@ -10,6 +10,7 @@ import 'interfaces/asssistido_remote_storage_interface.dart';
 import 'interfaces/config_local_storage_interface.dart';
 import 'interfaces/provider_interface.dart';
 import 'interfaces/sync_local_storage_interface.dart';
+import 'pages/assistidos_edit_insert_page.dart';
 import 'repositories/assistido_gsheet_repository.dart';
 import 'services/assistido_hive_local_storage_service.dart';
 import 'services/config_hive_local_storage_service.dart';
@@ -59,6 +60,13 @@ class AssistidosModule extends Module {
       ),
       customTransition: myCustomTransition,
     ),
+    ChildRoute(
+      '/insert',
+      child: (_, args) => AssistidoEditInsertPage(
+        assistido: args.data["assistido"],
+      ),
+      customTransition: myCustomTransition,
+    ),    
   ];
 
   static get myCustomTransition => null;

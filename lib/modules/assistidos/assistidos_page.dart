@@ -11,7 +11,6 @@ import 'models/assistido_models.dart';
 import 'modelsView/dropdown_body.dart';
 import 'modelsView/assistido_listview_silver.dart';
 import 'modelsView/search_bar.dart';
-import 'pages/assistidos_insert_edit_dialog.dart';
 
 class AssistidosPage extends StatefulWidget {
   final Map<String, dynamic> dadosTela;
@@ -107,7 +106,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                         controller: controller,
                         list: list.data!,
                         functionChamada: chamadaFuncToogle,
-                        functionEdit: editFunc,
+                        functionEdit: editAddFunc,
                         functionGetImg: controller.store.getImg,
                       );
                     } else if (list.hasError) {
@@ -166,16 +165,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
             backgroundColor: Colors.green,
             label: 'Inserir Usuário',
             labelStyle: const TextStyle(fontSize: 18.0),
-            onTap: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AssistidosInsertEditDialog(
-                      store: controller.store,
-                      function: () => setState(() {}),
-                    );
-                  });
-            },
+            onTap: editAddFunc,
           ),
           SpeedDialChild(
             child: const Icon(
@@ -197,16 +187,11 @@ class _AssistidosPageState extends State<AssistidosPage> {
     );
   }
 
-  void editFunc(Assistido pessoa) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AssistidosInsertEditDialog(
-            assistido: pessoa,
-            store: controller.store,
-            function: () => setState(() {}),
-          );
-        });
+  void editAddFunc({Assistido? assistido}) {
+    Modular.to.pushNamed(
+      "insert",
+      arguments: {assistido: assistido},
+    );
   }
 
   void chamadaFunc(Assistido pessoa) {

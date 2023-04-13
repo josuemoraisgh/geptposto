@@ -1,18 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../models/assistido_models.dart';
-import 'assistido_ml_service.dart';
-import 'package:image/image.dart' as imglib;
 
 //implements == interface
 class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
-  final _assistidoMLService = AssistidoMLService();
   Completer<Box<Assistido>> completerAssistidos = Completer<Box<Assistido>>();
 
   @override
