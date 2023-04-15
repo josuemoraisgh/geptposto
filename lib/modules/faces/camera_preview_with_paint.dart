@@ -30,9 +30,11 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   int _cameraIndex = -1;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
+  late bool _isBusyCamera;
   late Future<bool> isStarted; //Não retirar muito importante
 
   Future<bool> init() async {
+    _isBusyCamera = false;
     if (widget.cameras.any(
       (element) =>
           element.lensDirection == widget.initialDirection &&
@@ -189,9 +191,9 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   Future _stopLiveFeed() async {
     if (_controller != null) {
-      try {
+      if (_isBusyCamera != true) {
         await _controller?.stopImageStream();
-      } catch (_) {}
+      }
       await _controller?.dispose();
       _controller = null;
     }
@@ -209,11 +211,17 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   }
 
   Future<void> _cameraTakeImage() async {
-    if (_controller != null && widget.takeImageFunc != null) {
-      await _controller?.stopImageStream();
-      final XFile? xfileImage = await _controller?.takePicture();
-      _controller?.startImageStream((cameraImage) {});
-      widget.takeImageFunc!(xfileImage);
+    if (_isBusyCamera != true &&
+        _controller != null &&
+        widget.takeImageFunc != null) {
+      _isBusyCamera = true;
+      _controller?.stopImageStream().then(
+            (_) => {
+              _controller?.takePicture().then((xfileImage) {
+                widget.takeImageFunc!(xfileImage);
+              })
+            },
+          );
     }
   }
 }

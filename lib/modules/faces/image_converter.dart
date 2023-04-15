@@ -121,11 +121,11 @@ imglib.Image copyCrop(imglib.Image image,
   return imageResp;
 }
 
-imglib.Image? cropFace(imglib.Image image, Face faceDetected) {
+imglib.Image? cropFace(imglib.Image image, Face faceDetected, {int step = 10}) {
   double x = faceDetected.boundingBox.left - 10;
-  double y = faceDetected.boundingBox.top - 10;
+  double y = faceDetected.boundingBox.top - step;
   double w = faceDetected.boundingBox.width + 20;
-  double h = faceDetected.boundingBox.height + 20;
+  double h = faceDetected.boundingBox.height + 2 * step;
   final imageResp = imglib.copyCrop(image,
       x: x.round(), y: y.round(), width: w.round(), height: h.round());
   return imglib.decodeJpg(imglib.encodeJpg(imageResp));

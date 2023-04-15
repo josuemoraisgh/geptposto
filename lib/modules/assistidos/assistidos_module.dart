@@ -19,8 +19,7 @@ import 'stores/assistidos_store.dart';
 class AssistidosModule extends Module {
   @override
   List<Bind<Object>> get binds => [
-        Bind.lazySingleton<AssistidoMLService>(
-            (i) => AssistidoMLService()),
+        Bind.lazySingleton<AssistidoMLService>((i) => AssistidoMLService()),
         Bind.lazySingleton<Future<List<CameraDescription>>>(
             (i) => availableCameras()),
         Bind.lazySingleton<ProviderInterface>((i) => ProviderInterface()),
@@ -54,9 +53,10 @@ class AssistidosModule extends Module {
     ChildRoute(
       '/faces',
       child: (_, args) => AssistidoFaceDetectorPage(
-        assistido: args.data["assistido"],        
+        assistido: args.data["assistido"],
         assistidos: args.data["assistidos"],
         chamadaFunc: args.data["chamadaFunc"],
+        isPhotoChanged: args.data["isPhotoChanged"],
         title: "Camera Ativa",
       ),
       customTransition: myCustomTransition,
@@ -67,7 +67,7 @@ class AssistidosModule extends Module {
         assistido: args.data["assistido"],
       ),
       customTransition: myCustomTransition,
-    ),    
+    ),
   ];
 
   static get myCustomTransition => null;

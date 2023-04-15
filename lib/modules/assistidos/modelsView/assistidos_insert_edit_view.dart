@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:rx_notifier/rx_notifier.dart';
 import '../models/assistido_models.dart';
 import '../stores/assistidos_store.dart';
 
@@ -19,6 +20,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
   late Assistido? _assistido;
   final AssistidosStore _store = Modular.get<AssistidosStore>();
+  final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -397,69 +399,81 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   Widget _getImage(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: screenWidth,
-          maxHeight: screenHeight,
-        ),
-        child: FutureBuilder<File?>(
-          future: (_assistido != null) ? _store.getImg(_assistido!) : null,
-          builder: (BuildContext context, AsyncSnapshot<File?> imageFile) {
-            if (imageFile.data != null) {
-              return FutureBuilder<bool>(
-                future: imageFile.data!.exists(),
-                builder: (BuildContext context, AsyncSnapshot<bool> isExists) {
-                  if (isExists.hasData) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.file(imageFile.data!),
-                        const SizedBox(height: 4.0),
-                        FloatingActionButton(
-                          onPressed: () {
-                            if (_assistido != null) {
-                              _store.deleteImage(_assistido!);
-                            }
-                          },
-                          backgroundColor: Colors.redAccent,
-                          tooltip: 'Delete',
-                          child: const Icon(Icons.delete),
-                        ),
-                      ],
-                    );
-                  }
-                  return const Center(child: CircularProgressIndicator());
-                },
-              );
-            } else {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    "assets/images/semFoto.png",
-                    fit: BoxFit.cover,
-                    width: 250,
-                    height: 250,
-                  ),
-                  const SizedBox(height: 20.0),
-                  FloatingActionButton(
-                    onPressed: () {
-                      Modular.to.pushNamed("faces", arguments: {'assistido':_assistido});
+    return RxBuilder(builder: (BuildContext context) {
+      if (isPhotoChanged.value == true) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: screenWidth,
+              maxHeight: screenHeight,
+            ),
+            child: FutureBuilder<File?>(
+              future: (_assistido != null) ? _store.getImg(_assistido!) : null,
+              builder: (BuildContext context, AsyncSnapshot<File?> imageFile) {
+                if (imageFile.data != null) {
+                  return FutureBuilder<bool>(
+                    future: imageFile.data!.exists(),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<bool> isExists) {
+                      if (isExists.hasData) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Image.file(imageFile.data!),
+                            const SizedBox(height: 4.0),
+                            FloatingActionButton(
+                              onPressed: () async {
+                                if (_assistido != null) {
+                                  await _store.deleteImage(_assistido!);
+                                  setState(() {});
+                                }
+                              },
+                              backgroundColor: Colors.redAccent,
+                              tooltip: 'Delete',
+                              child: const Icon(Icons.delete),
+                            ),
+                          ],
+                        );
+                      }
+                      return const Center(child: CircularProgressIndicator());
                     },
-                    backgroundColor: Colors.green,
-                    tooltip: 'New',
-                    child: const Icon(Icons.add_a_photo),
-                  ),
-                ],
-              );
-            }
-          },
-        ),
-      ),
-    );
+                  );
+                } else {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        "assets/images/semFoto.png",
+                        fit: BoxFit.cover,
+                        width: 250,
+                        height: 250,
+                      ),
+                      const SizedBox(height: 20.0),
+                      FloatingActionButton(
+                        onPressed: () {
+                          Modular.to.pushNamed("faces", arguments: {
+                            'assistido': _assistido,
+                            'isPhotoChanged': isPhotoChanged
+                          });
+                          setState(() {});
+                        },
+                        backgroundColor: Colors.green,
+                        tooltip: 'New',
+                        child: const Icon(Icons.add_a_photo),
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      } else {
+        return const Center(child: CircularProgressIndicator());
+      }
+    });
   }
 
   bool isCpf(String? cpf) {
