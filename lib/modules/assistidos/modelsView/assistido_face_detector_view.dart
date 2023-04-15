@@ -76,28 +76,31 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         widget.assistido!.photoName =
             '${widget.assistido!.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
       }
+
       final Uint8List data = await xFileImage.readAsBytes();
-      final imglib.Image? image = imglib.decodeImage(data);
+      final imglib.Image? image = imglib.decodeJpg(data);
       final inputImage = InputImage.fromFilePath(xFileImage.path);
       final faceDetected =
           await _assistidoMmlService.faceDetector.processImage(inputImage);
       if (image != null) {
         if (faceDetected.isEmpty) {
-          await _store.setImage(widget.assistido!, image.toUint8List());
+          await _store.setImage(widget.assistido!, imglib.encodeJpg(image));
+          await _store.setRow(widget.assistido!);
         } else {
           final image2 = cropFace(image, faceDetected[0]);
           if (image2 != null) {
-            await _store.setImage(widget.assistido!, image2.toUint8List());
+            await _store.setImage(widget.assistido!, imglib.encodeJpg(image2));
             widget.assistido!.fotoPoints =
                 (await _assistidoMmlService.renderizarImage(inputImage, image2))
                     .cast<num>();
             await _store.setRow(widget.assistido!);
-            Modular.to.pop();
           }
         }
       }
     }
-    Modular.to.pop();
+    setState(() {
+      Modular.to.pop();
+    });
   }
 
   Future<void> _processImage(

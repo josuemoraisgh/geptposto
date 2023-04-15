@@ -149,7 +149,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   "Title": "Tire sua Foto",
                 },
               );
-
             },
           ),
           SpeedDialChild(
@@ -191,7 +190,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
   void editAddFunc({Assistido? assistido}) {
     Modular.to.pushNamed(
       "insert",
-      arguments: {assistido: assistido},
+      arguments: {"assistido": assistido},
     );
   }
 

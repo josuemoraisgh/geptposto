@@ -212,6 +212,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     if (_controller != null && widget.takeImageFunc != null) {
       await _controller?.stopImageStream();
       final XFile? xfileImage = await _controller?.takePicture();
+      _controller?.startImageStream((cameraImage) {});
       widget.takeImageFunc!(xfileImage);
     }
   }

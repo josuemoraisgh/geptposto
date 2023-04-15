@@ -207,9 +207,10 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> addImage(Assistido pessoa,final Uint8List uint8ListImage) async {
-    _syncStore
-        .addSync('addImage', [pessoa.photoName, uint8ListImage]); //base64.encode(data)]);
+  Future<bool> addImage(
+      Assistido pessoa, final Uint8List uint8ListImage) async {
+    _syncStore.addSync('addImage',
+        [pessoa.photoName, uint8ListImage]); //base64.encode(data)]);
     await _localStore.addSetFile(pessoa, uint8ListImage);
     _syncStore.addSync('set', pessoa);
     sync();
@@ -217,9 +218,10 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> setImage(Assistido pessoa,final Uint8List uint8ListImage) async {
-    _syncStore.addSync(
-        'setImage', [pessoa.photoName, uint8ListImage]); // base64.encode(data)]);
+  Future<bool> setImage(
+      Assistido pessoa, final Uint8List uint8ListImage) async {
+    _syncStore.addSync('setImage',
+        [pessoa.photoName, uint8ListImage]); // base64.encode(data)]);
     sync();
     await _localStore.addSetFile(pessoa, uint8ListImage);
     return false;

@@ -47,17 +47,15 @@ class AssistidoMLService {
 
   Future<List<dynamic>> renderizarImage(
       InputImage inputImage, imglib.Image image) async {
-    final faces = await faceDetector.processImage(inputImage);
-    List input = _preProcessImage(image, faces[0]);
-    input = input.reshape([1, 112, 112, 3]);
-
     List output = List.generate(1, (index) => List.filled(192, 0));
-
-    await initializeInterpreter();
-
-    interpreter.run(input, output);
-    output = output.reshape([192]);
-
+    final List<Face> faces = await faceDetector.processImage(inputImage);
+    if (faces.isNotEmpty) {
+      List input = _preProcessImage(image, faces[0]);
+      input = input.reshape([1, 112, 112, 3]);
+      await initializeInterpreter();
+      interpreter.run(input, output);
+      output = output.reshape([192]);
+    }
     return List.from(output);
   }
 

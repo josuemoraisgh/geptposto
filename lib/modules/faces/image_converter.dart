@@ -104,14 +104,31 @@ InputImage? convertCameraImageToInputImage(
   return inputImage;
 }
 
+imglib.Image copyCrop(imglib.Image image,
+    {required int x, required int y, required int width, required int height}) {
+  imglib.Image imageResp = imglib.Image(
+      height: height,
+      width: width,
+      format: image.format,
+      exif: image.exif,
+      iccp: image.iccProfile);
+
+  for (int yi = 0, sy = y; yi < height; ++yi, ++sy) {
+    for (int xi = 0, sx = x; xi < width; ++xi, ++sx) {
+      imageResp.setPixel(xi, yi, image.getPixel(sx, sy));
+    }
+  }
+  return imageResp;
+}
+
 imglib.Image? cropFace(imglib.Image image, Face faceDetected) {
-  double x = faceDetected.boundingBox.left - 10.0;
-  double y = faceDetected.boundingBox.top - 10.0;
-  double w = faceDetected.boundingBox.width + 20.0;
-  double h = faceDetected.boundingBox.height + 20.0;
-  final image1 = imglib.copyCrop(image, x: x.round(), y: y.round(), width: w.round(), height: h.round());
-  final uint8List = Uint8List.fromList(imglib.encodePng(image1));
-  return imglib.decodeImage(uint8List);
+  double x = faceDetected.boundingBox.left - 10;
+  double y = faceDetected.boundingBox.top - 10;
+  double w = faceDetected.boundingBox.width + 20;
+  double h = faceDetected.boundingBox.height + 20;
+  final imageResp = imglib.copyCrop(image,
+      x: x.round(), y: y.round(), width: w.round(), height: h.round());
+  return imglib.decodeJpg(imglib.encodeJpg(imageResp));
 }
 
 imglib.Image convertCameraImageToImage(CameraImage cameraImage) {
@@ -171,7 +188,7 @@ Future<Uint8List?> cropImage(XFile? imageFile) async {
       ],
     );
     if (croppedFile != null) {
-        return croppedFile.readAsBytes();
+      return croppedFile.readAsBytes();
     }
   }
   return null;
