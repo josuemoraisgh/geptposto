@@ -1,11 +1,8 @@
-import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 part 'assistido_models.g.dart';
 
 @HiveType(typeId: 0, adapterName: 'AssistidoAdapter')
 class Assistido extends HiveObject {
-  final StreamController<String> _chamadaController =
-      StreamController<String>.broadcast();
   @HiveField(0)
   int ident;
   @HiveField(1)
@@ -50,8 +47,6 @@ class Assistido extends HiveObject {
   String nomesMoradores;
   @HiveField(21)
   String datasNasc;
-  @HiveField(22)
-  List<num>? fotoPoints;
 
   Assistido({
     this.ident = -1,
@@ -78,13 +73,58 @@ class Assistido extends HiveObject {
     this.datasNasc = "",
   });
 
-  Stream<String> get chamadaStream => _chamadaController.stream;
-  void chamadaAdd(String chamada) {
-    this.chamada = chamada;
-    _chamadaController.sink.add(chamada);
+  Assistido.assistido(Assistido assistido)
+      : ident = assistido.ident,
+        updatedApps = assistido.updatedApps,
+        nomeM1 = assistido.nomeM1,
+        photoName = assistido.photoName,
+        horario = assistido.horario,
+        condicao = assistido.condicao,
+        dataNascM1 = assistido.dataNascM1,
+        estadoCivil = assistido.estadoCivil,
+        fone = assistido.fone,
+        rg = assistido.rg,
+        cpf = assistido.cpf,
+        logradouro = assistido.logradouro,
+        endereco = assistido.endereco,
+        numero = assistido.numero,
+        bairro = assistido.bairro,
+        complemento = assistido.complemento,
+        cep = assistido.cep,
+        obs = assistido.obs,
+        chamada = assistido.chamada,
+        parentescos = assistido.parentescos,
+        nomesMoradores = assistido.nomesMoradores,
+        datasNasc = assistido.datasNasc;
+
+  factory Assistido.fromList(List<dynamic> value) {
+    return Assistido(
+      ident: value[0] as int,
+      updatedApps: value[1],
+      photoName: value[2].toString(),
+      nomeM1: value[3].toString(),
+      horario: value[4].toString(),
+      condicao: value[5].toString(),
+      dataNascM1: value[6].toString(),
+      estadoCivil: value[7].toString(),
+      fone: value[8].toString(),
+      rg: value[9].toString(),
+      cpf: value[10].toString(),
+      logradouro: value[11],
+      endereco: value[12].toString(),
+      numero: value[13].toString(),
+      bairro: value[14].toString(),
+      complemento: value[15],
+      cep: value[16].toString(),
+      obs: value[17].toString(),
+      chamada: value[18].toString(),
+      parentescos: value[19].toString(),
+      nomesMoradores: value[20].toString(),
+      datasNasc: value[21].toString(),
+    );
   }
 
-  Assistido changeItens(String? itens, dynamic datas) {
+  void changeItens(String? itens, dynamic datas) {
     if (itens != null && datas != null) {
       switch (itens) {
         case 'key':
@@ -155,34 +195,6 @@ class Assistido extends HiveObject {
           break;
       }
     }
-    return this;
-  }
-
-  factory Assistido.fromList(List<dynamic> value) {
-    return Assistido(
-      ident: value[0] as int,
-      updatedApps: value[1],
-      photoName: value[2].toString(),
-      nomeM1: value[3].toString(),
-      horario: value[4].toString(),
-      condicao: value[5].toString(),
-      dataNascM1: value[6].toString(),
-      estadoCivil: value[7].toString(),
-      fone: value[8].toString(),
-      rg: value[9].toString(),
-      cpf: value[10].toString(),
-      logradouro: value[11],
-      endereco: value[12].toString(),
-      numero: value[13].toString(),
-      bairro: value[14].toString(),
-      complemento: value[15],
-      cep: value[16].toString(),
-      obs: value[17].toString(),
-      chamada: value[18].toString(),
-      parentescos: value[19].toString(),
-      nomesMoradores: value[20].toString(),
-      datasNasc: value[21].toString(),
-    );
   }
 
   List<dynamic> toList() {

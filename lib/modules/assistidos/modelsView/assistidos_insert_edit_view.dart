@@ -4,11 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import '../models/assistido_models.dart';
+import '../models/stream_assistido_model.dart';
 import '../stores/assistidos_store.dart';
 
 class AssistidosInsertEditView extends StatefulWidget {
-  final Assistido? assistido;
+  final StreamAssistido? assistido;
   const AssistidosInsertEditView({Key? key, this.assistido}) : super(key: key);
 
   @override
@@ -18,7 +18,7 @@ class AssistidosInsertEditView extends StatefulWidget {
 
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
-  late Assistido? _assistido;
+  late StreamAssistido? _assistido;
   final AssistidosStore _store = Modular.get<AssistidosStore>();
   final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey = GlobalKey<FormState>();
@@ -26,8 +26,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   @override
   void initState() {
     _isAdd = widget.assistido == null ? true : false;
-    _assistido = widget.assistido ??
-        Assistido(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
+    _assistido = widget.assistido ?? StreamAssistido.vazio();
     super.initState();
   }
 

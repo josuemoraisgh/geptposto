@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/assistido_models.dart';
+import '../models/stream_assistido_model.dart';
 import '../modelsView/assistidos_insert_edit_view.dart';
 
 class AssistidoEditInsertPage extends StatelessWidget {
-  final Assistido? assistido;  
-  const AssistidoEditInsertPage({Key? key, this.assistido})
-      : super(key: key);
+  final StreamAssistido? assistido;
+  const AssistidoEditInsertPage({Key? key, this.assistido}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

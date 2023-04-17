@@ -39,7 +39,7 @@ class AssistidoAdapter extends TypeAdapter<Assistido> {
       parentescos: fields[19] as String,
       nomesMoradores: fields[20] as String,
       datasNasc: fields[21] as String,
-    )..fotoPoints = (fields[22] as List?)?.cast<num>();
+    );
   }
 
   @override
@@ -89,9 +89,7 @@ class AssistidoAdapter extends TypeAdapter<Assistido> {
       ..writeByte(20)
       ..write(obj.nomesMoradores)
       ..writeByte(21)
-      ..write(obj.datasNasc)
-      ..writeByte(22)
-      ..write(obj.fotoPoints);
+      ..write(obj.datasNasc);
   }
 
   @override

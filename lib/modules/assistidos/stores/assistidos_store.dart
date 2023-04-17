@@ -7,12 +7,12 @@ import 'package:rx_notifier/rx_notifier.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
-import '../models/assistido_models.dart';
+import '../models/stream_assistido_model.dart';
 
 class AssistidosStore {
   bool isRunningSync = false;
-  RxNotifier<int> countSync = RxNotifier<int>(0);
   static int _countConnection = 0;
+  RxNotifier<int> countSync = RxNotifier<int>(0);
   late final SyncLocalStorageInterface _syncStore;
   late final AssistidoLocalStorageInterface _localStore;
   late final AssistidoRemoteStorageInterface _remoteStorage;
@@ -51,12 +51,13 @@ class AssistidosStore {
         await _syncStore.delSync(0);
         if (sync != null) {
           if (sync.synckey == 'add') {
-            status = await _remoteStorage.addData(sync.syncValue as Assistido);
+            status =
+                await _remoteStorage.addData(sync.syncValue as StreamAssistido);
           }
           if (sync.synckey == 'set') {
             status = await _remoteStorage.setData(
-                (sync.syncValue as Assistido).ident,
-                (sync.syncValue as Assistido));
+                (sync.syncValue as StreamAssistido).ident,
+                (sync.syncValue as StreamAssistido));
           }
           if (sync.synckey == 'del') {
             status =
@@ -97,7 +98,8 @@ class AssistidosStore {
     if (atualiza != null) atualiza!();
   }
 
-  Future<List<Assistido>?> search(String termosDeBusca, String condicao) async {
+  Future<List<StreamAssistido>?> search(
+      String termosDeBusca, String condicao) async {
     Map<String, String> map = {
       "â": "a",
       "à": "a",
@@ -137,8 +139,8 @@ class AssistidosStore {
     }
   }
 
-  Future<File?> getImg(Assistido assistido) async {
-    final fileName = assistido.photoName;
+  Future<File?> getImg(StreamAssistido stAssist) async {
+    final fileName = stAssist.photoName;
     File result = await _localStore.getFile(fileName);
     if ((await result.exists()) == true) {
       return result;
@@ -152,7 +154,7 @@ class AssistidosStore {
     if (remoteImage != null) {
       if (remoteImage.isNotEmpty) {
         result =
-            await _localStore.addSetFile(assistido, base64.decode(remoteImage));
+            await _localStore.addSetFile(stAssist, base64.decode(remoteImage));
         _countConnection--;
         return result;
       }
@@ -161,20 +163,22 @@ class AssistidosStore {
     return null;
   }
 
-  Future<List<Assistido>?> getAll() async {
-    var resp = _localStore.getAll();
+  Future<List<StreamAssistido>?> getAll() async {
+    var resp = (await _localStore.getAll())
+        .map((element) => StreamAssistido(element))
+        .toList();
     return resp;
   }
 
-  Future<Assistido?> getRow(int rowId) async {
-    var resp = _localStore.getRow(rowId);
-    return resp;
+  Future<StreamAssistido?> getRow(int rowId) async {
+    var resp = await _localStore.getRow(rowId);
+    return resp != null ? StreamAssistido(resp) : null;
   }
 
-  Future<String?> setRow(Assistido pessoa) async {
-    pessoa.updatedApps = "";
-    _syncStore.addSync('set', pessoa);
-    final result = (await _localStore.setRow(pessoa));
+  Future<String?> setRow(StreamAssistido stAssist) async {
+    stAssist.updatedApps = "";
+    _syncStore.addSync('set', stAssist);
+    final result = (await _localStore.setRow(stAssist.assistido));
     sync();
     if (result != null) {
       return result;
@@ -182,9 +186,9 @@ class AssistidosStore {
     return null;
   }
 
-  Future<bool> add(Assistido? pessoa) async {
-    if (pessoa != null) {
-      _syncStore.addSync('add', pessoa);
+  Future<bool> add(StreamAssistido? stAssist) async {
+    if (stAssist != null) {
+      _syncStore.addSync('add', stAssist.assistido);
     }
     sync();
     return true;
@@ -208,34 +212,39 @@ class AssistidosStore {
   }
 
   Future<bool> addImage(
-      Assistido pessoa, final Uint8List uint8ListImage) async {
-    _syncStore.addSync('addImage',
-        [pessoa.photoName, uint8ListImage]); //base64.encode(data)]);
-    await _localStore.addSetFile(pessoa, uint8ListImage);
-    _syncStore.addSync('set', pessoa);
+      StreamAssistido stAssist, final Uint8List uint8ListImage) async {
+    _syncStore.addSync('addImage', [
+      stAssist.assistido.photoName,
+      uint8ListImage
+    ]); //base64.encode(data)]);
+    await _localStore.addSetFile(stAssist.assistido, uint8ListImage);
+    _syncStore.addSync('set', stAssist.assistido);
     sync();
-    await _localStore.setRow(pessoa);
+    await _localStore.setRow(stAssist.assistido);
     return false;
   }
 
   Future<bool> setImage(
-      Assistido pessoa, final Uint8List uint8ListImage) async {
-    _syncStore.addSync('setImage',
-        [pessoa.photoName, uint8ListImage]); // base64.encode(data)]);
+      StreamAssistido stAssist, final Uint8List uint8ListImage) async {
+    _syncStore.addSync('setImage', [
+      stAssist.assistido.photoName,
+      uint8ListImage
+    ]); // base64.encode(data)]);
     sync();
-    await _localStore.addSetFile(pessoa, uint8ListImage);
+    await _localStore.addSetFile(stAssist.assistido, uint8ListImage);
     return false;
   }
 
-  Future<bool> deleteImage(Assistido pessoa) async {
-    final photoName = pessoa.photoName;
-    final Assistido assist = pessoa.changeItens("Foto", "");
-    _syncStore.addSync('set', assist);
+  Future<bool> deleteImage(StreamAssistido stAssist) async {
+    final photoName = stAssist.assistido.photoName;
+    stAssist.assistido
+        .changeItens("Foto", {"", [] as Uint8List, [] as List<num>});
+    _syncStore.addSync('set', stAssist.assistido);
     sync();
     _syncStore.addSync('delImage', photoName);
     sync();
     await _localStore.delFile(photoName);
-    await _localStore.setRow(assist);
+    await _localStore.setRow(stAssist.assistido);
     return false;
   }
 }

@@ -7,16 +7,16 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../../faces/camera_preview_with_paint.dart';
-import '../models/assistido_models.dart';
+import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
 import '../stores/assistidos_store.dart';
 import 'package:image/image.dart' as imglib;
 
 class AssistidoFaceDetectorView extends StatefulWidget {
-  final Function(Assistido pessoa)? chamadaFunc;
-  final Assistido? assistido;
-  final List<Assistido>? assistidos;
+  final Function(StreamAssistido pessoa)? chamadaFunc;
+  final StreamAssistido? assistido;
+  final List<StreamAssistido>? assistidos;
   final RxNotifier<bool>? isPhotoChanged;
   final StackFit? stackFit;
   const AssistidoFaceDetectorView(

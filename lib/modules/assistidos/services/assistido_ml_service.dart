@@ -7,7 +7,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../faces/image_converter.dart';
-import '../models/assistido_models.dart';
+import '../models/stream_assistido_model.dart';
 
 class AssistidoMLService {
   late Interpreter interpreter;
@@ -20,8 +20,8 @@ class AssistidoMLService {
         enableTracking: true),
   );
 
-  Future<Assistido?> predict(CameraImage cameraImage, int sensorOrientation,
-      List<Assistido> assistidos) async {
+  Future<StreamAssistido?> predict(CameraImage cameraImage,
+      int sensorOrientation, List<StreamAssistido> assistidos) async {
     const int minDist = 999;
     const double threshold = 1.5;
     num? dist;

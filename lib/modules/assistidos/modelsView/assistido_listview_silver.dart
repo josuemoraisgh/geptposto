@@ -3,15 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../assistidos_controller.dart';
-import '../models/assistido_models.dart';
 import '../../Styles/styles.dart';
+import '../models/stream_assistido_model.dart';
 
 class AssistidoListViewSilver extends StatelessWidget {
-  final List<Assistido> list;
+  final List<StreamAssistido> list;
   final AssistidosController controller;
-  final Future<File?> Function(Assistido pessoa) functionGetImg;
-  final void Function({Assistido? assistido}) functionEdit;
-  final void Function(Assistido pessoa) functionChamada;
+  final Future<File?> Function(StreamAssistido pessoa) functionGetImg;
+  final void Function({StreamAssistido? assistido}) functionEdit;
+  final void Function(StreamAssistido pessoa) functionChamada;
   const AssistidoListViewSilver({
     Key? key,
     required this.controller,
@@ -27,7 +27,7 @@ class AssistidoListViewSilver extends StatelessWidget {
       var data = controller.dateSelectedController.value;
       var count = 0;
       for (int i = 0; i < list.length; i++) {
-        if (list[i].chamada.toLowerCase().contains(data)) {
+        if (list[i].assistido.chamada.toLowerCase().contains(data)) {
           count++;
         }
         controller.countPresente = count;
@@ -73,7 +73,7 @@ class AssistidoListViewSilver extends StatelessWidget {
     });
   }
 
-  Widget row(File? foto, Assistido pessoa) {
+  Widget row(File? foto, StreamAssistido pessoa) {
     return SafeArea(
       top: false,
       bottom: false,
@@ -124,12 +124,12 @@ class AssistidoListViewSilver extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    pessoa.nomeM1,
+                    pessoa.assistido.nomeM1,
                     style: Styles.linhaProdutoNomeDoItem,
                   ),
                   const Padding(padding: EdgeInsets.only(top: 8)),
                   Text(
-                    pessoa.fone,
+                    pessoa.assistido.fone,
                     style: Styles.linhaProdutoPrecoDoItem,
                   )
                 ],
@@ -149,7 +149,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                         ))
                     : StreamBuilder(
                         stream: pessoa.chamadaStream,
-                        initialData: pessoa.chamada,
+                        initialData: pessoa.assistido.chamada,
                         builder:
                             (BuildContext context, AsyncSnapshot snapshot) {
                           return CupertinoButton(
@@ -157,7 +157,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                             onPressed: () {
                               functionChamada(pessoa);
                             },
-                            child: (pessoa.chamada
+                            child: (pessoa.assistido.chamada
                                     .toLowerCase()
                                     .contains(controller.dateSelected)
                                 ? const Icon(

@@ -7,7 +7,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:icon_badge/icon_badge.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'assistidos_controller.dart';
-import 'models/assistido_models.dart';
+import 'models/stream_assistido_model.dart';
 import 'modelsView/dropdown_body.dart';
 import 'modelsView/assistido_listview_silver.dart';
 import 'modelsView/search_bar.dart';
@@ -21,7 +21,7 @@ class AssistidosPage extends StatefulWidget {
 }
 
 class _AssistidosPageState extends State<AssistidosPage> {
-  List<Assistido>? _list;
+  List<StreamAssistido>? _list;
   final AssistidosController controller = Modular.get<AssistidosController>();
   final DropdownBody assistidosDropdownButton = DropdownBody(
     dateSelectedController:
@@ -96,7 +96,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
         child: (isInited)
             ? RxBuilder(
                 builder: (BuildContext context) =>
-                    FutureBuilder<List<Assistido>?>(
+                    FutureBuilder<List<StreamAssistido>?>(
                   future: controller.store
                       .search(controller.textEditing.value, "ATIVO"),
                   builder: (_, list) {
@@ -105,7 +105,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                       return AssistidoListViewSilver(
                         controller: controller,
                         list: list.data!,
-                        functionChamada: chamadaFuncToogle,
+                        functionChamada: chamadaToogleFunc,
                         functionEdit: editAddFunc,
                         functionGetImg: controller.store.getImg,
                       );
@@ -187,30 +187,23 @@ class _AssistidosPageState extends State<AssistidosPage> {
     );
   }
 
-  void editAddFunc({Assistido? assistido}) {
+  void editAddFunc({StreamAssistido? assistido}) {
     Modular.to.pushNamed(
       "insert",
       arguments: {"assistido": assistido},
     );
   }
 
-  void chamadaFunc(Assistido pessoa) {
-    if (!pessoa.chamada.toLowerCase().contains(controller.dateSelected)) {
+  void chamadaFunc(StreamAssistido pessoa) {
+    if (pessoa.insertChamadaFunc(controller.dateSelected)) {
       controller.countPresente++;
-      pessoa.chamadaAdd("${pessoa.chamada}${controller.dateSelected},");
+      controller.store.setRow(pessoa);
     }
-    controller.store.setRow(pessoa);
   }
 
-  void chamadaFuncToogle(Assistido pessoa) {
-    if (pessoa.chamada.toLowerCase().contains(controller.dateSelected)) {
-      controller.countPresente--;
-      pessoa.chamadaAdd(
-          pessoa.chamada.replaceAll("${controller.dateSelected},", ""));
-    } else {
-      controller.countPresente++;
-      pessoa.chamadaAdd("${pessoa.chamada}${controller.dateSelected},");
-    }
+  void chamadaToogleFunc(StreamAssistido pessoa) {
+    controller.countPresente +=
+        pessoa.chamadaToogleFunc(controller.dateSelected);
     controller.store.setRow(pessoa);
   }
 
