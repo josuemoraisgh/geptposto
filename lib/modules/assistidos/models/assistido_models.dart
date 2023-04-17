@@ -12,40 +12,38 @@ class Assistido extends HiveObject {
   @HiveField(3)
   String nomeM1;
   @HiveField(4)
-  String horario;
-  @HiveField(5)
   String condicao;
-  @HiveField(6)
+  @HiveField(5)
   String dataNascM1;
-  @HiveField(7)
+  @HiveField(6)
   String estadoCivil;
-  @HiveField(8)
+  @HiveField(7)
   dynamic fone;
-  @HiveField(9)
+  @HiveField(8)
   dynamic rg;
-  @HiveField(10)
+  @HiveField(9)
   dynamic cpf;
-  @HiveField(11)
+  @HiveField(10)
   String logradouro;
-  @HiveField(12)
+  @HiveField(11)
   String endereco;
-  @HiveField(13)
+  @HiveField(12)
   dynamic numero;
-  @HiveField(14)
+  @HiveField(13)
   String bairro;
-  @HiveField(15)
+  @HiveField(14)
   String complemento;
-  @HiveField(16)
+  @HiveField(15)
   dynamic cep;
-  @HiveField(17)
+  @HiveField(16)
   String obs;
-  @HiveField(18)
+  @HiveField(17)
   String chamada;
-  @HiveField(19)
+  @HiveField(18)
   String parentescos;
-  @HiveField(20)
+  @HiveField(19)
   String nomesMoradores;
-  @HiveField(21)
+  @HiveField(20)
   String datasNasc;
 
   Assistido({
@@ -53,7 +51,6 @@ class Assistido extends HiveObject {
     this.updatedApps = "",
     required this.nomeM1,
     this.photoName = "",
-    this.horario = "08:30",
     this.condicao = "ATIVO",
     this.dataNascM1 = "",
     this.estadoCivil = "Não declarado(a)",
@@ -78,7 +75,6 @@ class Assistido extends HiveObject {
         updatedApps = assistido.updatedApps,
         nomeM1 = assistido.nomeM1,
         photoName = assistido.photoName,
-        horario = assistido.horario,
         condicao = assistido.condicao,
         dataNascM1 = assistido.dataNascM1,
         estadoCivil = assistido.estadoCivil,
@@ -103,24 +99,23 @@ class Assistido extends HiveObject {
       updatedApps: value[1],
       photoName: value[2].toString(),
       nomeM1: value[3].toString(),
-      horario: value[4].toString(),
-      condicao: value[5].toString(),
-      dataNascM1: value[6].toString(),
-      estadoCivil: value[7].toString(),
-      fone: value[8].toString(),
-      rg: value[9].toString(),
-      cpf: value[10].toString(),
-      logradouro: value[11],
-      endereco: value[12].toString(),
-      numero: value[13].toString(),
-      bairro: value[14].toString(),
-      complemento: value[15],
-      cep: value[16].toString(),
-      obs: value[17].toString(),
-      chamada: value[18].toString(),
-      parentescos: value[19].toString(),
-      nomesMoradores: value[20].toString(),
-      datasNasc: value[21].toString(),
+      condicao: value[4].toString(),
+      dataNascM1: value[5].toString(),
+      estadoCivil: value[6].toString(),
+      fone: value[7].toString(),
+      rg: value[8].toString(),
+      cpf: value[9].toString(),
+      logradouro: value[10],
+      endereco: value[11].toString(),
+      numero: value[12].toString(),
+      bairro: value[13].toString(),
+      complemento: value[14],
+      cep: value[15].toString(),
+      obs: value[16].toString(),
+      chamada: value[17].toString(),
+      parentescos: value[18].toString(),
+      nomesMoradores: value[19].toString(),
+      datasNasc: value[20].toString(),
     );
   }
 
@@ -138,9 +133,6 @@ class Assistido extends HiveObject {
           break;
         case 'Foto':
           photoName = datas;
-          break;
-        case 'Horário':
-          horario = datas;
           break;
         case 'Condição':
           condicao = datas;
@@ -201,7 +193,6 @@ class Assistido extends HiveObject {
     return [
       photoName,
       nomeM1,
-      horario,
       condicao,
       dataNascM1,
       estadoCivil,
@@ -231,7 +222,6 @@ class Assistido extends HiveObject {
         other.updatedApps == updatedApps &&
         other.photoName == photoName &&
         other.nomeM1 == nomeM1 &&
-        other.horario == horario &&
         other.dataNascM1 == dataNascM1 &&
         other.estadoCivil == estadoCivil &&
         other.fone == fone &&
@@ -256,10 +246,6 @@ class Assistido extends HiveObject {
         updatedApps.hashCode ^
         photoName.hashCode ^
         nomeM1.hashCode ^
-        horario.hashCode ^
-        dataNascM1.hashCode ^
-        nomeM1.hashCode ^
-        horario.hashCode ^
         dataNascM1.hashCode ^
         estadoCivil.hashCode ^
         fone.hashCode ^

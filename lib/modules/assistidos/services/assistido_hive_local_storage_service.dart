@@ -37,8 +37,7 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
 
   @override
   Future<File> addSetFile(
-      Assistido assistido, final Uint8List uint8ListImage) async {
-    final fileName = assistido.photoName;
+      String fileName, final Uint8List uint8ListImage) async {
     final directory = await getApplicationDocumentsDirectory();
 
     var buffer = uint8ListImage.buffer;

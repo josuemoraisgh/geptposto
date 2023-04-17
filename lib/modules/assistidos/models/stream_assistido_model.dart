@@ -60,14 +60,14 @@ class StreamAssistido extends Assistido {
   }
 
   @override
-  set photoName(String datas) {
-    super.photoName = datas;
-    _chamadaController.sink.add(datas);
+  set photoName(String data) {
+    super.photoName = data;
+    _chamadaController.sink.add(data);
   }
 
   @override
-  set chamada(String datas) {
-    super.chamada = datas;
-    _chamadaController.sink.add(datas);
+  set chamada(String data) {
+    super.chamada = data;
+    _chamadaController.sink.add(data);
   }
 }

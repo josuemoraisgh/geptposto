@@ -139,30 +139,6 @@ class AssistidosStore {
     }
   }
 
-  Future<File?> getImg(StreamAssistido stAssist) async {
-    final fileName = stAssist.photoName;
-    File result = await _localStore.getFile(fileName);
-    if ((await result.exists()) == true) {
-      return result;
-    }
-    while (_countConnection >= 10) {
-      //so faz 10 requisições por vez.
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-    _countConnection++;
-    var remoteImage = await _remoteStorage.getFile('BDados_Images', fileName);
-    if (remoteImage != null) {
-      if (remoteImage.isNotEmpty) {
-        result =
-            await _localStore.addSetFile(stAssist, base64.decode(remoteImage));
-        _countConnection--;
-        return result;
-      }
-    }
-    _countConnection--;
-    return null;
-  }
-
   Future<List<StreamAssistido>?> getAll() async {
     var resp = (await _localStore.getAll())
         .map((element) => StreamAssistido(element))
@@ -211,40 +187,58 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> addImage(
-      StreamAssistido stAssist, final Uint8List uint8ListImage) async {
-    _syncStore.addSync('addImage', [
-      stAssist.assistido.photoName,
-      uint8ListImage
-    ]); //base64.encode(data)]);
-    await _localStore.addSetFile(stAssist.assistido, uint8ListImage);
-    _syncStore.addSync('set', stAssist.assistido);
-    sync();
-    await _localStore.setRow(stAssist.assistido);
+  Future<bool> addImage(String? fileName, final Uint8List uint8ListImage) async {
+    if (fileName != null) {
+      _syncStore.addSync(
+          'addImage', [fileName, uint8ListImage]); //base64.encode(data)]);
+      await _localStore.addSetFile(fileName, uint8ListImage);
+      sync();
+    }
     return false;
   }
 
   Future<bool> setImage(
-      StreamAssistido stAssist, final Uint8List uint8ListImage) async {
-    _syncStore.addSync('setImage', [
-      stAssist.assistido.photoName,
-      uint8ListImage
-    ]); // base64.encode(data)]);
-    sync();
-    await _localStore.addSetFile(stAssist.assistido, uint8ListImage);
+      String? fileName, final Uint8List uint8ListImage) async {
+    if (fileName != null) {
+      _syncStore.addSync(
+          'setImage', [fileName, uint8ListImage]); // base64.encode(data)]);
+      sync();
+      await _localStore.addSetFile(fileName, uint8ListImage);
+    }
     return false;
   }
 
-  Future<bool> deleteImage(StreamAssistido stAssist) async {
-    final photoName = stAssist.assistido.photoName;
-    stAssist.assistido
-        .changeItens("Foto", {"", [] as Uint8List, [] as List<num>});
-    _syncStore.addSync('set', stAssist.assistido);
-    sync();
-    _syncStore.addSync('delImage', photoName);
-    sync();
-    await _localStore.delFile(photoName);
-    await _localStore.setRow(stAssist.assistido);
+  Future<File?> getImg(String? fileName) async {
+    if (fileName != null) {
+      File result = await _localStore.getFile(fileName);
+      if ((await result.exists()) == true) {
+        return result;
+      }
+      while (_countConnection >= 10) {
+        //so faz 10 requisições por vez.
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      _countConnection++;
+      var remoteImage = await _remoteStorage.getFile('BDados_Images', fileName);
+      if (remoteImage != null) {
+        if (remoteImage.isNotEmpty) {
+          result = await _localStore.addSetFile(
+              fileName, base64.decode(remoteImage));
+          _countConnection--;
+          return result;
+        }
+      }
+      _countConnection--;
+    }
+    return null;
+  }
+
+  Future<bool> deleteImage(String? fileName) async {
+    if (fileName != null) {
+      _syncStore.addSync('delImage', fileName);
+      sync();
+      await _localStore.delFile(fileName);
+    }
     return false;
   }
 }

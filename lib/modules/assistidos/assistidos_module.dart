@@ -56,7 +56,6 @@ class AssistidosModule extends Module {
         assistido: args.data["assistido"],
         assistidos: args.data["assistidos"],
         chamadaFunc: args.data["chamadaFunc"],
-        isPhotoChanged: args.data["isPhotoChanged"],
         title: "Camera Ativa",
       ),
       customTransition: myCustomTransition,

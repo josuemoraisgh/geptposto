@@ -73,30 +73,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 ),
                 const SizedBox(height: 10),
                 _getImage(context),
-                //AssistidoFaceDetectorView(assistido: _assistido, stackFit: StackFit.passthrough),
               ],
-            ),
-            TextFormField(
-              initialValue: _assistido!.horario,
-              decoration: const InputDecoration(
-                  border: UnderlineInputBorder(),
-                  icon: Icon(Icons.lock_clock),
-                  labelText: 'Informe o horário'),
-              keyboardType: TextInputType.datetime,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                HoraInputFormatter(),
-              ],
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              validator: (value) {
-                if (value != null) {
-                  if ((value.isNotEmpty) && (value.length < 5)) {
-                    return 'Horário Inválido!!';
-                  }
-                }
-                return null;
-              },
-              onChanged: (v) => setState(() => _assistido!.horario = v),
             ),
             const SizedBox(height: 15),
             Row(children: [
@@ -398,8 +375,10 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   Widget _getImage(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    return RxBuilder(builder: (BuildContext context) {
-      if (isPhotoChanged.value == true) {
+    return StreamBuilder(
+      stream: _assistido!.photoStream,
+      builder: (BuildContext context, AsyncSnapshot<String> photoName) {
+      if (photoName.hasData) {
         return Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -407,7 +386,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
               maxHeight: screenHeight,
             ),
             child: FutureBuilder<File?>(
-              future: (_assistido != null) ? _store.getImg(_assistido!) : null,
+              future: (_assistido != null) ? _store.getImg(photoName.data!) : null,
               builder: (BuildContext context, AsyncSnapshot<File?> imageFile) {
                 if (imageFile.data != null) {
                   return FutureBuilder<bool>(
@@ -424,7 +403,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                             FloatingActionButton(
                               onPressed: () async {
                                 if (_assistido != null) {
-                                  await _store.deleteImage(_assistido!);
+                                  await _store.deleteImage(photoName.data!);
                                   setState(() {});
                                 }
                               },

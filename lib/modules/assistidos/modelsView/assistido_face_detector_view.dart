@@ -5,7 +5,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:geptposto/modules/faces/image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:intl/intl.dart';
-import 'package:rx_notifier/rx_notifier.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
@@ -17,14 +16,12 @@ class AssistidoFaceDetectorView extends StatefulWidget {
   final Function(StreamAssistido pessoa)? chamadaFunc;
   final StreamAssistido? assistido;
   final List<StreamAssistido>? assistidos;
-  final RxNotifier<bool>? isPhotoChanged;
   final StackFit? stackFit;
   const AssistidoFaceDetectorView(
       {super.key,
       this.assistidos,
       this.chamadaFunc,
       this.assistido,
-      this.isPhotoChanged,
       this.stackFit});
 
   @override
@@ -73,7 +70,6 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _cameraTakeImage(XFile? xFileImage) async {
     if (widget.assistido != null && xFileImage != null) {
-      widget.isPhotoChanged?.value = false;
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
       if (widget.assistido!.photoName == "") {
@@ -87,16 +83,12 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
           await _assistidoMmlService.faceDetector.processImage(inputImage);
       if (image != null) {
         if (faceDetected.isEmpty) {
-          _store
-              .setImage(widget.assistido!, imglib.encodeJpg(image))
-              .then((_) => widget.isPhotoChanged?.value = true);
+          _store.setImage(widget.assistido!.photoName, imglib.encodeJpg(image));
           _store.setRow(widget.assistido!);
         } else {
           final image2 = cropFace(image, faceDetected[0], step: 80);
           if (image2 != null) {
-            _store
-                .setImage(widget.assistido!, imglib.encodeJpg(image2))
-                .then((_) => widget.isPhotoChanged?.value = true);
+            _store.setImage(widget.assistido!.photoName, imglib.encodeJpg(image2));
             _assistidoMmlService
                 .renderizarImage(inputImage, image2)
                 .then((fotoPoints) {

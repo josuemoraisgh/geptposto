@@ -9,7 +9,7 @@ import '../models/stream_assistido_model.dart';
 class AssistidoListViewSilver extends StatelessWidget {
   final List<StreamAssistido> list;
   final AssistidosController controller;
-  final Future<File?> Function(StreamAssistido pessoa) functionGetImg;
+  final Future<File?> Function(String? fileName) functionGetImg;
   final void Function({StreamAssistido? assistido}) functionEdit;
   final void Function(StreamAssistido pessoa) functionChamada;
   const AssistidoListViewSilver({
@@ -39,33 +39,42 @@ class AssistidoListViewSilver extends StatelessWidget {
             top: false,
             minimum: const EdgeInsets.only(top: 8),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                if (index < list.length) {
-                  return FutureBuilder(
-                      initialData: null,
-                      future: functionGetImg(list[index]),
-                      builder: (context, AsyncSnapshot<File?> foto) {
-                        return index == list.length - 1
-                            ? row(foto.data, list[index])
-                            : Column(
-                                children: <Widget>[
-                                  row(foto.data, list[index]),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 100,
-                                      right: 16,
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index < list.length) {
+                    return StreamBuilder(
+                      initialData: list[index].photoName,
+                      stream: list[index].photoStream,
+                      builder: (BuildContext context,
+                              AsyncSnapshot<String> photoName) =>
+                          FutureBuilder(
+                        initialData: null,
+                        future: functionGetImg(photoName.data),
+                        builder: (context, AsyncSnapshot<File?> foto) {
+                          return index == list.length - 1
+                              ? row(foto.data, list[index])
+                              : Column(
+                                  children: <Widget>[
+                                    row(foto.data, list[index]),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 100,
+                                        right: 16,
+                                      ),
+                                      child: Container(
+                                        height: 1,
+                                        color: Styles.linhaProdutoDivisor,
+                                      ),
                                     ),
-                                    child: Container(
-                                      height: 1,
-                                      color: Styles.linhaProdutoDivisor,
-                                    ),
-                                  ),
-                                ],
-                              );
-                      });
-                }
-                return null;
-              }),
+                                  ],
+                                );
+                        },
+                      ),
+                    );
+                  }
+                  return null;
+                },
+              ),
             ),
           ),
         ],
@@ -150,14 +159,12 @@ class AssistidoListViewSilver extends StatelessWidget {
                     : StreamBuilder(
                         stream: pessoa.chamadaStream,
                         initialData: pessoa.assistido.chamada,
-                        builder:
-                            (BuildContext context, AsyncSnapshot snapshot) {
+                        builder: (BuildContext context,
+                            AsyncSnapshot<String> chamada) {
                           return CupertinoButton(
                             padding: EdgeInsets.zero,
-                            onPressed: () {
-                              functionChamada(pessoa);
-                            },
-                            child: (pessoa.assistido.chamada
+                            onPressed: () => functionChamada(pessoa),
+                            child: chamada.data!
                                     .toLowerCase()
                                     .contains(controller.dateSelected)
                                 ? const Icon(
@@ -170,16 +177,14 @@ class AssistidoListViewSilver extends StatelessWidget {
                                     CupertinoIcons.hand_thumbsdown,
                                     color: Colors.red,
                                     semanticLabel: 'Ausente',
-                                  )),
+                                  ),
                           );
                         },
                       ),
           ),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: () {
-              functionEdit(assistido: pessoa);
-            },
+            onPressed: () => functionEdit(assistido: pessoa),
             child: const Icon(
               Icons.edit,
               size: 30.0,
