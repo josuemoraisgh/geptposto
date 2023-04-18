@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
@@ -376,82 +375,69 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
-      stream: _assistido!.photoStream,
-      builder: (BuildContext context, AsyncSnapshot<String> photoName) {
-      if (photoName.hasData) {
-        return Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: screenWidth,
-              maxHeight: screenHeight,
-            ),
-            child: FutureBuilder<File?>(
-              future: (_assistido != null) ? _store.getImg(photoName.data!) : null,
-              builder: (BuildContext context, AsyncSnapshot<File?> imageFile) {
-                if (imageFile.data != null) {
-                  return FutureBuilder<bool>(
-                    future: imageFile.data!.exists(),
-                    builder:
-                        (BuildContext context, AsyncSnapshot<bool> isExists) {
-                      if (isExists.hasData) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Image.file(imageFile.data!),
-                            const SizedBox(height: 4.0),
-                            FloatingActionButton(
-                              onPressed: () async {
-                                if (_assistido != null) {
-                                  await _store.deleteImage(photoName.data!);
-                                  setState(() {});
-                                }
-                              },
-                              backgroundColor: Colors.redAccent,
-                              tooltip: 'Delete',
-                              child: const Icon(Icons.delete),
-                            ),
-                          ],
-                        );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                  );
-                } else {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/semFoto.png",
-                        fit: BoxFit.cover,
-                        width: 250,
-                        height: 250,
+        initialData: _assistido!.photoName,
+        stream: _assistido!.photoStream,
+        builder: (BuildContext context, AsyncSnapshot<String> photoName) {
+          if (photoName.hasData) {
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: screenWidth,
+                  maxHeight: screenHeight,
+                ),
+                child: ((_assistido != null) &&
+                        (_assistido!.photoUint8List != null) &&
+                        (_assistido!.photoUint8List!.isNotEmpty))
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.memory(_assistido!.photoUint8List!),
+                          const SizedBox(height: 4.0),
+                          FloatingActionButton(
+                            onPressed: () async {
+                              if (_assistido != null) {
+                                await _store.deleteImage(photoName.data!);
+                                setState(() {});
+                              }
+                            },
+                            backgroundColor: Colors.redAccent,
+                            tooltip: 'Delete',
+                            child: const Icon(Icons.delete),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "assets/images/semFoto.png",
+                            fit: BoxFit.cover,
+                            width: 250,
+                            height: 250,
+                          ),
+                          const SizedBox(height: 20.0),
+                          FloatingActionButton(
+                            onPressed: () {
+                              Modular.to.pushNamed("faces", arguments: {
+                                'assistido': _assistido,
+                                'isPhotoChanged': isPhotoChanged
+                              });
+                              setState(() {});
+                            },
+                            backgroundColor: Colors.green,
+                            tooltip: 'New',
+                            child: const Icon(Icons.add_a_photo),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 20.0),
-                      FloatingActionButton(
-                        onPressed: () {
-                          Modular.to.pushNamed("faces", arguments: {
-                            'assistido': _assistido,
-                            'isPhotoChanged': isPhotoChanged
-                          });
-                          setState(() {});
-                        },
-                        backgroundColor: Colors.green,
-                        tooltip: 'New',
-                        child: const Icon(Icons.add_a_photo),
-                      ),
-                    ],
-                  );
-                }
-              },
-            ),
-          ),
-        );
-      } else {
-        return const Center(child: CircularProgressIndicator());
-      }
-    });
+              ),
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        });
   }
 
   bool isCpf(String? cpf) {

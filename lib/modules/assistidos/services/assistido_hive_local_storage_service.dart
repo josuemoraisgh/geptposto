@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
@@ -36,22 +36,6 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   }
 
   @override
-  Future<File> addSetFile(
-      String fileName, final Uint8List uint8ListImage) async {
-    final directory = await getApplicationDocumentsDirectory();
-
-    var buffer = uint8ListImage.buffer;
-    ByteData byteData = ByteData.view(buffer);
-    final isExists = await File('${directory.path}/$fileName').exists();
-    if (isExists == true) {
-      await File('${directory.path}/$fileName').delete(recursive: true);
-    }
-    final ret = await File('${directory.path}/$fileName').writeAsBytes(
-        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-    return ret;
-  }
-
-  @override
   Future<String?> setRow(Assistido? data) async {
     final box = await completerAssistidos.future;
     if (data != null) {
@@ -71,12 +55,6 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   Future<List<Assistido>> getAll() async {
     final box = await completerAssistidos.future;
     return box.values.toList();
-  }
-
-  @override
-  Future<File> getFile(String fileName) async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/$fileName');
   }
 
   @override
@@ -101,6 +79,34 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
     } catch (e) {
       return false;
     }
+  }
+
+  @override
+  Future<bool> addSetFile(
+      String fileName, final Uint8List uint8ListImage) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+
+      var buffer = uint8ListImage.buffer;
+      ByteData byteData = ByteData.view(buffer);
+      final isExists = await File('${directory.path}/$fileName').exists();
+      if (isExists == true) {
+        await File('${directory.path}/$fileName').delete(recursive: true);
+      }
+      await File('${directory.path}/$fileName').writeAsBytes(
+          buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+      return true;
+    } catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
+
+  @override
+  Future<Uint8List> getFile(String fileName) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$fileName');
+    return file.readAsBytes();
   }
 
   @override

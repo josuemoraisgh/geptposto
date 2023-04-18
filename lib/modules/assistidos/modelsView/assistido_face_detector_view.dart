@@ -1,16 +1,16 @@
+import 'package:image/image.dart' as imglib;
 import 'dart:typed_data';
+import 'package:intl/intl.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:geptposto/modules/faces/image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:intl/intl.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
 import '../stores/assistidos_store.dart';
-import 'package:image/image.dart' as imglib;
 
 class AssistidoFaceDetectorView extends StatefulWidget {
   final Function(StreamAssistido pessoa)? chamadaFunc;
@@ -88,7 +88,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         } else {
           final image2 = cropFace(image, faceDetected[0], step: 80);
           if (image2 != null) {
-            _store.setImage(widget.assistido!.photoName, imglib.encodeJpg(image2));
+            _store.setImage(
+                widget.assistido!.photoName, imglib.encodeJpg(image2));
             _assistidoMmlService
                 .renderizarImage(inputImage, image2)
                 .then((fotoPoints) {

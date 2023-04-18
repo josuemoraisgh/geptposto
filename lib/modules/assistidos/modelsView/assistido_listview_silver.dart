@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rx_notifier/rx_notifier.dart';
@@ -9,14 +8,12 @@ import '../models/stream_assistido_model.dart';
 class AssistidoListViewSilver extends StatelessWidget {
   final List<StreamAssistido> list;
   final AssistidosController controller;
-  final Future<File?> Function(String? fileName) functionGetImg;
   final void Function({StreamAssistido? assistido}) functionEdit;
   final void Function(StreamAssistido pessoa) functionChamada;
   const AssistidoListViewSilver({
     Key? key,
     required this.controller,
     required this.list,
-    required this.functionGetImg,
     required this.functionEdit,
     required this.functionChamada,
   }) : super(key: key);
@@ -24,14 +21,14 @@ class AssistidoListViewSilver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RxBuilder(builder: (BuildContext context) {
-      var data = controller.dateSelectedController.value;
-      var count = 0;
+      final data = controller.dateSelectedController.value;
+      int count = 0;
       for (int i = 0; i < list.length; i++) {
         if (list[i].assistido.chamada.toLowerCase().contains(data)) {
           count++;
         }
-        controller.countPresente = count;
       }
+      controller.countPresente = count;
       return CustomScrollView(
         semanticChildCount: list.length,
         slivers: <Widget>[
@@ -42,35 +39,23 @@ class AssistidoListViewSilver extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   if (index < list.length) {
-                    return StreamBuilder(
-                      initialData: list[index].photoName,
-                      stream: list[index].photoStream,
-                      builder: (BuildContext context,
-                              AsyncSnapshot<String> photoName) =>
-                          FutureBuilder(
-                        initialData: null,
-                        future: functionGetImg(photoName.data),
-                        builder: (context, AsyncSnapshot<File?> foto) {
-                          return index == list.length - 1
-                              ? row(foto.data, list[index])
-                              : Column(
-                                  children: <Widget>[
-                                    row(foto.data, list[index]),
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 100,
-                                        right: 16,
-                                      ),
-                                      child: Container(
-                                        height: 1,
-                                        color: Styles.linhaProdutoDivisor,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                        },
-                      ),
-                    );
+                    return index == list.length - 1
+                        ? row(list[index])
+                        : Column(
+                            children: <Widget>[
+                              row(list[index]),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 100,
+                                  right: 16,
+                                ),
+                                child: Container(
+                                  height: 1,
+                                  color: Styles.linhaProdutoDivisor,
+                                ),
+                              ),
+                            ],
+                          );
                   }
                   return null;
                 },
@@ -82,7 +67,7 @@ class AssistidoListViewSilver extends StatelessWidget {
     });
   }
 
-  Widget row(File? foto, StreamAssistido pessoa) {
+  Widget row(StreamAssistido pessoa) {
     return SafeArea(
       top: false,
       bottom: false,
@@ -94,36 +79,32 @@ class AssistidoListViewSilver extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: foto == null
-                ? Image.asset(
-                    "assets/images/semFoto.png",
-                    fit: BoxFit.cover,
-                    width: 76,
-                    height: 76,
-                  )
-                : FutureBuilder<bool>(
-                    future: foto.exists(),
-                    builder:
-                        (BuildContext context, AsyncSnapshot<bool> isExists) {
-                      if (isExists.hasData) {
-                        return isExists.data != true
-                            ? Image.asset(
-                                "assets/images/semFoto.png",
-                                fit: BoxFit.cover,
-                                width: 76,
-                                height: 76,
-                              )
-                            : Image.file(
-                                foto,
-                                fit: BoxFit.cover,
-                                width: 76,
-                                height: 76,
-                              );
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    }),
+          StreamBuilder(
+            initialData: pessoa.photoName,
+            stream: pessoa.photoStream,
+            builder: (BuildContext context, AsyncSnapshot<String> photoName) {
+              if (pessoa.photoName.isNotEmpty &&
+                  (pessoa.photoUint8List == null ||
+                      pessoa.photoUint8List!.isEmpty)) {
+                controller.store.getImg(pessoa);
+              }
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: pessoa.photoUint8List == null
+                    ? Image.asset(
+                        "assets/images/semFoto.png",
+                        fit: BoxFit.cover,
+                        width: 76,
+                        height: 76,
+                      )
+                    : Image.memory(
+                        pessoa.photoUint8List!,
+                        fit: BoxFit.cover,
+                        width: 76,
+                        height: 76,
+                      ),
+              );
+            },
           ),
           Expanded(
             child: Padding(
@@ -133,12 +114,12 @@ class AssistidoListViewSilver extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    pessoa.assistido.nomeM1,
+                    pessoa.nomeM1,
                     style: Styles.linhaProdutoNomeDoItem,
                   ),
                   const Padding(padding: EdgeInsets.only(top: 8)),
                   Text(
-                    pessoa.assistido.fone,
+                    pessoa.fone,
                     style: Styles.linhaProdutoPrecoDoItem,
                   )
                 ],
@@ -158,7 +139,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                         ))
                     : StreamBuilder(
                         stream: pessoa.chamadaStream,
-                        initialData: pessoa.assistido.chamada,
+                        initialData: pessoa.chamada,
                         builder: (BuildContext context,
                             AsyncSnapshot<String> chamada) {
                           return CupertinoButton(

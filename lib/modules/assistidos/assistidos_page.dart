@@ -107,7 +107,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
                         list: list.data!,
                         functionChamada: chamadaToogleFunc,
                         functionEdit: editAddFunc,
-                        functionGetImg: controller.store.getImg,
                       );
                     } else if (list.hasError) {
                       return _buildError();

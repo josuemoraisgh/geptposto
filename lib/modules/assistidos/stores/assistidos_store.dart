@@ -2,12 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:image/image.dart' as imglib;
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rx_notifier/rx_notifier.dart';
+import 'package:geptposto/modules/faces/image_converter.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import '../models/stream_assistido_model.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
-import '../models/stream_assistido_model.dart';
+import '../services/assistido_ml_service.dart';
 
 class AssistidosStore {
   bool isRunningSync = false;
@@ -16,17 +22,21 @@ class AssistidosStore {
   late final SyncLocalStorageInterface _syncStore;
   late final AssistidoLocalStorageInterface _localStore;
   late final AssistidoRemoteStorageInterface _remoteStorage;
+  late final AssistidoMLService _assistidoMmlService;
   void Function()? atualiza;
   void Function()? desatualiza;
 
   AssistidosStore(
       {SyncLocalStorageInterface? syncStore,
       AssistidoLocalStorageInterface? localStore,
-      AssistidoRemoteStorageInterface? remoteStorage}) {
+      AssistidoRemoteStorageInterface? remoteStorage,
+      AssistidoMLService? assistidoMmlService}) {
     _syncStore = syncStore ?? Modular.get<SyncLocalStorageInterface>();
     _localStore = localStore ?? Modular.get<AssistidoLocalStorageInterface>();
     _remoteStorage =
         remoteStorage ?? Modular.get<AssistidoRemoteStorageInterface>();
+    _assistidoMmlService =
+        assistidoMmlService ?? Modular.get<AssistidoMLService>();
   }
 
   Future<void> init() async {
@@ -187,7 +197,62 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> addImage(String? fileName, final Uint8List uint8ListImage) async {
+  Future<bool> addSetPhoto(
+      StreamAssistido? stAssist, final Uint8List uint8ListImage) async {
+    if (stAssist != null && uint8ListImage.isNotEmpty) {
+      //Estabelecendo os pontos
+      stAssist.photoUint8List = uint8ListImage;
+      //Nomeando a arquivo
+      final now = DateTime.now();
+      final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
+      if (stAssist.photoName == "") {
+        stAssist.photoName =
+            '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
+      }
+      //Criando o arquivo - Armazenamento Local
+      final directory = await getApplicationDocumentsDirectory();
+      var buffer = uint8ListImage.buffer;
+      ByteData byteData = ByteData.view(buffer);
+      if (await File('${directory.path}/${stAssist.photoName}').exists()) {
+        await File('${directory.path}/${stAssist.photoName}')
+            .delete(recursive: true);
+      }
+      final file = await File('${directory.path}/${stAssist.photoName}')
+          .writeAsBytes(buffer.asUint8List(
+              byteData.offsetInBytes, byteData.lengthInBytes));
+      //Processando a imagem para o reconhecimento futuro
+      final imglib.Image? image = imglib.decodeJpg(uint8ListImage);
+      if (image != null) {
+        final inputImage = InputImage.fromFile(file);
+        final faceDetected =
+            await _assistidoMmlService.faceDetector.processImage(inputImage);
+        if (faceDetected.isEmpty) {
+          _syncStore.addSync(
+              'setImage', [stAssist.photoName, imglib.encodeJpg(image)]);
+          sync();
+          setRow(stAssist);
+        } else {
+          final image2 = cropFace(image, faceDetected[0], step: 80);
+          if (image2 != null) {
+            _syncStore.addSync(
+                'setImage', [stAssist.photoName, imglib.encodeJpg(image2)]);
+            sync();
+            _assistidoMmlService
+                .renderizarImage(inputImage, image2)
+                .then((fotoPoints) {
+              stAssist.fotoPoints = fotoPoints.cast<num>();
+              setRow(stAssist);
+            });
+          }
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> addImage(
+      String? fileName, final Uint8List uint8ListImage) async {
     if (fileName != null) {
       _syncStore.addSync(
           'addImage', [fileName, uint8ListImage]); //base64.encode(data)]);
@@ -208,27 +273,28 @@ class AssistidosStore {
     return false;
   }
 
-  Future<File?> getImg(String? fileName) async {
-    if (fileName != null) {
-      File result = await _localStore.getFile(fileName);
-      if ((await result.exists()) == true) {
-        return result;
-      }
-      while (_countConnection >= 10) {
-        //so faz 10 requisições por vez.
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-      _countConnection++;
-      var remoteImage = await _remoteStorage.getFile('BDados_Images', fileName);
-      if (remoteImage != null) {
-        if (remoteImage.isNotEmpty) {
-          result = await _localStore.addSetFile(
-              fileName, base64.decode(remoteImage));
-          _countConnection--;
-          return result;
+  Future<Uint8List?> getImg(StreamAssistido? stAssist) async {
+    if (stAssist != null) {
+      if (stAssist.photoName.isNotEmpty && stAssist.photoUint8List != null) {
+        if (stAssist.photoUint8List!.isNotEmpty) {
+          return stAssist.photoUint8List!;
         }
+        while (_countConnection >= 10) {
+          //so faz 10 requisições por vez.
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        _countConnection++;
+        var remoteImage =
+            await _remoteStorage.getFile('BDados_Images', stAssist.photoName);
+        if (remoteImage != null) {
+          if (remoteImage.isNotEmpty) {
+            await addSetPhoto(stAssist, base64.decode(remoteImage));
+            _countConnection--;
+            return base64.decode(remoteImage);
+          }
+        }
+        _countConnection--;
       }
-      _countConnection--;
     }
     return null;
   }
