@@ -196,7 +196,8 @@ class AssistidosStore {
   }
 
   Future<bool> addSetPhoto(
-      StreamAssistido? stAssist, final Uint8List uint8ListImage) async {
+      StreamAssistido? stAssist, final Uint8List uint8ListImage,
+      {bool isCropFace = true}) async {
     if (stAssist != null && uint8ListImage.isNotEmpty) {
       //Estabelecendo os pontos
       stAssist.photoUint8List = uint8ListImage;
@@ -208,20 +209,17 @@ class AssistidosStore {
             '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
       }
       //Criando o arquivo - Armazenamento Local
-      final file = await _localStore.addSetFile(stAssist.nomeM1,uint8ListImage);
+      final file =
+          await _localStore.addSetFile(stAssist.nomeM1, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       final imglib.Image? image = imglib.decodeJpg(uint8ListImage);
       if (image != null && file != null) {
         final inputImage = InputImage.fromFile(file);
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
-        if (faceDetected.isEmpty) {
-          _syncStore.addSync(
-              'setImage', [stAssist.photoName, imglib.encodeJpg(image)]);
-          sync();
-          setRow(stAssist);
-        } else {
-          final image2 = cropFace(image, faceDetected[0], step: 80);
+        if (faceDetected.isNotEmpty) {
+          final image2 =
+              isCropFace ? cropFace(image, faceDetected[0], step: 80) : image;
           if (image2 != null) {
             _syncStore.addSync(
                 'setImage', [stAssist.photoName, imglib.encodeJpg(image2)]);
@@ -233,6 +231,11 @@ class AssistidosStore {
               setRow(stAssist);
             });
           }
+        } else {
+          _syncStore.addSync(
+              'setImage', [stAssist.photoName, imglib.encodeJpg(image)]);
+          sync();
+          setRow(stAssist);
         }
       }
       return true;
@@ -255,7 +258,8 @@ class AssistidosStore {
             await _remoteStorage.getFile('BDados_Images', stAssist.photoName);
         if (remoteImage != null) {
           if (remoteImage.isNotEmpty) {
-            await addSetPhoto(stAssist, base64.decode(remoteImage));
+            await addSetPhoto(stAssist, base64.decode(remoteImage),
+                isCropFace: false);
             _countConnection--;
             return base64.decode(remoteImage);
           }
@@ -271,9 +275,9 @@ class AssistidosStore {
       //Atualiza os arquivos
       _syncStore.addSync('delImage', stAssist.photoName);
       await _localStore.delFile(stAssist.photoName);
-      //Atualiza o cadastro      
-      stAssist.photo = ["",Uint8List(0),[]];
-      _syncStore.addSync('set', [stAssist.ident,stAssist]);      
+      //Atualiza o cadastro
+      stAssist.photo = ["", Uint8List(0), []];
+      _syncStore.addSync('set', [stAssist.ident, stAssist]);
       await _localStore.setRow(stAssist);
       sync();
     }
