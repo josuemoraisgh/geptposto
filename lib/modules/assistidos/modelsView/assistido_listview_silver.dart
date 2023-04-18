@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rx_notifier/rx_notifier.dart';
@@ -96,7 +98,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                         height: 76,
                       )
                     : Image.memory(
-                        pessoa.photoUint8List!,
+                        Uint8List.fromList(pessoa.photoUint8List),
                         fit: BoxFit.cover,
                         width: 76,
                         height: 76,

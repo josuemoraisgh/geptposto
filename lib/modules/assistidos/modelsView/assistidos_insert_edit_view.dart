@@ -391,7 +391,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Image.memory(_assistido!.photoUint8List!),
+                          Image.memory(Uint8List.fromList(_assistido!.photoUint8List)),
                           const SizedBox(height: 4.0),
                           FloatingActionButton(
                             onPressed: () async {

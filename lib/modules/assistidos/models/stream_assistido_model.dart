@@ -3,8 +3,6 @@ import 'dart:typed_data';
 import 'assistido_models.dart';
 
 class StreamAssistido extends Assistido {
-  Uint8List photoUint8List = Uint8List(0);
-  List<num> fotoPoints = [];
   final StreamController<String> _chamadaController =
       StreamController<String>.broadcast();
   final StreamController<String> _photoController =
@@ -52,11 +50,17 @@ class StreamAssistido extends Assistido {
     }
   }
 
-  List<dynamic> get photo => [super.photoName, photoUint8List, fotoPoints];
+  List<dynamic> get photo => [super.photoName, photoUint8List, super.fotoPoints];
   set photo(List<dynamic> datas) {
     photoName = datas[0];
     photoUint8List = datas[1];
-    fotoPoints = datas[2];
+    super.fotoPoints = datas[2];
+  }
+
+
+  Uint8List get photoUint8List => Uint8List.fromList(super.photoIntList);
+  set photoUint8List(Uint8List data) {
+    super.photoIntList = data;
   }
 
   @override

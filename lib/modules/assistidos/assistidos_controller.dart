@@ -46,6 +46,7 @@ class AssistidosController {
         itensListController.value = itens;
       }
     }
+
     var date = await configStore.getConfig("dateSelected");
     if (date != null) {
       if (date.isNotEmpty) {

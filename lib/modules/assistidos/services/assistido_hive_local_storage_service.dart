@@ -22,20 +22,6 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   }
 
   @override
-  Future<List<int>?> add(final List<Assistido>? values) async {
-    final box = await completerAssistidos.future;
-    List<int>? resp = [];
-    if (values != null) {
-      for (var value in values) {
-        box.put(value.ident, value);
-        resp.add(value.ident);
-      }
-      return resp;
-    }
-    return null;
-  }
-
-  @override
   Future<String?> setRow(Assistido? data) async {
     final box = await completerAssistidos.future;
     if (data != null) {

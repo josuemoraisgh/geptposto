@@ -33,7 +33,7 @@ class AssistidoMLService {
     if (inputImage != null && image != null) {
       final predictedArray = await renderizarImage(inputImage, image);
       for (var assistido in assistidos) {
-        final userArray = assistido.fotoPoints ?? [];
+        final userArray = assistido.fotoPoints;
         dist = euclideanDistance(predictedArray, userArray);
         if (dist != null) {
           if (dist <= threshold && dist < minDist) {
@@ -76,7 +76,7 @@ class AssistidoMLService {
             options: GpuDelegateOptionsV2(
           isPrecisionLossAllowed: false,
           inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
-          inferencePriority1: TfLiteGpuInferencePriority.minLatency,
+          inferencePriority1: TfLiteGpuInferencePriority.auto,
           inferencePriority2: TfLiteGpuInferencePriority.auto,
           inferencePriority3: TfLiteGpuInferencePriority.auto,
         ));

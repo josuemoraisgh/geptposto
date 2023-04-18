@@ -38,13 +38,15 @@ class AssistidoAdapter extends TypeAdapter<Assistido> {
       parentescos: fields[18] as String,
       nomesMoradores: fields[19] as String,
       datasNasc: fields[20] as String,
+      photoIntList: (fields[21] as List).cast<int>(),
+      fotoPoints: (fields[22] as List).cast<num>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Assistido obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(23)
       ..writeByte(0)
       ..write(obj.ident)
       ..writeByte(1)
@@ -86,7 +88,11 @@ class AssistidoAdapter extends TypeAdapter<Assistido> {
       ..writeByte(19)
       ..write(obj.nomesMoradores)
       ..writeByte(20)
-      ..write(obj.datasNasc);
+      ..write(obj.datasNasc)
+      ..writeByte(21)
+      ..write(obj.photoIntList)
+      ..writeByte(22)
+      ..write(obj.fotoPoints);
   }
 
   @override
