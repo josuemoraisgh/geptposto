@@ -20,6 +20,10 @@ class AssistidoMLService {
         enableTracking: true),
   );
 
+  Future<void> init() async {
+    await initializeInterpreter();
+  }
+
   Future<StreamAssistido?> predict(CameraImage cameraImage,
       int sensorOrientation, List<StreamAssistido> assistidos) async {
     const int minDist = 999;
@@ -52,7 +56,6 @@ class AssistidoMLService {
     if (faces.isNotEmpty) {
       List input = _preProcessImage(image, faces[0]);
       input = input.reshape([1, 112, 112, 3]);
-      await initializeInterpreter();
       interpreter.run(input, output);
       output = output.reshape([192]);
     }
@@ -76,7 +79,7 @@ class AssistidoMLService {
             options: GpuDelegateOptionsV2(
           isPrecisionLossAllowed: false,
           inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
-          inferencePriority1: TfLiteGpuInferencePriority.auto,
+          inferencePriority1: TfLiteGpuInferencePriority.minLatency,
           inferencePriority2: TfLiteGpuInferencePriority.auto,
           inferencePriority3: TfLiteGpuInferencePriority.auto,
         ));

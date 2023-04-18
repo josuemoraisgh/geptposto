@@ -38,6 +38,7 @@ class AssistidosStore {
   }
 
   Future<void> init() async {
+    await _assistidoMmlService.init();
     await _localStore.init();
     await _remoteStorage.init();
     await _syncStore.init();
