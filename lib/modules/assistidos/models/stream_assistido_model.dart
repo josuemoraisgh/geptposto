@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'assistido_models.dart';
 
 class StreamAssistido extends Assistido {
-  Uint8List? photoUint8List;
-  List<num>? fotoPoints;
+  Uint8List photoUint8List = Uint8List(0);
+  List<num> fotoPoints = [];
   final StreamController<String> _chamadaController =
       StreamController<String>.broadcast();
   final StreamController<String> _photoController =

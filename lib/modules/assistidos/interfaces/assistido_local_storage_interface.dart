@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import '../models/assistido_models.dart';
 
@@ -5,7 +6,7 @@ abstract class AssistidoLocalStorageInterface {
   Future<void> init();
 
   Future<List<int>?> add(List<Assistido>? values); //Adiciona varias linhas
-  Future<bool> addSetFile(String fileName, final Uint8List uint8ListImage);
+  Future<File?> addSetFile(String fileName, final Uint8List uint8ListImage);
 
   Future<String?> setRow(Assistido? data); //Reescreve as linhas
 

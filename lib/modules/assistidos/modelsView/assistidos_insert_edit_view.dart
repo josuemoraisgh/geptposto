@@ -385,9 +385,8 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   maxWidth: screenWidth,
                   maxHeight: screenHeight,
                 ),
-                child: ((_assistido != null) &&
-                        (_assistido!.photoUint8List != null) &&
-                        (_assistido!.photoUint8List!.isNotEmpty))
+                child: ((_assistido != null) &&                     
+                        (_assistido!.photoUint8List.isNotEmpty))
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -397,7 +396,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                           FloatingActionButton(
                             onPressed: () async {
                               if (_assistido != null) {
-                                await _store.deleteImage(photoName.data!);
+                                await _store.delPhoto(_assistido);
                                 setState(() {});
                               }
                             },

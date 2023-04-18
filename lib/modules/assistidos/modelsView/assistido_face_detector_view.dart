@@ -1,6 +1,4 @@
-import 'package:image/image.dart' as imglib;
 import 'dart:typed_data';
-import 'package:intl/intl.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -68,37 +66,9 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     );
   }
 
-  Future<void> _cameraTakeImage(XFile? xFileImage) async {
-    if (widget.assistido != null && xFileImage != null) {
-      final now = DateTime.now();
-      final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
-      if (widget.assistido!.photoName == "") {
-        widget.assistido!.photoName =
-            '${widget.assistido!.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
-      }
-      final Uint8List data = await xFileImage.readAsBytes();
-      final imglib.Image? image = imglib.decodeJpg(data);
-      final inputImage = InputImage.fromFilePath(xFileImage.path);
-      final faceDetected =
-          await _assistidoMmlService.faceDetector.processImage(inputImage);
-      if (image != null) {
-        if (faceDetected.isEmpty) {
-          _store.setImage(widget.assistido!.photoName, imglib.encodeJpg(image));
-          _store.setRow(widget.assistido!);
-        } else {
-          final image2 = cropFace(image, faceDetected[0], step: 80);
-          if (image2 != null) {
-            _store.setImage(
-                widget.assistido!.photoName, imglib.encodeJpg(image2));
-            _assistidoMmlService
-                .renderizarImage(inputImage, image2)
-                .then((fotoPoints) {
-              widget.assistido!.fotoPoints = fotoPoints.cast<num>();
-              _store.setRow(widget.assistido!);
-            });
-          }
-        }
-      }
+  Future<void> _cameraTakeImage(Uint8List uint8ListImage) async {
+    if (widget.assistido != null) {
+      _store.addSetPhoto(widget.assistido, uint8ListImage);
     }
     Modular.to.pop();
   }

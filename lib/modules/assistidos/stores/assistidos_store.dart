@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:image/image.dart' as imglib;
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:geptposto/modules/faces/image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -210,19 +208,10 @@ class AssistidosStore {
             '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
       }
       //Criando o arquivo - Armazenamento Local
-      final directory = await getApplicationDocumentsDirectory();
-      var buffer = uint8ListImage.buffer;
-      ByteData byteData = ByteData.view(buffer);
-      if (await File('${directory.path}/${stAssist.photoName}').exists()) {
-        await File('${directory.path}/${stAssist.photoName}')
-            .delete(recursive: true);
-      }
-      final file = await File('${directory.path}/${stAssist.photoName}')
-          .writeAsBytes(buffer.asUint8List(
-              byteData.offsetInBytes, byteData.lengthInBytes));
+      final file = await _localStore.addSetFile(stAssist.nomeM1,uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       final imglib.Image? image = imglib.decodeJpg(uint8ListImage);
-      if (image != null) {
+      if (image != null && file != null) {
         final inputImage = InputImage.fromFile(file);
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
@@ -251,33 +240,11 @@ class AssistidosStore {
     return false;
   }
 
-  Future<bool> addImage(
-      String? fileName, final Uint8List uint8ListImage) async {
-    if (fileName != null) {
-      _syncStore.addSync(
-          'addImage', [fileName, uint8ListImage]); //base64.encode(data)]);
-      await _localStore.addSetFile(fileName, uint8ListImage);
-      sync();
-    }
-    return false;
-  }
-
-  Future<bool> setImage(
-      String? fileName, final Uint8List uint8ListImage) async {
-    if (fileName != null) {
-      _syncStore.addSync(
-          'setImage', [fileName, uint8ListImage]); // base64.encode(data)]);
-      sync();
-      await _localStore.addSetFile(fileName, uint8ListImage);
-    }
-    return false;
-  }
-
-  Future<Uint8List?> getImg(StreamAssistido? stAssist) async {
+  Future<Uint8List?> getPhoto(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      if (stAssist.photoName.isNotEmpty && stAssist.photoUint8List != null) {
-        if (stAssist.photoUint8List!.isNotEmpty) {
-          return stAssist.photoUint8List!;
+      if (stAssist.photoName.isNotEmpty) {
+        if (stAssist.photoUint8List.isNotEmpty) {
+          return stAssist.photoUint8List;
         }
         while (_countConnection >= 10) {
           //so faz 10 requisições por vez.
@@ -299,11 +266,16 @@ class AssistidosStore {
     return null;
   }
 
-  Future<bool> deleteImage(String? fileName) async {
-    if (fileName != null) {
-      _syncStore.addSync('delImage', fileName);
+  Future<bool> delPhoto(StreamAssistido? stAssist) async {
+    if (stAssist != null) {
+      //Atualiza os arquivos
+      _syncStore.addSync('delImage', stAssist.photoName);
+      await _localStore.delFile(stAssist.photoName);
+      //Atualiza o cadastro      
+      stAssist.photo = ["",Uint8List(0),[]];
+      _syncStore.addSync('set', [stAssist.ident,stAssist]);      
+      await _localStore.setRow(stAssist);
       sync();
-      await _localStore.delFile(fileName);
     }
     return false;
   }
