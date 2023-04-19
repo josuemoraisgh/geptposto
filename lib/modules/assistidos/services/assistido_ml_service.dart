@@ -12,16 +12,17 @@ import '../models/stream_assistido_model.dart';
 class AssistidoMLService {
   late Interpreter interpreter;
   List? predictedArray;
-  final FaceDetector faceDetector = FaceDetector(
-    options: FaceDetectorOptions(
-        enableContours: true,
-        enableClassification: true,
-        enableLandmarks: true,
-        enableTracking: true),
-  );
+  late FaceDetector faceDetector;
 
   Future<void> init() async {
     await initializeInterpreter();
+    faceDetector = FaceDetector(
+      options: FaceDetectorOptions(
+          enableContours: true,
+          enableClassification: true,
+          enableLandmarks: true,
+          enableTracking: true),
+    );
   }
 
   Future<StreamAssistido?> predict(CameraImage cameraImage,

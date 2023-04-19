@@ -68,7 +68,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _cameraTakeImage(Uint8List uint8ListImage) async {
     if (widget.assistido != null) {
-      _store.addSetPhoto(widget.assistido, uint8ListImage);
+      _store.addSetPhoto(widget.assistido, uint8ListImage, isUpload: true);
     }
     Modular.to.pop();
   }

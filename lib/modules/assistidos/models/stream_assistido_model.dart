@@ -50,13 +50,13 @@ class StreamAssistido extends Assistido {
     }
   }
 
-  List<dynamic> get photo => [super.photoName, photoUint8List, super.fotoPoints];
+  List<dynamic> get photo =>
+      [super.photoName, photoUint8List, super.fotoPoints];
   set photo(List<dynamic> datas) {
     photoName = datas[0];
     photoUint8List = datas[1];
     super.fotoPoints = datas[2];
   }
-
 
   Uint8List get photoUint8List => Uint8List.fromList(super.photoIntList);
   set photoUint8List(Uint8List data) {

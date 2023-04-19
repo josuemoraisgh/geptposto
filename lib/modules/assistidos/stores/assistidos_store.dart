@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:geptposto/modules/faces/image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import '../models/assistido_list_models.dart';
+import '../models/assistido_models.dart';
 import '../models/stream_assistido_model.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/assistido_local_storage_interface.dart';
@@ -17,6 +19,7 @@ class AssistidosStore {
   bool isRunningSync = false;
   static int _countConnection = 0;
   RxNotifier<int> countSync = RxNotifier<int>(0);
+  late AssistidoList assistidos = AssistidoList([].cast<Assistido>());
   late final SyncLocalStorageInterface _syncStore;
   late final AssistidoLocalStorageInterface _localStore;
   late final AssistidoRemoteStorageInterface _remoteStorage;
@@ -227,9 +230,9 @@ class AssistidosStore {
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
         if (faceDetected.isNotEmpty) {
-          if (isUpload) {
-            image = cropFace(image, faceDetected[0], step: 80) ?? image;
-          }
+          image = isUpload
+              ? cropFace(image, faceDetected[0], step: 80) ?? image
+              : image;
           stAssist.fotoPoints =
               (await _assistidoMmlService.renderizarImage(inputImage, image))
                   .cast<num>();
@@ -281,7 +284,7 @@ class AssistidosStore {
       _syncStore.addSync('delImage', stAssist.photoName);
       await _localStore.delFile(stAssist.photoName);
       //Atualiza o cadastro
-      stAssist.photo = ["", Uint8List(0), []];
+      stAssist.photo = ["", Uint8List(0), [].cast<num>()];
       _syncStore.addSync('set', stAssist);
       await _localStore.setRow(stAssist);
       sync();
