@@ -5,7 +5,7 @@ import '../models/assistido_models.dart';
 abstract class AssistidoLocalStorageInterface {
   Future<void> init();
 
-  Future<File?> addSetFile(String fileName, final Uint8List uint8ListImage);
+  Future<File> addSetFile(String fileName, final Uint8List uint8ListImage);
 
   Future<String?> setRow(Assistido? data); //Reescreve as linhas
 

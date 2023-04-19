@@ -110,7 +110,6 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   @override
   void dispose() {
     _canProcess = false;
-    _assistidoMmlService.faceDetector.close();
     super.dispose();
   }
 }

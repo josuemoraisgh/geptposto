@@ -11,7 +11,6 @@ import '../models/stream_assistido_model.dart';
 
 class AssistidoMLService {
   late Interpreter interpreter;
-  List? predictedArray;
   late FaceDetector faceDetector;
 
   Future<void> init() async {
@@ -29,7 +28,7 @@ class AssistidoMLService {
       int sensorOrientation, List<StreamAssistido> assistidos) async {
     const int minDist = 999;
     const double threshold = 1.5;
-    num? dist;
+    num? dist;  
 
     imglib.Image? image = cameraImageToImage(cameraImage);
     InputImage? inputImage =
@@ -105,8 +104,8 @@ class AssistidoMLService {
     imglib.Image? croppedImage = cropFace(image, faceDetected);
     if (croppedImage != null) {
       imglib.Image img = imglib.copyResizeCropSquare(croppedImage, size: 112);
-      final uint8List = Uint8List.fromList(imglib.encodePng(img));
-      final img2 = imglib.decodeImage(uint8List);
+      final uint8List = Uint8List.fromList(imglib.encodeJpg(img));
+      final img2 = imglib.decodeJpg(uint8List);
       if (img2 != null) {
         Float32List imageAsList = imageToByteListFloat32(img2);
         return imageAsList;

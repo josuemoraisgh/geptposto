@@ -218,29 +218,28 @@ class AssistidosStore {
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
       if (stAssist.photoName == "") {
         stAssist.photoName =
-            '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "")}_${formatter.format(now)}.jpg';
+            '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg';
       }
       //Criando o arquivo - Armazenamento Local
       final file =
-          await _localStore.addSetFile(stAssist.nomeM1, uint8ListImage);
+          await _localStore.addSetFile(stAssist.photoName, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       imglib.Image? image = imglib.decodeJpg(uint8ListImage);
-      if (image != null && file != null) {
+      imglib.Image? image2;
+      if (image != null) {
         final inputImage = InputImage.fromFile(file);
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
         if (faceDetected.isNotEmpty) {
-          image = isUpload
-              ? cropFace(image, faceDetected[0], step: 80) ?? image
-              : image;
-          stAssist.fotoPoints =
-              (await _assistidoMmlService.renderizarImage(inputImage, image))
-                  .cast<num>();
+          image2 = isUpload ? cropFace(image, faceDetected[0], step: 80) : null;
+          stAssist.fotoPoints = (await _assistidoMmlService.renderizarImage(
+                  inputImage, image2 ?? image))
+              .cast<num>();
         }
         if (isUpload) {
           setRow(stAssist);
-          _syncStore.addSync(
-              'setImage', [stAssist.photoName, imglib.encodeJpg(image)]);
+          _syncStore.addSync('setImage',
+              [stAssist.photoName, imglib.encodeJpg(image2 ?? image)]);
           sync();
         } else {
           _localStore.setRow(stAssist);

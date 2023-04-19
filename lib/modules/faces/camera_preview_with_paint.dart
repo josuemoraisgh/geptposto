@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as imglib;
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -218,11 +219,18 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
       _isBusyCamera = true;
       _controller?.stopImageStream().then(
             (_) => {
-              _controller?.takePicture().then((xfileImage) {
-                xfileImage
-                    .readAsBytes()
-                    .then((value) => widget.takeImageFunc!(value));
-              })
+              _controller?.takePicture().then(
+                (xfileImage) {
+                  xfileImage.readAsBytes().then(
+                    (value) {
+                      final img = imglib.decodeJpg(value);
+                      if (img != null) {
+                        widget.takeImageFunc!(imglib.encodeJpg(img));
+                      }
+                    },
+                  );
+                },
+              ),
             },
           );
     }
