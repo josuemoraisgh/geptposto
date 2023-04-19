@@ -224,22 +224,23 @@ class AssistidosStore {
       final file =
           await _localStore.addSetFile(stAssist.photoName, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
-      imglib.Image? image = imglib.decodeJpg(uint8ListImage);
-      imglib.Image? image2;
-      if (image != null) {
+      imglib.Image? image2, image1 = imglib.decodeJpg(uint8ListImage);
+      if (image1 != null) {
         final inputImage = InputImage.fromFile(file);
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
         if (faceDetected.isNotEmpty) {
-          image2 = isUpload ? cropFace(image, faceDetected[0], step: 80) : null;
+          image2 =
+              isUpload ? cropFace(image1, faceDetected[0], step: 80) : null;
+          _localStore.addSetFile(stAssist.photoName, imglib.encodeJpg(image2 ?? image1));
           stAssist.fotoPoints = (await _assistidoMmlService.renderizarImage(
-                  inputImage, image2 ?? image))
+                  inputImage, image2 ?? image1))
               .cast<num>();
         }
         if (isUpload) {
           setRow(stAssist);
           _syncStore.addSync('setImage',
-              [stAssist.photoName, imglib.encodeJpg(image2 ?? image)]);
+              [stAssist.photoName, imglib.encodeJpg(image2 ?? image1)]);
           sync();
         } else {
           _localStore.setRow(stAssist);

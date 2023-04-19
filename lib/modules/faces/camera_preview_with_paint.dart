@@ -217,22 +217,18 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
         _controller != null &&
         widget.takeImageFunc != null) {
       _isBusyCamera = true;
-      _controller?.stopImageStream().then(
-            (_) => {
-              _controller?.takePicture().then(
-                (xfileImage) {
-                  xfileImage.readAsBytes().then(
-                    (value) {
-                      final img = imglib.decodeJpg(value);
-                      if (img != null) {
-                        widget.takeImageFunc!(imglib.encodeJpg(img));
-                      }
-                    },
-                  );
-                },
-              ),
-            },
-          );
+      await _controller!.stopImageStream();
+      final xfileImage = await _controller?.takePicture();
+      final uint8List = await xfileImage?.readAsBytes();
+      if (uint8List != null) {
+        final img = imglib.decodeJpg(uint8List);
+        await _startLiveFeed(_cameraIndex);
+        if (img != null) {
+          widget.takeImageFunc!(imglib.encodeJpg(img));
+        }
+      } else {
+        await _startLiveFeed(_cameraIndex);
+      }
     }
   }
 }
