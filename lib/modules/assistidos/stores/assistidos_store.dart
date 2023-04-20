@@ -103,11 +103,7 @@ class AssistidosStore {
       var remoteDataChanges = await _remoteStorage.getChanges();
       if (remoteDataChanges != null) {
         for (var e in remoteDataChanges) {
-          getPhoto(StreamAssistido(e)).then(
-            (value) {
-              if (!value) _localStore.setRow(e);
-            },
-          );
+          addJustLocal(StreamAssistido(e));
         }
       }
       isRunningSync = false;
@@ -169,12 +165,13 @@ class AssistidosStore {
     return resp != null ? StreamAssistido(resp) : null;
   }
 
-  Future<String?> setRow(StreamAssistido? stAssist) async {
+  Future<String?> add(StreamAssistido? stAssist) async {
     if (stAssist != null) {
       stAssist.updatedApps = "";
       final result = (await _localStore.setRow(stAssist));
-      _syncStore.addSync('set', stAssist);
-      sync();
+      stAssist.saveRemoteFunc = addJustRemote;
+      stAssist.delRemoteFunc = delete;
+      _syncStore.addSync('set', stAssist).then((_) => sync());
       if (result != null) {
         return result;
       }
@@ -182,26 +179,38 @@ class AssistidosStore {
     return null;
   }
 
-  Future<bool> add(StreamAssistido? stAssist) async {
+  Future<String?> addJustLocal(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      _syncStore.addSync('add', stAssist.assistido);
+      stAssist.updatedApps = "";
+      final resp = _localStore.setRow(stAssist);
+      stAssist.saveRemoteFunc = addJustRemote;
+      stAssist.delRemoteFunc = delete;
+      getPhoto(stAssist);
+      return resp;
     }
-    sync();
+    return null;
+  }
+
+  Future<bool> addJustRemote(StreamAssistido? stAssist,
+      {String updatedApps = ""}) async {
+    if (stAssist != null) {
+      stAssist.updatedApps = updatedApps;
+      _syncStore.addSync('add', stAssist.assistido).then((_) => sync());
+    }
     return true;
   }
 
   Future<bool> deleteAll() async {
     if (await _localStore.delAll()) {
-      sync();
       return true;
     }
     return false;
   }
 
-  Future<bool> delete(String rowId) async {
-    _syncStore.addSync('del', rowId);
+  Future<bool> delete(StreamAssistido stAssist) async {
+    final rowId = stAssist.ident.toString();
+    _syncStore.addSync('del', rowId).then((_) => sync());
     if (await _localStore.delRow(rowId)) {
-      sync();
       return true;
     }
     return false;
@@ -224,26 +233,35 @@ class AssistidosStore {
       final file =
           await _localStore.addSetFile(stAssist.photoName, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
-      imglib.Image? image2, image1 = imglib.decodeJpg(uint8ListImage);
-      if (image1 != null) {
+      imglib.Image? image = imglib.decodeJpg(uint8ListImage);
+      if (image != null) {
         final inputImage = InputImage.fromFile(file);
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
         if (faceDetected.isNotEmpty) {
-          image2 =
-              isUpload ? cropFace(image1, faceDetected[0], step: 80) : null;
-          _localStore.addSetFile(stAssist.photoName, imglib.encodeJpg(image2 ?? image1));
-          stAssist.fotoPoints = (await _assistidoMmlService.renderizarImage(
-                  inputImage, image2 ?? image1))
-              .cast<num>();
+          if (isUpload) {
+            final imageAux = cropFace(image, faceDetected[0], step: 80);
+            if (imageAux != null) {
+              image = imageAux;
+              await _localStore.addSetFile(
+                  stAssist.photoName, imglib.encodeJpg(image));
+            }
+          }
+          _assistidoMmlService
+              .renderizarImage(inputImage, image)
+              .then((fotoPoints) {
+            stAssist.fotoPoints = fotoPoints.cast<num>();
+            stAssist.save();
+          });
         }
         if (isUpload) {
-          setRow(stAssist);
-          _syncStore.addSync('setImage',
-              [stAssist.photoName, imglib.encodeJpg(image2 ?? image1)]);
-          sync();
+          stAssist.save();
+          _syncStore.addSync('setImage', [
+            stAssist.photoName,
+            imglib.encodeJpg(image)
+          ]).then((_) => sync());
         } else {
-          _localStore.setRow(stAssist);
+          stAssist.saveJustLocal();
         }
         return true;
       }
@@ -281,13 +299,12 @@ class AssistidosStore {
   Future<bool> delPhoto(StreamAssistido? stAssist) async {
     if (stAssist != null) {
       //Atualiza os arquivos
-      _syncStore.addSync('delImage', stAssist.photoName);
+      _syncStore.addSync('delImage', stAssist.photoName).then((_) => sync());
       await _localStore.delFile(stAssist.photoName);
       //Atualiza o cadastro
       stAssist.photo = ["", Uint8List(0), [].cast<num>()];
-      _syncStore.addSync('set', stAssist);
+      _syncStore.addSync('set', stAssist).then((_) => sync());
       await _localStore.setRow(stAssist);
-      sync();
     }
     return false;
   }

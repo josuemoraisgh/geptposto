@@ -196,14 +196,13 @@ class _AssistidosPageState extends State<AssistidosPage> {
   void chamadaFunc(StreamAssistido pessoa) {
     if (pessoa.insertChamadaFunc(controller.dateSelected)) {
       controller.countPresente++;
-      controller.store.setRow(pessoa);
+      controller.store.add(pessoa);
     }
   }
 
   void chamadaToogleFunc(StreamAssistido pessoa) {
     controller.countPresente +=
         pessoa.chamadaToogleFunc(controller.dateSelected);
-    controller.store.setRow(pessoa);
   }
 
   void _checkDate(BuildContext context) {

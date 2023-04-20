@@ -356,7 +356,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                               if (_isAdd) {
                                 _store.add(_assistido);
                               } else {
-                                _store.setRow(_assistido!);
+                                _assistido!.save();
                               }
                             }
                           }
@@ -385,13 +385,14 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   maxWidth: screenWidth,
                   maxHeight: screenHeight,
                 ),
-                child: ((_assistido != null) &&                     
+                child: ((_assistido != null) &&
                         (_assistido!.photoUint8List.isNotEmpty))
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Image.memory(Uint8List.fromList(_assistido!.photoUint8List)),
+                          Image.memory(
+                              Uint8List.fromList(_assistido!.photoUint8List)),
                           const SizedBox(height: 4.0),
                           FloatingActionButton(
                             onPressed: () async {

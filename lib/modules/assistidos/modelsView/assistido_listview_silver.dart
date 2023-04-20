@@ -85,8 +85,9 @@ class AssistidoListViewSilver extends StatelessWidget {
             initialData: pessoa.photoName,
             stream: pessoa.photoStream,
             builder: (BuildContext context, AsyncSnapshot<String> photoName) {
-              if (pessoa.photoName.isNotEmpty && pessoa.photoUint8List.isEmpty) {
-                controller.store.getPhoto(pessoa);
+              if (pessoa.photoName.isNotEmpty &&
+                  pessoa.photoUint8List.isEmpty) {
+                controller.store.addJustLocal(pessoa);
               }
               return ClipRRect(
                 borderRadius: BorderRadius.circular(4),

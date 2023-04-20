@@ -70,15 +70,12 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   @override
   Future<File> addSetFile(
       String fileName, final Uint8List uint8ListImage) async {
-      final directory = await getApplicationDocumentsDirectory();
-      var buffer = uint8ListImage.buffer;
-      ByteData byteData = ByteData.view(buffer);
-      final isExists = await File('${directory.path}/$fileName').exists();
-      if (isExists == true) {
-        await File('${directory.path}/$fileName').delete(recursive: true);
-      }
-      return File('${directory.path}/$fileName').writeAsBytes(
-          buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    final directory = await getApplicationDocumentsDirectory();
+    var buffer = uint8ListImage.buffer;
+    ByteData byteData = ByteData.view(buffer);
+    return File('${directory.path}/$fileName').writeAsBytes(
+        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+        mode: FileMode.writeOnly);
   }
 
   @override

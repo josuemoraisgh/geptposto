@@ -45,10 +45,10 @@ class Assistido extends HiveObject {
   String nomesMoradores;
   @HiveField(20)
   String datasNasc;
-  @HiveField(21)  
+  @HiveField(21)
   List<int> photoIntList;
-  @HiveField(22)  
-  List<num> fotoPoints;  
+  @HiveField(22)
+  List<num> fotoPoints;
 
   Assistido({
     this.ident = -1,
@@ -72,7 +72,7 @@ class Assistido extends HiveObject {
     this.parentescos = "",
     this.nomesMoradores = "",
     this.datasNasc = "",
-    this.photoIntList = const [],    
+    this.photoIntList = const [],
     this.fotoPoints = const [],
   });
 
@@ -99,7 +99,7 @@ class Assistido extends HiveObject {
         nomesMoradores = assistido.nomesMoradores,
         datasNasc = assistido.datasNasc,
         photoIntList = assistido.photoIntList,
-        fotoPoints = assistido.fotoPoints;        
+        fotoPoints = assistido.fotoPoints;
 
   factory Assistido.fromList(List<dynamic> value) {
     return Assistido(
@@ -125,7 +125,7 @@ class Assistido extends HiveObject {
       nomesMoradores: value[19].toString(),
       datasNasc: value[20].toString(),
       photoIntList: const [],
-      fotoPoints: const [],        
+      fotoPoints: const [],
     );
   }
 
@@ -194,7 +194,7 @@ class Assistido extends HiveObject {
           break;
         case 'Datas Nasc':
           datasNasc = datas;
-          break;        
+          break;
       }
     }
   }
