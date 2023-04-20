@@ -193,7 +193,7 @@ class AssistidosStore {
 
   Future<bool> addJustRemote(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      _syncStore.addSync('add', stAssist).then((_) => sync());
+      _syncStore.addSync('set', stAssist).then((_) => sync());
     }
     return true;
   }
@@ -227,8 +227,7 @@ class AssistidosStore {
           : stAssist.photoName;
 
       //Criando o arquivo - Armazenamento Local
-      final file =
-          await _localStore.addSetFile(photoFileName, uint8ListImage);
+      final file = await _localStore.addSetFile(photoFileName, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       imglib.Image? image = imglib.decodeJpg(uint8ListImage);
       if (image != null) {
@@ -301,8 +300,7 @@ class AssistidosStore {
       await _localStore.delFile(stAssist.photoName);
       //Atualiza o cadastro
       stAssist.photo = ["", Uint8List(0), [].cast<num>()];
-      _syncStore.addSync('set', stAssist).then((_) => sync());
-      await _localStore.setRow(stAssist);
+      stAssist.save();
     }
     return false;
   }
