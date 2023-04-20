@@ -183,7 +183,9 @@ class AssistidosStore {
       final resp = _localStore.setRow(stAssist);
       stAssist.saveRemoteFunc = addJustRemote;
       stAssist.delRemoteFunc = delete;
-      getPhoto(stAssist);
+      resp.then(
+        (value) => getPhoto(stAssist),
+      );
       return resp;
     }
     return null;
@@ -191,7 +193,7 @@ class AssistidosStore {
 
   Future<bool> addJustRemote(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      _syncStore.addSync('add', stAssist.assistido).then((_) => sync());
+      _syncStore.addSync('add', stAssist).then((_) => sync());
     }
     return true;
   }
@@ -215,19 +217,18 @@ class AssistidosStore {
   Future<bool> addSetPhoto(
       StreamAssistido? stAssist, final Uint8List uint8ListImage,
       {bool isUpload = true}) async {
+    String photoFileName;
     if (stAssist != null && uint8ListImage.isNotEmpty) {
-      //Estabelecendo os pontos
-      stAssist.photoUint8List = uint8ListImage;
       //Nomeando a arquivo
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
-      if (stAssist.photoName == "") {
-        stAssist.photoName =
-            '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg';
-      }
+      photoFileName = (stAssist.photoName == "")
+          ? '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg'
+          : stAssist.photoName;
+
       //Criando o arquivo - Armazenamento Local
       final file =
-          await _localStore.addSetFile(stAssist.photoName, uint8ListImage);
+          await _localStore.addSetFile(photoFileName, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       imglib.Image? image = imglib.decodeJpg(uint8ListImage);
       if (image != null) {
@@ -240,24 +241,25 @@ class AssistidosStore {
             if (imageAux != null) {
               image = imageAux;
               await _localStore.addSetFile(
-                  stAssist.photoName, imglib.encodeJpg(image));
+                  photoFileName, imglib.encodeJpg(image));
             }
           }
           _assistidoMmlService
               .renderizarImage(inputImage, image)
               .then((fotoPoints) {
-            stAssist.fotoPoints = fotoPoints.cast<num>();
-            stAssist.save();
+            stAssist.photo = [
+              photoFileName,
+              imglib.encodeJpg(image!),
+              fotoPoints.cast<num>()
+            ];
+            stAssist.saveJustLocal();
           });
         }
         if (isUpload) {
-          stAssist.save();
           _syncStore.addSync('setImage', [
-            stAssist.photoName,
+            photoFileName,
             imglib.encodeJpg(image)
-          ]).then((_) => sync());
-        } else {
-          stAssist.saveJustLocal();
+          ]).then((_) => stAssist.saveJustRemote());
         }
         return true;
       }

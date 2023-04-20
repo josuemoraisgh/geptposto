@@ -375,10 +375,10 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
-        initialData: _assistido!.photoName,
+        initialData: _assistido!.ident,
         stream: _assistido!.photoStream,
-        builder: (BuildContext context, AsyncSnapshot<String> photoName) {
-          if (photoName.hasData) {
+        builder: (BuildContext context, AsyncSnapshot<int> ident) {
+          if (ident.hasData) {
             return Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(

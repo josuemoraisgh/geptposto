@@ -1,20 +1,23 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:flutter/widgets.dart';
+
 import 'assistido_models.dart';
 
 class StreamAssistido extends Assistido {
   Function(StreamAssistido value)? saveRemoteFunc;
+  Function(StreamAssistido value)? saveLocalFunc;  
   Function(StreamAssistido value)? delRemoteFunc;
-  final StreamController<String> _chamadaController =
-      StreamController<String>.broadcast();
-  final StreamController<String> _photoController =
-      StreamController<String>.broadcast();
+  final StreamController<int> _chamadaController =
+      StreamController<int>.broadcast();
+  final StreamController<int> _photoController =
+      StreamController<int>.broadcast();
 
   StreamAssistido(Assistido assistido) : super.assistido(assistido);
   StreamAssistido.vazio()
       : super(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
-  Stream<String> get chamadaStream => _chamadaController.stream;
-  Stream<String> get photoStream => _photoController.stream;
+  Stream<int> get chamadaStream => _chamadaController.stream;
+  Stream<int> get photoStream => _photoController.stream;
   Assistido get assistido => this;
 
   bool insertChamadaFunc(dateSelected) {
@@ -40,16 +43,24 @@ class StreamAssistido extends Assistido {
 
   @override
   Future<void> save() async {
-    super.save(); //Save no modo local
-    if (saveRemoteFunc != null) saveRemoteFunc!(this); //Save no modo remoto
+    await saveJustLocal();
+    await saveJustRemote();
   }
 
   Future<void> saveJustLocal() async {
-    super.save(); //Save no modo local
+    if (saveLocalFunc != null) {
+      saveLocalFunc!(this); //Save no modo remoto
+    } else {
+      debugPrint("save Local Func - NULL");
+    }    
   }
 
   Future<void> saveJustRemote() async {
-    if (saveRemoteFunc != null) saveRemoteFunc!(this); //Save no modo remoto
+    if (saveRemoteFunc != null) {
+      saveRemoteFunc!(this); //Save no modo remoto
+    } else {
+      debugPrint("save Remote Func - NULL");
+    }
   }
 
   @override
@@ -70,38 +81,28 @@ class StreamAssistido extends Assistido {
           break;
         default:
           super.changeItens(itens, datas);
-          save();
           break;
       }
     }
   }
 
-  List<dynamic> get photo =>
-      [super.photoName, photoUint8List, super.fotoPoints];
-  set photo(List<dynamic> datas) {
-    super.fotoPoints = datas[2];
-    super.photoName = datas[0];
-    _chamadaController.sink.add(datas[0]);
-    photoUint8List = datas[1];
-  }
-
   Uint8List get photoUint8List => Uint8List.fromList(super.photoIntList);
   set photoUint8List(Uint8List data) {
     super.photoIntList = data;
-    save();
   }
 
-  @override
-  set photoName(String data) {
-    super.photoName = data;
-    _chamadaController.sink.add(data);
-    save();
+  List<dynamic> get photo =>
+      [super.photoName, photoUint8List, super.fotoPoints];
+  set photo(List<dynamic> datas) {
+    super.photoName = datas[0];
+    photoUint8List = datas[1];    
+    super.fotoPoints = datas[2];
+    _chamadaController.sink.add(ident);    
   }
 
   @override
   set chamada(String data) {
     super.chamada = data;
-    _chamadaController.sink.add(data);
-    save();
+    _chamadaController.sink.add(ident);
   }
 }

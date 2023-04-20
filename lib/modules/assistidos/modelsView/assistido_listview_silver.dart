@@ -82,9 +82,9 @@ class AssistidoListViewSilver extends StatelessWidget {
       child: Row(
         children: <Widget>[
           StreamBuilder(
-            initialData: pessoa.photoName,
+            initialData: pessoa.ident,
             stream: pessoa.photoStream,
-            builder: (BuildContext context, AsyncSnapshot<String> photoName) {
+            builder: (BuildContext context, AsyncSnapshot<int> ident) {
               if (pessoa.photoName.isNotEmpty &&
                   pessoa.photoUint8List.isEmpty) {
                 controller.store.addJustLocal(pessoa);
@@ -139,14 +139,14 @@ class AssistidoListViewSilver extends StatelessWidget {
                           semanticLabel: 'Ausente',
                         ))
                     : StreamBuilder(
+                        initialData: pessoa.ident,
                         stream: pessoa.chamadaStream,
-                        initialData: pessoa.chamada,
                         builder: (BuildContext context,
-                            AsyncSnapshot<String> chamada) {
+                            AsyncSnapshot<int> chamada) {
                           return CupertinoButton(
                             padding: EdgeInsets.zero,
                             onPressed: () => functionChamada(pessoa),
-                            child: chamada.data!
+                            child: pessoa.chamada
                                     .toLowerCase()
                                     .contains(controller.dateSelected)
                                 ? const Icon(
