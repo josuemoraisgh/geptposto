@@ -167,7 +167,6 @@ class AssistidosStore {
 
   Future<String?> add(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      stAssist.updatedApps = "";
       final result = (await _localStore.setRow(stAssist));
       stAssist.saveRemoteFunc = addJustRemote;
       stAssist.delRemoteFunc = delete;
@@ -181,7 +180,6 @@ class AssistidosStore {
 
   Future<String?> addJustLocal(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      stAssist.updatedApps = "";
       final resp = _localStore.setRow(stAssist);
       stAssist.saveRemoteFunc = addJustRemote;
       stAssist.delRemoteFunc = delete;
@@ -191,10 +189,8 @@ class AssistidosStore {
     return null;
   }
 
-  Future<bool> addJustRemote(StreamAssistido? stAssist,
-      {String updatedApps = ""}) async {
+  Future<bool> addJustRemote(StreamAssistido? stAssist) async {
     if (stAssist != null) {
-      stAssist.updatedApps = updatedApps;
       _syncStore.addSync('add', stAssist.assistido).then((_) => sync());
     }
     return true;
