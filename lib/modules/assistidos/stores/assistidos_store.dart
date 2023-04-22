@@ -75,7 +75,6 @@ class AssistidosStoreList {
     await _localStore.init();
     await _remoteStorage.init();
     await _syncStore.init();
-    await sync();
     _assistidoList.addAll(
       (await _localStore.getAll()).map(
         (element) => StreamAssistido(element)
@@ -84,6 +83,7 @@ class AssistidosStoreList {
           ..deleteExt = delete,
       ),
     );
+    await sync();
     _assistidoListStream.sink.add(_assistidoList);
   }
 

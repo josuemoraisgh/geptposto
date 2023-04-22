@@ -83,29 +83,23 @@ class AssistidoListViewSilver extends StatelessWidget {
             initialData: pessoa,
             stream: pessoa.photoStream,
             builder: (BuildContext context,
-                AsyncSnapshot<StreamAssistido> assistido) {
-              if (assistido.data!.photoName.isNotEmpty &&
-                  assistido.data!.photoUint8List.isEmpty) {
-                controller.assistidosStoreList
-                    .addSaveJustLocal(assistido.data!);
-              }
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: assistido.data!.photoUint8List.isEmpty
-                    ? Image.asset(
-                        "assets/images/semFoto.png",
-                        fit: BoxFit.cover,
-                        width: 76,
-                        height: 76,
-                      )
-                    : Image.memory(
-                        Uint8List.fromList(pessoa.photoUint8List),
-                        fit: BoxFit.cover,
-                        width: 76,
-                        height: 76,
-                      ),
-              );
-            },
+                    AsyncSnapshot<StreamAssistido> assistido) =>
+                ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: assistido.data!.photoUint8List.isEmpty
+                  ? Image.asset(
+                      "assets/images/semFoto.png",
+                      fit: BoxFit.cover,
+                      width: 76,
+                      height: 76,
+                    )
+                  : Image.memory(
+                      Uint8List.fromList(pessoa.photoUint8List),
+                      fit: BoxFit.cover,
+                      width: 76,
+                      height: 76,
+                    ),
+            ),
           ),
           Expanded(
             child: Padding(
