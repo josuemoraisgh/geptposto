@@ -7,7 +7,7 @@ import 'stores/assistidos_store.dart';
 
 class AssistidosController {
   final isInitedController = RxNotifier<bool>(false);
-  final textEditing = RxNotifier<String>("");
+  final textEditing = TextEditingController(text: "");
   final countPresenteController = RxNotifier<int>(0);
   final focusNode = FocusNode();
   final presentCount = RxNotifier<int>(0);
@@ -25,20 +25,22 @@ class AssistidosController {
     '26/03/2023'
   ]);
   final whatWidget = RxNotifier<int>(0);
-  late final AssistidosStore store;
+  late final AssistidosStoreList assistidosStoreList;
   late final ConfigLocalStorageInterface configStore;
 
   AssistidosController(
-      {AssistidosStore? store, ConfigLocalStorageInterface? configStore}) {
-    this.store = store ?? Modular.get<AssistidosStore>();
+      {AssistidosStoreList? assistidosStoreList,
+      ConfigLocalStorageInterface? configStore}) {
+    this.assistidosStoreList =
+        assistidosStoreList ?? Modular.get<AssistidosStoreList>();
     this.configStore =
         configStore ?? Modular.get<ConfigLocalStorageInterface>();
-    store?.atualiza = () => isInitedController.value = true;
-    store?.desatualiza = () => isInitedController.value = false;
+    assistidosStoreList?.atualiza = () => isInitedController.value = true;
+    assistidosStoreList?.desatualiza = () => isInitedController.value = false;
   }
 
   Future<bool> init() async {
-    await store.init();
+    await assistidosStoreList.init();
     await configStore.init();
     var itens = await configStore.getConfig("itensList");
     if (itens != null) {
@@ -53,7 +55,7 @@ class AssistidosController {
         dateSelectedController.value = date.first;
       }
     }
-    store.sync();
+    assistidosStoreList.sync();
     return true;
   }
 

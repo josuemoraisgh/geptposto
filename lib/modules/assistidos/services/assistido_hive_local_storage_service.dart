@@ -38,6 +38,12 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   }
 
   @override
+  Future<List<dynamic>> getKeys() async {
+    final box = await completerAssistidos.future;
+    return box.keys.toList();
+  }
+
+  @override
   Future<List<Assistido>> getAll() async {
     final box = await completerAssistidos.future;
     return box.values.toList();

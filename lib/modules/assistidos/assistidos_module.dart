@@ -31,12 +31,12 @@ class AssistidosModule extends Module {
             AssistidoRemoteStorageRepository(provider: i<ProviderInterface>())),
         Bind.lazySingleton<SyncLocalStorageInterface>(
             (i) => SyncLocalStorageService()),
-        Bind.lazySingleton<AssistidosStore>((i) => AssistidosStore(
+        Bind.lazySingleton<AssistidosStoreList>((i) => AssistidosStoreList(
             syncStore: i<SyncLocalStorageInterface>(),
             localStore: i<AssistidoLocalStorageInterface>(),
             remoteStorage: i<AssistidoRemoteStorageInterface>())),
         Bind.singleton<AssistidosController>((i) => AssistidosController(
-              store: i<AssistidosStore>(),
+              assistidosStoreList: i<AssistidosStoreList>(),
               configStore: i<ConfigLocalStorageService>(),
             )),
       ];

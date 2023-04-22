@@ -39,7 +39,7 @@ class AssistidoAdapter extends TypeAdapter<Assistido> {
       nomesMoradores: fields[19] as String,
       datasNasc: fields[20] as String,
       photoIntList: (fields[21] as List).cast<int>(),
-      fotoPoints: (fields[22] as List).cast<num>(),
+      fotoPoints: (fields[22] as List).cast<dynamic>(),
     );
   }
 

@@ -1,21 +1,19 @@
 import 'package:flutter/cupertino.dart';
-import 'package:rx_notifier/rx_notifier.dart';
 
 const TextStyle textoPesquisa = TextStyle(
-    color: Color.fromRGBO(0, 0, 0, 1),
-    fontSize: 14,
-    fontStyle: FontStyle.normal,
-    fontWeight: FontWeight.normal,
+  color: Color.fromRGBO(0, 0, 0, 1),
+  fontSize: 14,
+  fontStyle: FontStyle.normal,
+  fontWeight: FontWeight.normal,
 );
 const Color fundoPesquisa = Color(0xffe0e0e0);
 const Color cursorPesquisaCor = Color.fromRGBO(0, 122, 255, 1);
 const Color iconePesquisaCor = Color.fromRGBO(128, 128, 128, 1);
 
 class SearchBar extends StatelessWidget {
-  final RxNotifier<String> textController;
+  final TextEditingController textController;
   final FocusNode focusNode;
-  final textEditingController = TextEditingController();
-  SearchBar({
+  const SearchBar({
     Key? key,
     required this.textController,
     required this.focusNode,
@@ -41,18 +39,14 @@ class SearchBar extends StatelessWidget {
             ),
             Expanded(
               child: CupertinoTextField(
-                controller: textEditingController,
-                onChanged: ((value) => textController.value = value),
+                controller: textController,
                 focusNode: focusNode,
                 style: textoPesquisa,
                 cursorColor: cursorPesquisaCor,
               ),
             ),
             GestureDetector(
-              onTap: () {
-                textEditingController.text = ""; 
-                textController.value = "";
-              },
+              onTap: () => textController.text = "",
               child: const Icon(
                 CupertinoIcons.clear_thick_circled,
                 color: iconePesquisaCor,

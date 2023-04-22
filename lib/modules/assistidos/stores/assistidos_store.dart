@@ -1,33 +1,45 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:image/image.dart' as imglib;
+
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:image/image.dart' as imglib;
 import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
+
 import 'package:geptposto/modules/faces/image_converter.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import '../models/assistido_list_models.dart';
-import '../models/assistido_models.dart';
-import '../models/stream_assistido_model.dart';
-import '../interfaces/asssistido_remote_storage_interface.dart';
+
 import '../interfaces/assistido_local_storage_interface.dart';
+import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
+import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 
-class AssistidosStore {
-  bool isRunningSync = false;
-  static int _countConnection = 0;
-  RxNotifier<int> countSync = RxNotifier<int>(0);
-  late AssistidoList assistidos = AssistidoList([].cast<Assistido>());
-  late final SyncLocalStorageInterface _syncStore;
-  late final AssistidoLocalStorageInterface _localStore;
-  late final AssistidoRemoteStorageInterface _remoteStorage;
-  late final AssistidoMLService _assistidoMmlService;
-  void Function()? atualiza;
-  void Function()? desatualiza;
+Map<String, String> _caracterMap = {
+  "â": "a",
+  "à": "a",
+  "á": "a",
+  "ã": "a",
+  "ê": "e",
+  "è": "e",
+  "é": "e",
+  "î": "i",
+  "ì": "i",
+  "í": "i",
+  "õ": "o",
+  "ô": "o",
+  "ò": "o",
+  "ó": "o",
+  "ü": "u",
+  "û": "u",
+  "ú": "u",
+  "ù": "u",
+  "ç": "c"
+};
 
-  AssistidosStore(
+class AssistidosStoreList {
+  AssistidosStoreList(
       {SyncLocalStorageInterface? syncStore,
       AssistidoLocalStorageInterface? localStore,
       AssistidoRemoteStorageInterface? remoteStorage,
@@ -40,12 +52,39 @@ class AssistidosStore {
         assistidoMmlService ?? Modular.get<AssistidoMLService>();
   }
 
+  void Function()? atualiza;
+  void Function()? desatualiza;
+  final countSync = RxNotifier<int>(0);
+  bool isRunningSync = false;
+
+  static int _countConnection = 0;
+
+  final _assistidoList = [].cast<StreamAssistido>();
+  final StreamController<List<StreamAssistido>> _assistidoListStream =
+      StreamController<List<StreamAssistido>>.broadcast();
+
+  late final AssistidoMLService _assistidoMmlService;
+  late final AssistidoLocalStorageInterface _localStore;
+  late final AssistidoRemoteStorageInterface _remoteStorage;
+  late final SyncLocalStorageInterface _syncStore;
+
+  Stream<List<StreamAssistido>> get stream => _assistidoListStream.stream;
+
   Future<void> init() async {
     await _assistidoMmlService.init();
     await _localStore.init();
     await _remoteStorage.init();
     await _syncStore.init();
-    sync();
+    await sync();
+    _assistidoList.addAll(
+      (await _localStore.getAll()).map(
+        (element) => StreamAssistido(element)
+          ..saveJustLocalExt = addSaveJustLocal
+          ..saveJustRemoteExt = addSaveJustRemote
+          ..deleteExt = delete,
+      ),
+    );
+    _assistidoListStream.sink.add(_assistidoList);
   }
 
   Future<void> sync() async {
@@ -102,8 +141,10 @@ class AssistidosStore {
       }
       var remoteDataChanges = await _remoteStorage.getChanges();
       if (remoteDataChanges != null) {
+        final keys = await _localStore.getKeys();
         for (var e in remoteDataChanges) {
-          addJustLocal(StreamAssistido(e));
+          addSaveJustLocal(StreamAssistido(e),
+              isAdd: (keys.contains(e.ident)) ? false : true);
         }
       }
       isRunningSync = false;
@@ -112,52 +153,21 @@ class AssistidosStore {
     if (atualiza != null) atualiza!();
   }
 
-  Future<List<StreamAssistido>?> search(
-      String termosDeBusca, String condicao) async {
-    Map<String, String> map = {
-      "â": "a",
-      "à": "a",
-      "á": "a",
-      "ã": "a",
-      "ê": "e",
-      "è": "e",
-      "é": "e",
-      "î": "i",
-      "ì": "i",
-      "í": "i",
-      "õ": "o",
-      "ô": "o",
-      "ò": "o",
-      "ó": "o",
-      "ü": "u",
-      "û": "u",
-      "ú": "u",
-      "ù": "u",
-      "ç": "c"
-    };
-    final listAssist = await getAll();
-    if (listAssist != null) {
-      var list = listAssist
-          .where((assistido) =>
-              // ignore: prefer_interpolation_to_compose_strings
-              assistido.condicao.contains(RegExp(r"^(" + condicao + ")")))
-          .where((assistido) => assistido.nomeM1
-              .toLowerCase()
-              .replaceAllMapped(RegExp(r'[\W\[\] ]'),
-                  (Match a) => map.containsKey(a[0]) ? map[a[0]]! : a[0]!)
-              .contains(termosDeBusca.toLowerCase()))
-          .toList();
-      return (list);
-    } else {
-      return null;
-    }
-  }
-
-  Future<List<StreamAssistido>?> getAll() async {
-    var resp = (await _localStore.getAll())
-        .map((element) => StreamAssistido(element))
+  List<StreamAssistido> search(
+      List<StreamAssistido> assistidoList, termosDeBusca, String condicao) {
+    return assistidoList
+        .where((assistido) =>
+            // ignore: prefer_interpolation_to_compose_strings
+            assistido.condicao.contains(RegExp(r"^(" + condicao + ")")))
+        .where((assistido) => assistido.nomeM1
+            .toLowerCase()
+            .replaceAllMapped(
+                RegExp(r'[\W\[\] ]'),
+                (Match a) => _caracterMap.containsKey(a[0])
+                    ? _caracterMap[a[0]]!
+                    : a[0]!)
+            .contains(termosDeBusca.toLowerCase()))
         .toList();
-    return resp;
   }
 
   Future<StreamAssistido?> getRow(int rowId) async {
@@ -165,37 +175,34 @@ class AssistidosStore {
     return resp != null ? StreamAssistido(resp) : null;
   }
 
-  Future<String?> add(StreamAssistido? stAssist) async {
-    if (stAssist != null) {
-      final result = (await _localStore.setRow(stAssist));
-      stAssist.saveRemoteFunc = addJustRemote;
-      stAssist.delRemoteFunc = delete;
-      _syncStore.addSync('set', stAssist).then((_) => sync());
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
+  Future<String?> add(StreamAssistido stAssist) async {
+    addSaveJustRemote(stAssist, isAdd: true);
+    return addSaveJustLocal(stAssist, isAdd: true);
   }
 
-  Future<String?> addJustLocal(StreamAssistido? stAssist) async {
-    if (stAssist != null) {
-      final resp = _localStore.setRow(stAssist);
-      stAssist.saveRemoteFunc = addJustRemote;
-      stAssist.delRemoteFunc = delete;
-      resp.then(
-        (value) => getPhoto(stAssist),
-      );
-      return resp;
-    }
-    return null;
-  }
-
-  Future<bool> addJustRemote(StreamAssistido? stAssist) async {
-    if (stAssist != null) {
-      _syncStore.addSync('set', stAssist).then((_) => sync());
-    }
+  Future<bool> addSaveJustRemote(StreamAssistido stAssist,
+      {bool isAdd = false}) async {
+    _syncStore.addSync(isAdd ? 'add' : 'set', stAssist).then((_) => sync());
     return true;
+  }
+
+  Future<String?> addSaveJustLocal(StreamAssistido stAssist,
+      {bool isAdd = false}) async {
+    if (isAdd) {
+      stAssist
+        ..saveJustLocalExt = addSaveJustLocal
+        ..saveJustRemoteExt = addSaveJustRemote
+        ..deleteExt = delete;
+    }
+    return _localStore.setRow(stAssist)
+      ..then(
+        (value) async {
+          await getPhoto(stAssist);
+          if (isAdd) {
+            _assistidoListStream.sink.add(_assistidoList..add(stAssist));
+          }
+        },
+      );
   }
 
   Future<bool> deleteAll() async {
@@ -218,6 +225,7 @@ class AssistidosStore {
       StreamAssistido? stAssist, final Uint8List uint8ListImage,
       {bool isUpload = true}) async {
     String photoFileName;
+    List<dynamic> fotoPoints = [];
     if (stAssist != null && uint8ListImage.isNotEmpty) {
       //Nomeando a arquivo
       final now = DateTime.now();
@@ -225,9 +233,8 @@ class AssistidosStore {
       photoFileName = (stAssist.photoName == "")
           ? '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg'
           : stAssist.photoName;
-
       //Criando o arquivo - Armazenamento Local
-      final file = await _localStore.addSetFile(photoFileName, uint8ListImage);
+      final file = await _localStore.addSetFile('aux', uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       imglib.Image? image = imglib.decodeJpg(uint8ListImage);
       if (image != null) {
@@ -235,30 +242,21 @@ class AssistidosStore {
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
         if (faceDetected.isNotEmpty) {
-          if (isUpload) {
-            final imageAux = cropFace(image, faceDetected[0], step: 80);
-            if (imageAux != null) {
-              image = imageAux;
-              await _localStore.addSetFile(
-                  photoFileName, imglib.encodeJpg(image));
-            }
-          }
-          _assistidoMmlService
-              .renderizarImage(inputImage, image)
-              .then((fotoPoints) {
-            stAssist.photo = [
-              photoFileName,
-              imglib.encodeJpg(image!),
-              fotoPoints.cast<num>()
-            ];
-            stAssist.saveJustLocal();
-          });
+          image = cropFace(image, faceDetected[0], step: 80) ?? image;
+          fotoPoints =
+              (await _assistidoMmlService.renderizarImage(inputImage, image));
         }
+        stAssist.photo = [
+          photoFileName,
+          imglib.encodeJpg(image),
+          fotoPoints,
+        ];
+        stAssist.saveJustLocal();
         if (isUpload) {
-          _syncStore.addSync('setImage', [
-            photoFileName,
-            imglib.encodeJpg(image)
-          ]).then((_) => stAssist.saveJustRemote());
+          _syncStore.addSync(
+            'setImage',
+            [photoFileName, imglib.encodeJpg(image)],
+          ).then((_) => stAssist.saveJustRemote());
         }
         return true;
       }

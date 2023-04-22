@@ -18,7 +18,7 @@ class AssistidosInsertEditView extends StatefulWidget {
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
   late StreamAssistido? _assistido;
-  final AssistidosStore _store = Modular.get<AssistidosStore>();
+  final _assistidosStoreList = Modular.get<AssistidosStoreList>();
   final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey = GlobalKey<FormState>();
 
@@ -354,7 +354,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                                     content: Text('Assistido Salvo')),
                               );
                               if (_isAdd) {
-                                _store.add(_assistido);
+                                _assistidosStoreList.add(_assistido!);
                               } else {
                                 _assistido!.save();
                               }
@@ -375,10 +375,11 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
-        initialData: _assistido!.ident,
+        initialData: _assistido!,
         stream: _assistido!.photoStream,
-        builder: (BuildContext context, AsyncSnapshot<int> ident) {
-          if (ident.hasData) {
+        builder:
+            (BuildContext context, AsyncSnapshot<StreamAssistido> assistido) {
+          if (assistido.hasData) {
             return Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -397,7 +398,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                           FloatingActionButton(
                             onPressed: () async {
                               if (_assistido != null) {
-                                await _store.delPhoto(_assistido);
+                                await _assistidosStoreList.delPhoto(_assistido);
                                 setState(() {});
                               }
                             },

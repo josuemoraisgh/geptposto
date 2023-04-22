@@ -31,7 +31,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   late Future<bool> isInited;
   bool _canProcess = true, _isBusy = false;
   final _assistidoMmlService = Modular.get<AssistidoMLService>();
-  final _store = Modular.get<AssistidosStore>();
+  final _assistidosStoreList = Modular.get<AssistidosStoreList>();
   List<CameraDescription>? _cameras;
   CustomPaint? _customPaint;
 
@@ -68,7 +68,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _cameraTakeImage(Uint8List uint8ListImage) async {
     if (widget.assistido != null) {
-      _store.addSetPhoto(widget.assistido, uint8ListImage, isUpload: true);
+      _assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
+          isUpload: true);
     }
     Modular.to.pop();
   }

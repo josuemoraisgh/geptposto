@@ -25,10 +25,8 @@ class AssistidoListViewSilver extends StatelessWidget {
     return RxBuilder(builder: (BuildContext context) {
       final data = controller.dateSelectedController.value;
       int count = 0;
-      for (int i = 0; i < list.length; i++) {
-        if (list[i].assistido.chamada.toLowerCase().contains(data)) {
-          count++;
-        }
+      for (var element in list) {
+        if (element.chamada.toLowerCase().contains(data)) count++;
       }
       controller.countPresente = count;
       return CustomScrollView(
@@ -82,16 +80,18 @@ class AssistidoListViewSilver extends StatelessWidget {
       child: Row(
         children: <Widget>[
           StreamBuilder(
-            initialData: pessoa.ident,
+            initialData: pessoa,
             stream: pessoa.photoStream,
-            builder: (BuildContext context, AsyncSnapshot<int> ident) {
-              if (pessoa.photoName.isNotEmpty &&
-                  pessoa.photoUint8List.isEmpty) {
-                controller.store.addJustLocal(pessoa);
+            builder: (BuildContext context,
+                AsyncSnapshot<StreamAssistido> assistido) {
+              if (assistido.data!.photoName.isNotEmpty &&
+                  assistido.data!.photoUint8List.isEmpty) {
+                controller.assistidosStoreList
+                    .addSaveJustLocal(assistido.data!);
               }
               return ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: pessoa.photoUint8List.isEmpty
+                child: assistido.data!.photoUint8List.isEmpty
                     ? Image.asset(
                         "assets/images/semFoto.png",
                         fit: BoxFit.cover,
@@ -139,14 +139,14 @@ class AssistidoListViewSilver extends StatelessWidget {
                           semanticLabel: 'Ausente',
                         ))
                     : StreamBuilder(
-                        initialData: pessoa.ident,
+                        initialData: pessoa,
                         stream: pessoa.chamadaStream,
                         builder: (BuildContext context,
-                            AsyncSnapshot<int> chamada) {
+                            AsyncSnapshot<StreamAssistido> assistido) {
                           return CupertinoButton(
                             padding: EdgeInsets.zero,
-                            onPressed: () => functionChamada(pessoa),
-                            child: pessoa.chamada
+                            onPressed: () => functionChamada(assistido.data!),
+                            child: assistido.data!.chamada
                                     .toLowerCase()
                                     .contains(controller.dateSelected)
                                 ? const Icon(

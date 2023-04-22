@@ -21,7 +21,6 @@ class AssistidosPage extends StatefulWidget {
 }
 
 class _AssistidosPageState extends State<AssistidosPage> {
-  List<StreamAssistido>? _list;
   final AssistidosController controller = Modular.get<AssistidosController>();
   final DropdownBody assistidosDropdownButton = DropdownBody(
     dateSelectedController:
@@ -29,7 +28,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
     itensListController:
         Modular.get<AssistidosController>().itensListController,
   );
-
   @override
   void initState() {
     super.initState();
@@ -37,18 +35,40 @@ class _AssistidosPageState extends State<AssistidosPage> {
   }
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<bool>(
-      valueListenable: controller.isInitedController,
-      builder: (BuildContext context, dynamic isInited, _) => Scaffold(
-          appBar: customAppBar(isInited),
-          body: customBody(context, isInited),
-          floatingActionButton: customFloatingActionButton(context)));
+  Widget build(BuildContext context) => StreamBuilder<List<StreamAssistido>>(
+        initialData: const [],
+        stream: controller.assistidosStoreList.stream,
+        builder: (BuildContext context,
+                AsyncSnapshot<List<StreamAssistido>> assistidoList) =>
+            ValueListenableBuilder<bool>(
+          valueListenable: controller.isInitedController,
+          builder: (BuildContext context, bool isInited, _) =>
+              ValueListenableBuilder(
+            valueListenable: controller.textEditing,
+            builder:
+                (BuildContext context, TextEditingValue textEditingValue, _) {
+              List<StreamAssistido> list = [];
+              if (isInited && assistidoList.hasData) {
+                list = controller.assistidosStoreList.search(
+                    assistidoList.data!, textEditingValue.text, "ATIVO");
+                controller.countPresente = 0;
+              }
+              return Scaffold(
+                appBar: customAppBar(isInited),
+                body: isInited
+                    ? customBody(context, list)
+                    : const Center(child: CircularProgressIndicator()),
+                floatingActionButton:
+                    isInited ? customFloatingActionButton(context, list) : null,
+              );
+            },
+          ),
+        ),
+      );
 
   AppBar customAppBar(bool isInited) => AppBar(
         title: bg.Badge(
-          badgeStyle: const bg.BadgeStyle(
-            badgeColor: Colors.green,
-          ),
+          badgeStyle: const bg.BadgeStyle(badgeColor: Colors.green),
           position: bg.BadgePosition.topStart(top: 0),
           badgeContent: RxBuilder(
               builder: (BuildContext context) => Text(
@@ -56,10 +76,14 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   style: const TextStyle(color: Colors.white, fontSize: 10.0))),
           child: RxBuilder(
             builder: (BuildContext context) => controller.whatWidget.value == 0
-                ? Row(children: [
-                    const Text("Chamada: "),
-                    if (isInited) assistidosDropdownButton,
-                  ])
+                ? (isInited)
+                    ? Row(
+                        children: [
+                          const Text("Chamada: "),
+                          assistidosDropdownButton,
+                        ],
+                      )
+                    : const Text("Inicializando")
                 : SearchBar(
                     textController: controller.textEditing,
                     focusNode: controller.focusNode,
@@ -68,21 +92,24 @@ class _AssistidosPageState extends State<AssistidosPage> {
         ),
         actions: <Widget>[
           RxBuilder(
-              builder: (BuildContext context) => IconBadge(
-                    icon: const Icon(Icons.sync),
-                    itemCount: controller.store.countSync.value,
-                    badgeColor: Colors.red,
-                    itemColor: Colors.white,
-                    maxCount: 99,
-                    hideZero: true,
-                    onTap: () async {
-                      controller.store.sync();
-                    },
-                  )),
+            builder: (BuildContext context) => IconBadge(
+              icon: const Icon(Icons.sync),
+              itemCount: controller.assistidosStoreList.countSync.value,
+              badgeColor: Colors.red,
+              itemColor: Colors.white,
+              maxCount: 99,
+              hideZero: true,
+              onTap: () async {
+                controller.assistidosStoreList.sync();
+              },
+            ),
+          ),
         ],
       );
 
-  Widget customBody(BuildContext context, bool isInited) => Container(
+  Widget customBody(
+          BuildContext context, List<StreamAssistido> assistidoList) =>
+      Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
@@ -93,33 +120,17 @@ class _AssistidosPageState extends State<AssistidosPage> {
             fit: BoxFit.cover,
           ),
         ),
-        child: (isInited)
-            ? RxBuilder(
-                builder: (BuildContext context) =>
-                    FutureBuilder<List<StreamAssistido>?>(
-                  future: controller.store
-                      .search(controller.textEditing.value, "ATIVO"),
-                  builder: (_, list) {
-                    if ((list.hasData) && (list.data != null)) {
-                      _list = list.data;
-                      return AssistidoListViewSilver(
-                        controller: controller,
-                        list: list.data!,
-                        functionChamada: chamadaToogleFunc,
-                        functionEdit: editAddFunc,
-                      );
-                    } else if (list.hasError) {
-                      return _buildError();
-                    } else {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                  },
-                ),
-              )
-            : const Center(child: CircularProgressIndicator()),
+        child: AssistidoListViewSilver(
+          controller: controller,
+          list: assistidoList,
+          functionChamada: chamadaToogleFunc,
+          functionEdit: editAddFunc,
+        ),
       );
 
-  Widget customFloatingActionButton(BuildContext context) => SpeedDial(
+  Widget customFloatingActionButton(
+          BuildContext context, List<StreamAssistido> assistidoList) =>
+      SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
         animatedIconTheme: const IconThemeData(size: 22.0),
         visible: true,
@@ -143,7 +154,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
               Modular.to.pushNamed(
                 "faces",
                 arguments: {
-                  "assistidos": _list,
+                  "assistidos": assistidoList,
                   "chamadaFunc": chamadaFunc,
                   "Title": "Tire sua Foto",
                 },
@@ -180,12 +191,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
         ],
       );
 
-  Widget _buildError() {
-    return const Center(
-      child: Text("Error"),
-    );
-  }
-
   void editAddFunc({StreamAssistido? assistido}) {
     Modular.to.pushNamed(
       "insert",
@@ -193,10 +198,9 @@ class _AssistidosPageState extends State<AssistidosPage> {
     );
   }
 
-  void chamadaFunc(StreamAssistido pessoa) {
-    if (pessoa.insertChamadaFunc(controller.dateSelected)) {
+  void chamadaFunc(StreamAssistido assistido) {
+    if (assistido.insertChamadaFunc(controller.dateSelected)) {
       controller.countPresente++;
-      controller.store.add(pessoa);
     }
   }
 

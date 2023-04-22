@@ -48,7 +48,7 @@ class Assistido extends HiveObject {
   @HiveField(21)
   List<int> photoIntList;
   @HiveField(22)
-  List<num> fotoPoints;
+  List<dynamic> fotoPoints;
 
   Assistido({
     this.ident = -1,
