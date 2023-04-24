@@ -75,10 +75,8 @@ InputImage? convertCameraImageToInputImage(
   final bytes = allBytes.done().buffer.asUint8List();
 
   final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
-
   final imageRotation = InputImageRotationValue.fromRawValue(sensorOrientation);
   if (imageRotation == null) return null;
-
   final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
   if (inputImageFormat == null) return null;
 

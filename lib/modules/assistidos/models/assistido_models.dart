@@ -226,7 +226,6 @@ class Assistido extends HiveObject {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-
     return other is Assistido &&
         other.ident == ident &&
         other.updatedApps == updatedApps &&

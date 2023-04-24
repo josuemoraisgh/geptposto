@@ -83,7 +83,7 @@ class AssistidosStoreList {
           ..deleteExt = delete,
       ),
     );
-    await sync();
+    sync();
     _assistidoListStream.sink.add(_assistidoList);
   }
 
@@ -197,10 +197,10 @@ class AssistidosStoreList {
     return _localStore.setRow(stAssist)
       ..then(
         (value) async {
-          await getPhoto(stAssist);
           if (isAdd) {
             _assistidoListStream.sink.add(_assistidoList..add(stAssist));
           }
+          getPhoto(stAssist);
         },
       );
   }
@@ -227,7 +227,7 @@ class AssistidosStoreList {
     String photoFileName;
     List<dynamic> fotoPoints = [];
     if (stAssist != null && uint8ListImage.isNotEmpty) {
-      //Nomeando a arquivo
+      //Nomeando o arquivo
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
       photoFileName = (stAssist.photoName == "")

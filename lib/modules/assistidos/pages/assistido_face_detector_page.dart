@@ -21,7 +21,7 @@ class AssistidoFaceDetectorPage extends StatelessWidget {
         appBar: AppBar(title: Text(title)),
         body: AssistidoFaceDetectorView(
           assistido: assistido,
-          assistidos: assistidos,
+          assistidoList: assistidos,
           chamadaFunc: chamadaFunc,
           stackFit: StackFit.expand,
         ));

@@ -13,11 +13,11 @@ import '../stores/assistidos_store.dart';
 class AssistidoFaceDetectorView extends StatefulWidget {
   final Function(StreamAssistido pessoa)? chamadaFunc;
   final StreamAssistido? assistido;
-  final List<StreamAssistido>? assistidos;
+  final List<StreamAssistido>? assistidoList;
   final StackFit? stackFit;
   const AssistidoFaceDetectorView(
       {super.key,
-      this.assistidos,
+      this.assistidoList,
       this.chamadaFunc,
       this.assistido,
       this.stackFit});
@@ -83,14 +83,16 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     _isBusy = true;
     final faces =
         await _assistidoMmlService.faceDetector.processImage(inputImage);
-    if (widget.assistidos != null) {
-      final assisitido = await _assistidoMmlService.predict(
-          cameraImage, sensorOrientation, widget.assistidos!);
-      if (assisitido != null && widget.chamadaFunc != null) {
-        isPresented = true;
-        widget.chamadaFunc!(assisitido);
-      } else {
-        isPresented = false;
+    if (widget.assistidoList != null) {
+      if (faces.isNotEmpty) {
+        final assisitidoAux = await _assistidoMmlService.predict(
+            cameraImage, sensorOrientation, widget.assistidoList!);
+        if (assisitidoAux != null && widget.chamadaFunc != null) {
+          isPresented = true;
+          widget.chamadaFunc!(assisitidoAux);
+        } else {
+          isPresented = false;
+        }
       }
     }
     if (inputImage.inputImageData?.size != null &&

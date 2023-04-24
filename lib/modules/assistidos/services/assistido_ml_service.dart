@@ -27,27 +27,38 @@ class AssistidoMLService extends Disposable {
 
   Future<StreamAssistido?> predict(CameraImage cameraImage,
       int sensorOrientation, List<StreamAssistido> assistidos) async {
-    const int minDist = 999;
-    const double threshold = 1.5;
-    num? dist;  
+    List<dynamic> userArray = [];
+    num distAux, dist = 999;
+    int index = 0;
 
     imglib.Image? image = cameraImageToImage(cameraImage);
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
-
     if (inputImage != null && image != null) {
       final predictedArray = await renderizarImage(inputImage, image);
-      for (var assistido in assistidos) {
-        final userArray = assistido.fotoPoints;
-        dist = euclideanDistance(predictedArray, userArray);
-        if (dist != null) {
-          if (dist <= threshold && dist < minDist) {
-            return assistido;
+      for (int i = 0; i < assistidos.length; i++) {
+        userArray = List.from(assistidos[i].fotoPoints);
+        if (userArray.isNotEmpty) {
+          distAux = euclideanDistance(predictedArray, userArray);
+          if (distAux < dist) {
+            dist = distAux;
+            index = i;
           }
         }
       }
+      if (index != 0 && dist < 999) {
+        return assistidos[index];
+      }
     }
     return null;
+  }
+
+  num euclideanDistance(List l1, List l2) {
+    double sum = 0;
+    for (int i = 0; i < l1.length; i++) {
+      sum += pow((l1[i] - l2[i]), 2);
+    }
+    return pow(sum, 0.5);
   }
 
   Future<List<dynamic>> renderizarImage(
@@ -61,15 +72,6 @@ class AssistidoMLService extends Disposable {
       output = output.reshape([192]);
     }
     return List.from(output);
-  }
-
-  euclideanDistance(List l1, List l2) {
-    double sum = 0;
-    for (int i = 0; i < l1.length; i++) {
-      sum += pow((l1[i] - l2[i]), 2);
-    }
-
-    return pow(sum, 0.5);
   }
 
   initializeInterpreter() async {
@@ -114,7 +116,7 @@ class AssistidoMLService extends Disposable {
     }
     return [];
   }
-  
+
   @override
   void dispose() {
     interpreter.close();

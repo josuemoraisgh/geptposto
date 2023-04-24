@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:geptposto/modules/assistidos/models/assistido_models.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../models/stream_assistido_model.dart';
 import '../stores/assistidos_store.dart';
@@ -17,7 +18,7 @@ class AssistidosInsertEditView extends StatefulWidget {
 
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
-  late StreamAssistido? _assistido;
+  final _assistido = StreamAssistido.vazio();
   final _assistidosStoreList = Modular.get<AssistidosStoreList>();
   final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey = GlobalKey<FormState>();
@@ -25,7 +26,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   @override
   void initState() {
     _isAdd = widget.assistido == null ? true : false;
-    _assistido = widget.assistido ?? StreamAssistido.vazio();
+    _assistido.copy(widget.assistido);
     super.initState();
   }
 
@@ -40,7 +41,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
           children: [
             const SizedBox(height: 20),
             TextFormField(
-              initialValue: _assistido!.nomeM1,
+              initialValue: _assistido.nomeM1,
               decoration: const InputDecoration(
                 border: UnderlineInputBorder(),
                 icon: Icon(Icons.person),
@@ -56,7 +57,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => _assistido!.nomeM1 = v),
+              onChanged: (v) => setState(() => _assistido.nomeM1 = v),
             ),
             const SizedBox(height: 15),
             Column(
@@ -102,15 +103,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }).toList(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      _assistido!.condicao = novoItemSelecionado;
+                      _assistido.condicao = novoItemSelecionado;
                     }
                   },
-                  value: _assistido!.condicao.replaceAll(" ", ""),
+                  value: _assistido.condicao.replaceAll(" ", ""),
                 ),
               ])
             ]),
             TextFormField(
-              initialValue: _assistido!.dataNascM1,
+              initialValue: _assistido.dataNascM1,
               decoration: const InputDecoration(
                   border: UnderlineInputBorder(),
                   icon: Icon(Icons.date_range),
@@ -129,7 +130,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => _assistido!.dataNascM1 = v),
+              onChanged: (v) => setState(() => _assistido.dataNascM1 = v),
             ),
             const SizedBox(height: 15),
             Row(children: [
@@ -166,15 +167,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }).toList(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      _assistido!.estadoCivil = novoItemSelecionado;
+                      _assistido.estadoCivil = novoItemSelecionado;
                     }
                   },
-                  value: _assistido!.estadoCivil.replaceAll(" ", ""),
+                  value: _assistido.estadoCivil.replaceAll(" ", ""),
                 ),
               ])
             ]),
             TextFormField(
-                initialValue: _assistido!.fone,
+                initialValue: _assistido.fone,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.phone),
@@ -195,10 +196,10 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   return null;
                 },
                 onChanged: (v) => setState(
-                      () => _assistido!.fone = v,
+                      () => _assistido.fone = v,
                     )),
             TextFormField(
-                initialValue: _assistido!.rg,
+                initialValue: _assistido.rg,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.assignment_ind),
@@ -208,9 +209,9 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                onChanged: (v) => setState(() => _assistido!.rg = v)),
+                onChanged: (v) => setState(() => _assistido.rg = v)),
             TextFormField(
-                initialValue: _assistido!.cpf,
+                initialValue: _assistido.cpf,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.attribution),
@@ -229,7 +230,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }
                   return null;
                 },
-                onChanged: (v) => setState(() => _assistido!.cpf = v)),
+                onChanged: (v) => setState(() => _assistido.cpf = v)),
             const SizedBox(height: 15),
             Row(children: [
               const Icon(Icons.admin_panel_settings, color: Colors.black54),
@@ -267,15 +268,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }).toList(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      _assistido!.logradouro = novoItemSelecionado;
+                      _assistido.logradouro = novoItemSelecionado;
                     }
                   },
-                  value: _assistido!.logradouro.replaceAll(" ", ""),
+                  value: _assistido.logradouro.replaceAll(" ", ""),
                 ),
               ])
             ]),
             TextFormField(
-                initialValue: _assistido!.endereco,
+                initialValue: _assistido.endereco,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.place),
@@ -289,9 +290,9 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }
                   return null;
                 },
-                onChanged: (v) => setState(() => _assistido!.endereco = v)),
+                onChanged: (v) => setState(() => _assistido.endereco = v)),
             TextFormField(
-                initialValue: _assistido!.numero,
+                initialValue: _assistido.numero,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.numbers),
@@ -303,49 +304,49 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   }
                   return null;
                 },
-                onChanged: (v) => setState(() => _assistido!.numero = v)),
+                onChanged: (v) => setState(() => _assistido.numero = v)),
             TextFormField(
-              initialValue: _assistido!.bairro,
+              initialValue: _assistido.bairro,
               decoration: const InputDecoration(
                   border: UnderlineInputBorder(),
                   icon: Icon(Icons.south_america_outlined),
                   labelText: "Bairro"),
               validator: (value) => null,
               onChanged: (v) {
-                _assistido!.bairro = v;
+                _assistido.bairro = v;
               },
             ),
             TextFormField(
-                initialValue: _assistido!.complemento,
+                initialValue: _assistido.complemento,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.travel_explore),
                     labelText: "Complemento"),
                 validator: (value) => null,
-                onChanged: (v) => setState(() => _assistido!.complemento = v)),
+                onChanged: (v) => setState(() => _assistido.complemento = v)),
             TextFormField(
-                initialValue: _assistido!.cep,
+                initialValue: _assistido.cep,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.elevator_sharp),
                     labelText: "CEP"),
                 validator: (value) => null,
-                onChanged: (v) => setState(() => _assistido!.cep = v)),
+                onChanged: (v) => setState(() => _assistido.cep = v)),
             TextFormField(
-                initialValue: _assistido!.obs,
+                initialValue: _assistido.obs,
                 decoration: const InputDecoration(
                     border: UnderlineInputBorder(),
                     icon: Icon(Icons.check),
                     labelText: "OBS"),
                 validator: (value) => null,
                 maxLines: 5,
-                onChanged: (v) => setState(() => _assistido!.obs = v)),
+                onChanged: (v) => setState(() => _assistido.obs = v)),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                    onPressed: _assistido!.nomeM1.length > 4
+                    onPressed: _assistido.nomeM1.length > 4
                         ? () async {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
@@ -354,10 +355,12 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                                     content: Text('Assistido Salvo')),
                               );
                               if (_isAdd) {
-                                _assistidosStoreList.add(_assistido!);
+                                _assistidosStoreList.add(_assistido);
                               } else {
-                                _assistido!.save();
+                                widget.assistido?.copy(_assistido);
+                                widget.assistido?.save();
                               }
+                              Modular.to.pop();
                             }
                           }
                         : null,
@@ -375,32 +378,29 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return StreamBuilder(
-        initialData: _assistido!,
-        stream: _assistido!.photoStream,
+        initialData: _assistido.photoUint8List,
+        stream: _assistido.photoStream,
         builder:
-            (BuildContext context, AsyncSnapshot<StreamAssistido> assistido) {
-          if (assistido.hasData) {
+            (BuildContext context, AsyncSnapshot<Uint8List> photoUint8List) {
+          if (photoUint8List.hasData) {
             return Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: screenWidth,
                   maxHeight: screenHeight,
                 ),
-                child: ((_assistido != null) &&
-                        (_assistido!.photoUint8List.isNotEmpty))
+                child: (photoUint8List.data!.isNotEmpty)
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Image.memory(
-                              Uint8List.fromList(_assistido!.photoUint8List)),
+                              Uint8List.fromList(_assistido.photoUint8List)),
                           const SizedBox(height: 4.0),
                           FloatingActionButton(
                             onPressed: () async {
-                              if (_assistido != null) {
-                                await _assistidosStoreList.delPhoto(_assistido);
-                                setState(() {});
-                              }
+                              await _assistidosStoreList.delPhoto(_assistido);
+                              setState(() {});
                             },
                             backgroundColor: Colors.redAccent,
                             tooltip: 'Delete',
