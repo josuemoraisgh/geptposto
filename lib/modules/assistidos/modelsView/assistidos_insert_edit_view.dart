@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:geptposto/modules/assistidos/models/assistido_models.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../models/stream_assistido_model.dart';
 import '../stores/assistidos_store.dart';

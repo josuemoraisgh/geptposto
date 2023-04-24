@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'coordinates_translator.dart';
@@ -39,16 +41,36 @@ class FaceDetectorPainter extends CustomPainter {
           (face.contours[FaceContourType.rightCheek]?.points != null)) {
         paint.color = Colors.green;
       }*/
-      canvas.drawRect(
-        Rect.fromLTRB(
-          translateX(face.boundingBox.left, rotation, size, absoluteImageSize),
-          translateY(face.boundingBox.top, rotation, size, absoluteImageSize),
-          translateX(face.boundingBox.right, rotation, size, absoluteImageSize),
-          translateY(
-              face.boundingBox.bottom, rotation, size, absoluteImageSize),
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: 'Josué Silva de Morais',
+          style: TextStyle(
+            color: isPresented != null
+                ? isPresented!
+                    ? Colors.green
+                    : Colors.red
+                : Colors.yellow,
+            fontSize: 20,
+          ),
         ),
-        paint,
-      );
+        textDirection: TextDirection.ltr,
+      )..layout(
+          minWidth: 0,
+          maxWidth: size.width,
+        );
+      final left =
+          translateX(face.boundingBox.left, rotation, size, absoluteImageSize);
+      final top =
+          translateY(face.boundingBox.top, rotation, size, absoluteImageSize);
+      final right =
+          translateX(face.boundingBox.right, rotation, size, absoluteImageSize);
+      final bottom = translateY(
+          face.boundingBox.bottom, rotation, size, absoluteImageSize);
+      final xCenter = (left + right - textPainter.width) / 2;
+      final offset = Offset(xCenter, bottom);
+      textPainter.paint(canvas, offset);
+      canvas.drawRect(Rect.fromLTRB(left, top, right, bottom), paint);
     }
   }
 

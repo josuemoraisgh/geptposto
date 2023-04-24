@@ -297,7 +297,7 @@ class AssistidosStoreList {
       _syncStore.addSync('delImage', stAssist.photoName).then((_) => sync());
       await _localStore.delFile(stAssist.photoName);
       //Atualiza o cadastro
-      stAssist.photo = ["", Uint8List(0), [].cast<num>()];
+      stAssist.photo = ["", Uint8List(0), []];
       stAssist.save();
     }
     return false;

@@ -27,19 +27,18 @@ class AssistidoMLService extends Disposable {
 
   Future<StreamAssistido?> predict(CameraImage cameraImage,
       int sensorOrientation, List<StreamAssistido> assistidos) async {
-    List<dynamic> userArray = [];
-    num distAux, dist = 999;
-    int index = 0;
+    num distAux = 0, dist = 999;
+    int i = 0, index = 0;
 
     imglib.Image? image = cameraImageToImage(cameraImage);
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage != null && image != null) {
       final predictedArray = await renderizarImage(inputImage, image);
-      for (int i = 0; i < assistidos.length; i++) {
-        userArray = List.from(assistidos[i].fotoPoints);
-        if (userArray.isNotEmpty) {
-          distAux = euclideanDistance(predictedArray, userArray);
+      for (i = 0; i < assistidos.length; i++) {
+        debugPrint(assistidos[i].nomeM1);
+        if (assistidos[i].fotoPoints.isNotEmpty) {
+          distAux = euclideanDistance(predictedArray, assistidos[i].fotoPoints);
           if (distAux < dist) {
             dist = distAux;
             index = i;
@@ -47,6 +46,7 @@ class AssistidoMLService extends Disposable {
         }
       }
       if (index != 0 && dist < 999) {
+        debugPrint(assistidos[index].nomeM1);
         return assistidos[index];
       }
     }
@@ -54,11 +54,16 @@ class AssistidoMLService extends Disposable {
   }
 
   num euclideanDistance(List l1, List l2) {
-    double sum = 0;
-    for (int i = 0; i < l1.length; i++) {
-      sum += pow((l1[i] - l2[i]), 2);
+    try {
+      double sum = 0;
+      for (int i = 0; i < l1.length; i++) {
+        sum += pow((l1[i] - l2[i]), 2);
+      }
+      debugPrint(sum.toString());
+      return pow(sum, 0.5);
+    } catch (e) {
+      return 999;
     }
-    return pow(sum, 0.5);
   }
 
   Future<List<dynamic>> renderizarImage(
@@ -95,7 +100,9 @@ class AssistidoMLService extends Disposable {
       }
       var interpreterOptions = InterpreterOptions()..addDelegate(delegate!);
 
-      interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
+      //interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
+      //    options: interpreterOptions);
+      interpreter = await Interpreter.fromAsset('mobile_face_net.tflite',
           options: interpreterOptions);
     } catch (e) {
       debugPrint('Failed to load model.');
