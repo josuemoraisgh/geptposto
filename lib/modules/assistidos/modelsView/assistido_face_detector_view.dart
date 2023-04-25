@@ -76,7 +76,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _processImage(
       CameraImage cameraImage, int sensorOrientation) async {
-    bool? isPresented;
+    String? assistidoNome;
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage == null || !_canProcess || _isBusy) return;
@@ -88,17 +88,17 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         final assisitidoAux = await _assistidoMmlService.predict(
             cameraImage, sensorOrientation, widget.assistidoList!);
         if (assisitidoAux != null && widget.chamadaFunc != null) {
-          isPresented = true;
+          assistidoNome = assisitidoAux.nomeM1;
           widget.chamadaFunc!(assisitidoAux);
         } else {
-          isPresented = false;
+          assistidoNome = "";
         }
       }
     }
     if (inputImage.inputImageData?.size != null &&
         inputImage.inputImageData?.imageRotation != null) {
       final painter = FaceDetectorPainter(
-          isPresented,
+          assistidoNome,
           faces,
           inputImage.inputImageData!.size,
           inputImage.inputImageData!.imageRotation);

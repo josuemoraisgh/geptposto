@@ -36,7 +36,6 @@ class AssistidoMLService extends Disposable {
     if (inputImage != null && image != null) {
       final predictedArray = await renderizarImage(inputImage, image);
       for (i = 0; i < assistidos.length; i++) {
-        debugPrint(assistidos[i].nomeM1);
         if (assistidos[i].fotoPoints.isNotEmpty) {
           distAux = euclideanDistance(predictedArray, assistidos[i].fotoPoints);
           if (distAux < dist) {
@@ -100,10 +99,10 @@ class AssistidoMLService extends Disposable {
       }
       var interpreterOptions = InterpreterOptions()..addDelegate(delegate!);
 
-      //interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
-      //    options: interpreterOptions);
-      interpreter = await Interpreter.fromAsset('mobile_face_net.tflite',
+      interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
           options: interpreterOptions);
+      //interpreter = await Interpreter.fromAsset('mobile_face_net.tflite',
+      //    options: interpreterOptions);
     } catch (e) {
       debugPrint('Failed to load model.');
       debugPrint(e.toString());

@@ -1,13 +1,11 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'coordinates_translator.dart';
 
 class FaceDetectorPainter extends CustomPainter {
   FaceDetectorPainter(
-      this.isPresented, this.faces, this.absoluteImageSize, this.rotation);
-  final bool? isPresented;
+      this.descName, this.faces, this.absoluteImageSize, this.rotation);
+  final String? descName;
   final List<Face> faces;
   final Size absoluteImageSize;
   final InputImageRotation rotation;
@@ -17,37 +15,19 @@ class FaceDetectorPainter extends CustomPainter {
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
-      ..color = isPresented != null
-          ? isPresented!
+      ..color = descName != null
+          ? descName!.isNotEmpty
               ? Colors.green
               : Colors.red
           : Colors.yellow; //Colors.red;
 
     for (final Face face in faces) {
-      /*if ((face.contours[FaceContourType.face]?.points != null) &&
-          (face.contours[FaceContourType.leftEyebrowTop]?.points != null) &&
-          (face.contours[FaceContourType.leftEyebrowBottom]?.points != null) &&
-          (face.contours[FaceContourType.rightEyebrowTop]?.points != null) &&
-          (face.contours[FaceContourType.rightEyebrowBottom]?.points != null) &&
-          (face.contours[FaceContourType.leftEye]?.points != null) &&
-          (face.contours[FaceContourType.rightEye]?.points != null) &&
-          (face.contours[FaceContourType.upperLipTop]?.points != null) &&
-          (face.contours[FaceContourType.upperLipBottom]?.points != null) &&
-          (face.contours[FaceContourType.lowerLipTop]?.points != null) &&
-          (face.contours[FaceContourType.lowerLipBottom]?.points != null) &&
-          (face.contours[FaceContourType.noseBridge]?.points != null) &&
-          (face.contours[FaceContourType.noseBottom]?.points != null) &&
-          (face.contours[FaceContourType.leftCheek]?.points != null) &&
-          (face.contours[FaceContourType.rightCheek]?.points != null)) {
-        paint.color = Colors.green;
-      }*/
-
       final textPainter = TextPainter(
         text: TextSpan(
-          text: 'Josué Silva de Morais',
+          text: descName,
           style: TextStyle(
-            color: isPresented != null
-                ? isPresented!
+            color: descName != null
+                ? descName!.isNotEmpty
                     ? Colors.green
                     : Colors.red
                 : Colors.yellow,

@@ -126,7 +126,7 @@ class StreamAssistido extends Assistido {
   set photo(List<dynamic> datas) {
     super.photoName = datas[0];
     photoUint8List = datas[1];
-    super.fotoPoints = datas[2] as List<num>;
+    super.fotoPoints = datas[2];
     _photoController.sink.add(datas[1]);
   }
 
