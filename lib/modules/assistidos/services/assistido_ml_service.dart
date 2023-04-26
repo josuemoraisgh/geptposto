@@ -13,6 +13,7 @@ import '../models/stream_assistido_model.dart';
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
   late FaceDetector faceDetector;
+  static const double threshold = 1.4;
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -25,10 +26,12 @@ class AssistidoMLService extends Disposable {
     );
   }
 
-  Future<StreamAssistido?> predict(CameraImage cameraImage,
+  Future<int?> predict(CameraImage cameraImage,
       int sensorOrientation, List<StreamAssistido> assistidos) async {
-    num distAux = 0, dist = 999;
-    int i = 0, index = 0;
+    double minDist = 999;
+    double currDist = 999;
+    int i = 0;
+    int? index;
 
     imglib.Image? image = cameraImageToImage(cameraImage);
     InputImage? inputImage =
@@ -37,32 +40,25 @@ class AssistidoMLService extends Disposable {
       final predictedArray = await renderizarImage(inputImage, image);
       for (i = 0; i < assistidos.length; i++) {
         if (assistidos[i].fotoPoints.isNotEmpty) {
-          distAux = euclideanDistance(predictedArray, assistidos[i].fotoPoints);
-          if (distAux < dist) {
-            dist = distAux;
-            index = i;
+          currDist = euclideanDistance(predictedArray, assistidos[i].fotoPoints);
+          if (currDist <= threshold && currDist < minDist) {
+              minDist = currDist;
+              index = i;
           }
         }
       }
-      if (index != 0 && dist < 999) {
-        debugPrint(assistidos[index].nomeM1);
-        return assistidos[index];
-      }
+      return index;
     }
     return null;
   }
 
-  num euclideanDistance(List l1, List l2) {
-    try {
-      double sum = 0;
-      for (int i = 0; i < l1.length; i++) {
-        sum += pow((l1[i] - l2[i]), 2);
-      }
-      debugPrint(sum.toString());
-      return pow(sum, 0.5);
-    } catch (e) {
-      return 999;
+  double euclideanDistance(List? e1, List? e2) {
+    if (e1 == null || e2 == null) throw Exception("Null argument");
+    double sum = 0.0;
+    for (int i = 0; i < e1.length; i++) {
+      sum += pow((e1[i] - e2[i]), 2);
     }
+    return sqrt(sum);
   }
 
   Future<List<dynamic>> renderizarImage(
@@ -78,8 +74,8 @@ class AssistidoMLService extends Disposable {
     return List.from(output);
   }
 
-  initializeInterpreter() async {
-    Delegate? delegate;
+  Future initializeInterpreter() async {
+    late Delegate? delegate;
     try {
       if (Platform.isAndroid) {
         delegate = GpuDelegateV2(

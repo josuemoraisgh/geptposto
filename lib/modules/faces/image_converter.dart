@@ -7,12 +7,12 @@ import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 import 'package:image_cropper/image_cropper.dart';
 
-imglib.Image? cameraImageToImage(CameraImage image) {
+imglib.Image? cameraImageToImage(CameraImage cameraImage) {
   try {
-    if (image.format.group == ImageFormatGroup.yuv420) {
-      return convertYUV420(image);
-    } else if (image.format.group == ImageFormatGroup.bgra8888) {
-      return convertBGRA8888(image);
+    if (cameraImage.format.group == ImageFormatGroup.yuv420) {
+      return convertYUV420ToImage(cameraImage);
+    } else if (cameraImage.format.group == ImageFormatGroup.bgra8888) {
+      return convertBGRA8888(cameraImage);
     }
     throw Exception('Image format not supported');
   } catch (e) {
@@ -27,10 +27,12 @@ imglib.Image convertBGRA8888(CameraImage image) {
     height: image.height,
     bytes: image.planes[0].bytes.buffer,
     format: imglib.Format.uint8,
+    numChannels: 4,
+    order: imglib.ChannelOrder.bgra
   );
 }
 
-imglib.Image convertYUV420(CameraImage image) {
+imglib.Image convertYUV420ToImage(CameraImage image) {
   int width = image.width;
   int height = image.height;
   var img = imglib.Image(width: width, height: height);
@@ -57,7 +59,6 @@ imglib.Image convertYUV420(CameraImage image) {
       }
     }
   }
-
   return img;
 }
 
