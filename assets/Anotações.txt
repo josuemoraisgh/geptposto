@@ -1,2 +1,4 @@
 https://medium.com/analytics-vidhya/facenet-on-mobile-cb6aebe38505
 https://medium.com/@victormurcia-53351/real-time-facial-recognition-with-python-e5da50eb0349
+https://github.com/MCarlomagno/FaceRecognitionAuth/blob/master/lib/services/image_converter.dart
+https://github.com/mobilesec/arcface-tensorflowlite/blob/master/arcface/ArcFace.py

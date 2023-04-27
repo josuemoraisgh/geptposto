@@ -13,7 +13,7 @@ import '../models/stream_assistido_model.dart';
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
   late FaceDetector faceDetector;
-  static const double threshold = 1.4;
+  static const double threshold = 1.3;
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -37,10 +37,11 @@ class AssistidoMLService extends Disposable {
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage != null && image != null) {
-      final predictedArray = await renderizarImage(inputImage, image);
+      final predictedArray = await interpreterImage(inputImage, image);
       for (i = 0; i < assistidos.length; i++) {
         if (assistidos[i].fotoPoints.isNotEmpty) {
           currDist = euclideanDistance(predictedArray, assistidos[i].fotoPoints);
+          debugPrint(currDist.toString());
           if (currDist <= threshold && currDist < minDist) {
               minDist = currDist;
               index = i;
@@ -61,7 +62,7 @@ class AssistidoMLService extends Disposable {
     return sqrt(sum);
   }
 
-  Future<List<dynamic>> renderizarImage(
+  Future<List<dynamic>> interpreterImage(
       InputImage inputImage, imglib.Image image) async {
     List output = List.generate(1, (index) => List.filled(192, 0));
     final List<Face> faces = await faceDetector.processImage(inputImage);
@@ -95,10 +96,8 @@ class AssistidoMLService extends Disposable {
       }
       var interpreterOptions = InterpreterOptions()..addDelegate(delegate!);
 
-      interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
+      interpreter = await Interpreter.fromAsset('mobilefacenet2.tflite',
           options: interpreterOptions);
-      //interpreter = await Interpreter.fromAsset('mobile_face_net.tflite',
-      //    options: interpreterOptions);
     } catch (e) {
       debugPrint('Failed to load model.');
       debugPrint(e.toString());

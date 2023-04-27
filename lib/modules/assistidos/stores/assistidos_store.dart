@@ -244,7 +244,7 @@ class AssistidosStoreList {
         if (faceDetected.isNotEmpty) {
           image = cropFace(image, faceDetected[0], step: 80) ?? image;
           fotoPoints =
-              (await _assistidoMmlService.renderizarImage(inputImage, image));
+              (await _assistidoMmlService.interpreterImage(inputImage, image));
         }
         stAssist.photo = [
           photoFileName,
