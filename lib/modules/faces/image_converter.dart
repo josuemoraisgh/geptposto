@@ -1,11 +1,10 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
-import 'package:image_cropper/image_cropper.dart';
+//import 'package:image_cropper/image_cropper.dart';
 
 imglib.Image? cameraImageToImage(CameraImage cameraImage) {
   try {
@@ -23,13 +22,12 @@ imglib.Image? cameraImageToImage(CameraImage cameraImage) {
 
 imglib.Image convertBGRA8888(CameraImage image) {
   return imglib.Image.fromBytes(
-    width: image.width,
-    height: image.height,
-    bytes: image.planes[0].bytes.buffer,
-    format: imglib.Format.uint8,
-    numChannels: 4,
-    order: imglib.ChannelOrder.bgra
-  );
+      width: image.width,
+      height: image.height,
+      bytes: image.planes[0].bytes.buffer,
+      format: imglib.Format.uint8,
+      numChannels: 4,
+      order: imglib.ChannelOrder.bgra);
 }
 
 imglib.Image convertYUV420ToImage(CameraImage image) {
@@ -152,6 +150,22 @@ Float32List imageToByteListFloat32(imglib.Image image) {
   return convertedBytes.buffer.asFloat32List();
 }
 
+Float32List imageByteToFloat32Normal(imglib.Image imageResized) {
+  var convertedBytes = Float32List(1 * 112 * 112 * 3);
+  var buffer = Float32List.view(convertedBytes.buffer);
+  int pixelIndex = 0;
+  for (var i = 0; i < 112; i++) {
+    for (var j = 0; j < 112; j++) {
+      var pixel = imageResized.getPixelSafe(j, i);
+      buffer[pixelIndex++] = pixel.r.toDouble() / 255;
+      buffer[pixelIndex++] = pixel.g.toDouble() / 255;
+      buffer[pixelIndex++] = pixel.b.toDouble() / 255;
+    }
+  }
+  return convertedBytes.buffer.asFloat32List();
+}
+
+/*
 Future<Uint8List?> cropImage(XFile? imageFile) async {
   if (imageFile != null) {
     final croppedFile = await ImageCropper().cropImage(
@@ -192,3 +206,4 @@ Future<Uint8List?> cropImage(XFile? imageFile) async {
   }
   return null;
 }
+*/
