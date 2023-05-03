@@ -77,11 +77,14 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   Future<File> addSetFile(
       String fileName, final Uint8List uint8ListImage) async {
     final directory = await getApplicationDocumentsDirectory();
-    var buffer = uint8ListImage.buffer;
-    ByteData byteData = ByteData.view(buffer);
-    return File('${directory.path}/$fileName').writeAsBytes(
-        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
-        mode: FileMode.writeOnly);
+    //var buffer = uint8ListImage.buffer;
+    //ByteData byteData = ByteData.view(buffer);
+    return File('${directory.path}/$fileName')
+      ..writeAsBytesSync(List<int>.from(uint8ListImage),
+          mode: FileMode.writeOnly, flush: true);
+    //return await File('${directory.path}/$fileName').writeAsBytes(
+    //    buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+    //    mode: FileMode.writeOnly,flush: true);
   }
 
   @override

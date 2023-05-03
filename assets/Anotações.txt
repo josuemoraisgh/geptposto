@@ -4,3 +4,4 @@ https://github.com/MCarlomagno/FaceRecognitionAuth/blob/master/lib/services/imag
 https://github.com/mobilesec/arcface-tensorflowlite/blob/master/arcface/ArcFace.py
 https://datagen.tech/guides/computer-vision/resnet-50/#:~:text=ResNet-50%20is%20a%2050,networks%20by%20stacking%20residual%20blocks.
 https://meghal-darji.medium.com/implementing-bilinear-interpolation-for-image-resizing-357cbb2c2722
+https://stackoverflow.com/questions/70024313/resize-using-bilinear-interpolation-in-python

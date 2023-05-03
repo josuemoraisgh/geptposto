@@ -14,7 +14,7 @@ import '../models/stream_assistido_model.dart';
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
   late FaceDetector faceDetector;
-  static const double threshold = 30;
+  static const double threshold = 1.0;
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -64,18 +64,23 @@ class AssistidoMLService extends Disposable {
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage != null && image != null) {
-      final classificatorArray = await classificatorImage(inputImage, image);
-      for (i = 0; i < assistidos.length; i++) {
-        if (assistidos[i].fotoPoints.isNotEmpty) {
-          currDist =
-              euclideanDistance(classificatorArray, assistidos[i].fotoPoints);
-          if (classificatorArray.length != assistidos[i].fotoPoints.length) {
-            debugPrint(assistidos[i].nomeM1);
-          }
-          debugPrint(currDist.toString());
-          if (currDist <= threshold && currDist < minDist) {
-            minDist = currDist;
-            index = i;
+      final List<Face> faceDetected =
+          await faceDetector.processImage(inputImage);
+      if (faceDetected.isNotEmpty) {
+        image = cropFace(image, faceDetected[0], step: 80) ?? image;
+        final classificatorArray = await classificatorImage(image);
+        for (i = 0; i < assistidos.length; i++) {
+          if (assistidos[i].fotoPoints.isNotEmpty) {
+            currDist =
+                euclideanDistance(classificatorArray, assistidos[i].fotoPoints);
+            if (classificatorArray.length != assistidos[i].fotoPoints.length) {
+              debugPrint(assistidos[i].nomeM1);
+            }
+            debugPrint(currDist.toString());
+            if (currDist <= threshold && currDist < minDist) {
+              minDist = currDist;
+              index = assistidos[i].ident;
+            }
           }
         }
       }
@@ -101,22 +106,17 @@ class AssistidoMLService extends Disposable {
     for (int i = 0; i < e1.length; i++) {
       sum += pow((e1[i] - e2[i]), 2);
     }
-    return sqrt(sum);
+    return sum;
   }
 
-  Future<List<dynamic>> classificatorImage(
-      InputImage inputImage, imglib.Image image) async {
+  Future<List<dynamic>> classificatorImage(imglib.Image image) async {
     List output = List.generate(1, (index) => List.filled(512, 0));
-    final List<Face> faces = await faceDetector.processImage(inputImage);
-    if (faces.isNotEmpty) {
-      List input = _preProcessImage(image, faces[0]);
-      interpreter.run(input, output);
-      output = List.from(output.reshape([512]));
-      final n2 = norma2(output);
-      final resp = output.map((e) => e / n2).toList();
-      return resp;
-    }
-    return List.from([]);
+    List input = _preProcessImage(image);
+    interpreter.run(input, output);
+    output = List.from(output.reshape([512]));
+    final n2 = norma2(output);
+    final resp = output.map((e) => e / n2).toList();
+    return resp;
   }
 
   Float32List preProcessImage1(imglib.Image image, Face faceDetected) {
@@ -135,7 +135,7 @@ class AssistidoMLService extends Disposable {
     return [] as Float32List;
   }
 
-  List _preProcessImage(imglib.Image img, Face faceDetected,
+  List _preProcessImage(imglib.Image img,
       {int newWidth = 112, int newHeight = 112}) {
     Vector a, b, c, d;
     int yi, xi, x1, x2, y1, y2;
@@ -154,7 +154,6 @@ class AssistidoMLService extends Disposable {
         newHeight, (index) => List.filled(newWidth, [0.0, 0.0, 0.0]));
 
     final int origHeight = img.height, origWidth = img.width;
-
     List originalImg =
         img.data?.getBytes().toList().reshape([origHeight, origWidth, 3]) ?? [];
     if (originalImg.isNotEmpty) {

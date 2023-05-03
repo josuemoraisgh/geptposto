@@ -234,7 +234,7 @@ class AssistidosStoreList {
           ? '${stAssist.nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg'
           : stAssist.photoName;
       //Criando o arquivo - Armazenamento Local
-      final file = await _localStore.addSetFile('aux', uint8ListImage);
+      final file = await _localStore.addSetFile('aux.jpg', uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       imglib.Image? image = imglib.decodeJpg(uint8ListImage);
       if (image != null) {
@@ -242,9 +242,10 @@ class AssistidosStoreList {
         final faceDetected =
             await _assistidoMmlService.faceDetector.processImage(inputImage);
         if (faceDetected.isNotEmpty) {
-          image = cropFace(image, faceDetected[0], step: 80) ?? image;
-          fotoPoints = (await _assistidoMmlService.classificatorImage(
-              inputImage, image));
+          image = isUpload
+              ? cropFace(image, faceDetected[0], step: 80) ?? image
+              : image;
+          fotoPoints = (await _assistidoMmlService.classificatorImage(image));
         }
         stAssist.photo = [
           photoFileName,
@@ -279,7 +280,7 @@ class AssistidosStoreList {
             await _remoteStorage.getFile('BDados_Images', stAssist.photoName);
         if (remoteImage != null) {
           if (remoteImage.isNotEmpty) {
-            final resp = await addSetPhoto(stAssist, base64.decode(remoteImage),
+            final resp = await addSetPhoto(stAssist, base64Decode(remoteImage),
                 isUpload: false);
             _countConnection--;
             return resp;
