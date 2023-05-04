@@ -14,7 +14,7 @@ import '../models/stream_assistido_model.dart';
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
   late FaceDetector faceDetector;
-  static const double threshold = 1.0;
+  static const double threshold = 1.2;
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -59,11 +59,12 @@ class AssistidoMLService extends Disposable {
     double currDist = 999;
     int i = 0;
     int? index;
-
-    imglib.Image? image = cameraImageToImage(cameraImage);
+    imglib.Image image =
+        convertCameraImageToImageWithRotate(cameraImage, sensorOrientation);
+    //imglib.Image image = convertCameraImageToImage(cameraImage);
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
-    if (inputImage != null && image != null) {
+    if (inputImage != null) {
       final List<Face> faceDetected =
           await faceDetector.processImage(inputImage);
       if (faceDetected.isNotEmpty) {

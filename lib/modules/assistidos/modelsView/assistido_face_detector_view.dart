@@ -88,8 +88,10 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         final assisitidoIndex = await _assistidoMmlService.predict(
             cameraImage, sensorOrientation, widget.assistidoList!);
         if (assisitidoIndex != null && widget.chamadaFunc != null) {
-          assistidoNome = widget.assistidoList![assisitidoIndex].nomeM1;
-          widget.chamadaFunc!(widget.assistidoList![assisitidoIndex]);
+          var assist = widget.assistidoList!
+              .firstWhere((element) => element.ident == assisitidoIndex);
+          assistidoNome = assist.nomeM1;
+          widget.chamadaFunc!(assist);
         } else {
           assistidoNome = "";
         }

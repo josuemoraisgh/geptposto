@@ -1,63 +1,95 @@
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
-//import 'package:image_cropper/image_cropper.dart';
 
-imglib.Image? cameraImageToImage(CameraImage cameraImage) {
-  try {
-    if (cameraImage.format.group == ImageFormatGroup.yuv420) {
-      return convertYUV420ToImage(cameraImage);
-    } else if (cameraImage.format.group == ImageFormatGroup.bgra8888) {
-      return convertBGRA8888(cameraImage);
-    }
-    throw Exception('Image format not supported');
-  } catch (e) {
-    debugPrint("ERROR:$e");
-  }
-  return null;
+imglib.Image convertCameraImageToImageWithRotate(
+    CameraImage cameraImage, num angle) {
+  var img = convertCameraImageToImage(cameraImage);
+  var img1 = imglib.copyRotate(img, angle: angle);
+  return img1;
 }
 
-imglib.Image convertBGRA8888(CameraImage image) {
+///
+/// Converts a [CameraImage] in YUV420 format to [image_lib.Image] in RGB format
+///
+imglib.Image convertCameraImageToImage(CameraImage cameraImage) {
+  if (cameraImage.format.group == ImageFormatGroup.yuv420) {
+    return convertYUV420ToImage(cameraImage);
+  } else if (cameraImage.format.group == ImageFormatGroup.bgra8888) {
+    return convertBGRA8888ToImage(cameraImage);
+  } else {
+    throw Exception('Undefined image type.');
+  }
+}
+
+///
+/// Converts a [CameraImage] in BGRA888 format to [image_lib.Image] in RGB format
+///
+imglib.Image convertBGRA8888ToImage(CameraImage cameraImage) {
   return imglib.Image.fromBytes(
-      width: image.width,
-      height: image.height,
-      bytes: image.planes[0].bytes.buffer,
-      format: imglib.Format.uint8,
-      numChannels: 4,
-      order: imglib.ChannelOrder.bgra);
+    width: cameraImage.planes[0].width!,
+    height: cameraImage.planes[0].height!,
+    bytes: cameraImage.planes[0].bytes.buffer,
+    order: imglib.ChannelOrder.bgra,
+  );
 }
 
-imglib.Image convertYUV420ToImage(CameraImage image) {
-  int width = image.width;
-  int height = image.height;
-  var img = imglib.Image(width: width, height: height);
-  //const int hexFF = 0xFF000000;
-  final int uvyButtonStride = image.planes[1].bytesPerRow;
-  final int? uvPixelStride = image.planes[1].bytesPerPixel;
-  for (int x = 0; x < width; x++) {
-    for (int y = 0; y < height; y++) {
-      final int uvIndex =
-          uvPixelStride! * (x / 2).floor() + uvyButtonStride * (y / 2).floor();
-      final int index = y * width + x;
-      final yp = image.planes[0].bytes[index];
-      final up = image.planes[1].bytes[uvIndex];
-      final vp = image.planes[2].bytes[uvIndex];
-      int r = (yp + vp * 1436 / 1024 - 179).round().clamp(0, 255);
-      int g = (yp - up * 46549 / 131072 + 44 - vp * 93604 / 131072 + 91)
-          .round()
-          .clamp(0, 255);
-      int b = (yp + up * 1814 / 1024 - 227).round().clamp(0, 255);
-      if (img.data != null) {
-        if (img.data!.length >= index) {
-          img.data!.setPixelRgb(x, y, r, g, b);
-        }
-      }
+///
+/// Converts a [CameraImage] in YUV420 format to [image_lib.Image] in RGB format
+///
+imglib.Image convertYUV420ToImage(CameraImage cameraImage) {
+  final imageWidth = cameraImage.width;
+  final imageHeight = cameraImage.height;
+
+  final yBuffer = cameraImage.planes[0].bytes;
+  final uBuffer = cameraImage.planes[1].bytes;
+  final vBuffer = cameraImage.planes[2].bytes;
+
+  final int yRowStride = cameraImage.planes[0].bytesPerRow;
+  final int yPixelStride = cameraImage.planes[0].bytesPerPixel!;
+
+  final int uvRowStride = cameraImage.planes[1].bytesPerRow;
+  final int uvPixelStride = cameraImage.planes[1].bytesPerPixel!;
+
+  final image = imglib.Image(width: imageWidth, height: imageHeight);
+
+  for (int h = 0; h < imageHeight; h++) {
+    int uvh = (h / 2).floor();
+
+    for (int w = 0; w < imageWidth; w++) {
+      int uvw = (w / 2).floor();
+
+      final yIndex = (h * yRowStride) + (w * yPixelStride);
+
+      // Y plane should have positive values belonging to [0...255]
+      final int y = yBuffer[yIndex];
+
+      // U/V Values are subsampled i.e. each pixel in U/V chanel in a
+      // YUV_420 image act as chroma value for 4 neighbouring pixels
+      final int uvIndex = (uvh * uvRowStride) + (uvw * uvPixelStride);
+
+      // U/V values ideally fall under [-0.5, 0.5] range. To fit them into
+      // [0, 255] range they are scaled up and centered to 128.
+      // Operation below brings U/V values to [-128, 127].
+      final int u = uBuffer[uvIndex];
+      final int v = vBuffer[uvIndex];
+
+      // Compute RGB values per formula above.
+      int r = (y + v * 1436 / 1024 - 179).round();
+      int g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91).round();
+      int b = (y + u * 1814 / 1024 - 227).round();
+
+      r = r.clamp(0, 255);
+      g = g.clamp(0, 255);
+      b = b.clamp(0, 255);
+
+      image.setPixelRgb(w, h, r, g, b);
     }
   }
-  return img;
+
+  return image;
 }
 
 /*
@@ -126,12 +158,6 @@ imglib.Image? cropFace(imglib.Image image, Face faceDetected, {int step = 10}) {
   final imageResp = imglib.copyCrop(image,
       x: x.round(), y: y.round(), width: w.round(), height: h.round());
   return imglib.decodeJpg(imglib.encodeJpg(imageResp));
-}
-
-imglib.Image convertCameraImageToImage(CameraImage cameraImage) {
-  var img = cameraImageToImage(cameraImage);
-  var img1 = imglib.copyRotate(img!, angle: -90);
-  return img1;
 }
 
 Float32List imageToByteListFloat32(imglib.Image image) {
