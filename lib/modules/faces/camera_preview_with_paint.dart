@@ -221,11 +221,8 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
       final xfileImage = await _controller?.takePicture();
       final uint8List = await xfileImage?.readAsBytes();
       if (uint8List != null) {
-        final img = imglib.decodeJpg(uint8List);
         await _startLiveFeed(_cameraIndex);
-        if (img != null) {
-          widget.takeImageFunc!(imglib.encodeJpg(img));
-        }
+        widget.takeImageFunc!(uint8List);
       } else {
         await _startLiveFeed(_cameraIndex);
       }
