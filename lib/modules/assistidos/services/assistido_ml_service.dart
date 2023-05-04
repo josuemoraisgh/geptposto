@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:ml_linalg/vector.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -15,7 +14,7 @@ import '../models/stream_assistido_model.dart';
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
   late FaceDetector faceDetector;
-  static const double threshold = 30;
+  static const double threshold = 1.2;
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -54,25 +53,22 @@ class AssistidoMLService extends Disposable {
     }
   }
 
-  Future<int?> predict1(CameraImage cameraImage, int sensorOrientation,
+  Future<int?> predict(CameraImage cameraImage, int sensorOrientation,
       List<StreamAssistido> assistidos) async {
     double minDist = 999;
     double currDist = 999;
     int i = 0;
     int? index;
-    var uint8ListImage = cameraImage.planes.first.bytes;
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/aux.jpg')
-      ..writeAsBytesSync(List<int>.from(uint8ListImage),
-          mode: FileMode.writeOnly, flush: true);
-    //Processando a imagem para o reconhecimento futuro
-    imglib.Image? image = imglib.decodeJpg(uint8ListImage);
-    if (image != null) {
-      final inputImage = InputImage.fromFile(file);
-      final faceDetected = await faceDetector.processImage(inputImage);
+    imglib.Image image =
+        convertCameraImageToImageWithRotate(cameraImage, sensorOrientation);
+    InputImage? inputImage =
+        convertCameraImageToInputImage(cameraImage, sensorOrientation);
+    if (inputImage != null) {
+      final List<Face> faceDetected =
+          await faceDetector.processImage(inputImage);
       if (faceDetected.isNotEmpty) {
         image = cropFace(image, faceDetected[0], step: 80) ?? image;
-        var classificatorArray = (await classificatorImage(image));
+        final classificatorArray = await classificatorImage(image);
         for (i = 0; i < assistidos.length; i++) {
           if (assistidos[i].fotoPoints.isNotEmpty) {
             currDist =
@@ -85,36 +81,6 @@ class AssistidoMLService extends Disposable {
               minDist = currDist;
               index = assistidos[i].ident;
             }
-          }
-        }
-        return index;
-      }
-    }
-    return null;
-  }
-
-  Future<int?> predict(CameraImage cameraImage, int sensorOrientation,
-      List<StreamAssistido> assistidos) async {
-    double minDist = 999;
-    double currDist = 999;
-    int i = 0;
-    int? index;
-    imglib.Image? image = cameraImageToImage(cameraImage);
-    InputImage? inputImage =
-        convertCameraImageToInputImage(cameraImage, sensorOrientation);
-    if (inputImage != null && image != null) {
-      final classificatorArray = await classificatorImage(image);
-      for (i = 0; i < assistidos.length; i++) {
-        if (assistidos[i].fotoPoints.isNotEmpty) {
-          currDist =
-              euclideanDistance(classificatorArray, assistidos[i].fotoPoints);
-          if (classificatorArray.length != assistidos[i].fotoPoints.length) {
-            debugPrint(assistidos[i].nomeM1);
-          }
-          debugPrint(currDist.toString());
-          if (currDist <= threshold && currDist < minDist) {
-            minDist = currDist;
-            index = i;
           }
         }
       }
@@ -140,7 +106,7 @@ class AssistidoMLService extends Disposable {
     for (int i = 0; i < e1.length; i++) {
       sum += pow((e1[i] - e2[i]), 2);
     }
-    return sqrt(sum);
+    return sum;
   }
 
   Future<List<dynamic>> classificatorImage(imglib.Image image) async {
@@ -188,7 +154,6 @@ class AssistidoMLService extends Disposable {
         newHeight, (index) => List.filled(newWidth, [0.0, 0.0, 0.0]));
 
     final int origHeight = img.height, origWidth = img.width;
-
     List originalImg =
         img.data?.getBytes().toList().reshape([origHeight, origWidth, 3]) ?? [];
     if (originalImg.isNotEmpty) {
