@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image/image.dart' as imglib;
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -11,6 +10,7 @@ class CameraPreviewWithPaint extends StatefulWidget {
   final Future<void> Function(Uint8List uint8ListImage)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
+  final bool isRealTime;
   final StackFit? stackFit;
   final CustomPaint? customPaint;
   const CameraPreviewWithPaint({
@@ -21,7 +21,7 @@ class CameraPreviewWithPaint extends StatefulWidget {
     this.takeImageFunc,
     this.switchLiveCameraFunc,
     this.stackFit,
-    this.initialDirection = CameraLensDirection.back,
+    this.initialDirection = CameraLensDirection.back, this.isRealTime = false,
   }) : super(key: key);
   @override
   State<CameraPreviewWithPaint> createState() => _CameraPreviewWithPaintState();
@@ -216,6 +216,9 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     if (_isBusyCamera != true &&
         _controller != null &&
         widget.takeImageFunc != null) {
+      if(widget.isRealTime) {
+        widget.takeImageFunc!([] as Uint8List);
+      } else{
       _isBusyCamera = true;
       await _controller!.stopImageStream();
       final xfileImage = await _controller?.takePicture();
@@ -227,5 +230,6 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
         await _startLiveFeed(_cameraIndex);
       }
     }
+        }
   }
 }

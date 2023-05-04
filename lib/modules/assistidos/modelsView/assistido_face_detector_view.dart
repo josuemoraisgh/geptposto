@@ -33,6 +33,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   final _assistidoMmlService = Modular.get<AssistidoMLService>();
   final _assistidosStoreList = Modular.get<AssistidosStoreList>();
   List<CameraDescription>? _cameras;
+  StreamAssistido? assistidoPresent;
   CustomPaint? _customPaint;
 
   Future<bool> init() async {
@@ -57,6 +58,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
             customPaint: _customPaint,
             onPaintLiveImageFunc: _processImage,
             takeImageFunc: _cameraTakeImage,
+            isRealTime: widget.assistidoList != null,
             stackFit: widget.stackFit,
             initialDirection: CameraLensDirection.back,
           );
@@ -67,16 +69,22 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   }
 
   Future<void> _cameraTakeImage(Uint8List uint8ListImage) async {
-    if (widget.assistido != null) {
-      _assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
-          isUpload: true);
+    if ((widget.assistidoList?.isNotEmpty ?? false) &&
+        (widget.chamadaFunc != null) &&
+        (assistidoPresent != null)) {
+      widget.chamadaFunc!(assistidoPresent!);
+    } else {
+      if (widget.assistido != null) {
+        _assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
+            isUpload: true);
+      }
+      Modular.to.pop();
     }
-    Modular.to.pop();
   }
 
   Future<void> _processImage(
       CameraImage cameraImage, int sensorOrientation) async {
-    String? assistidoNome;
+    String assistidoNome = "";
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage == null || !_canProcess || _isBusy) return;
@@ -88,11 +96,9 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         final assisitidoIndex = await _assistidoMmlService.predict(
             cameraImage, sensorOrientation, widget.assistidoList!);
         if (assisitidoIndex != null && widget.chamadaFunc != null) {
-          final assit = widget.assistidoList!.firstWhere((element) => element.ident == assisitidoIndex);
-          assistidoNome = assit.nomeM1;
-          widget.chamadaFunc!(assit);
-        } else {
-          assistidoNome = "";
+          assistidoPresent = widget.assistidoList!
+              .firstWhere((element) => element.ident == assisitidoIndex);
+          assistidoNome = assistidoPresent?.nomeM1 ?? "";
         }
       }
     }

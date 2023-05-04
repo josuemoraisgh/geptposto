@@ -1,2 +1,0 @@
-Quando a pessoa inserir um anotação, colocar automatimente a data da inserção;
-Colocar tudo que não foi sincronizado como log de evento para debug
