@@ -12,43 +12,45 @@ class FaceDetectorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (int i=0;i<faces.length;i++) {
+    for (int i = 0; i < faces.length; i++) {
       var paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4
-        ..color = descNameList[i] != null
-            ? descNameList[i]!.isNotEmpty
+        ..color = descNameList.isNotEmpty
+            ? descNameList[i]?.isNotEmpty ?? false
                 ? Colors.green
                 : Colors.red
             : Colors.yellow; //Colors.red;
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: descNameList[i],
-          style: TextStyle(
-            color: descNameList[i] != null
-                ? descNameList[i]!.isNotEmpty
-                    ? Colors.green
-                    : Colors.red
-                : Colors.yellow,
-            fontSize: 20,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout(
-          minWidth: 0,
-          maxWidth: size.width,
-        );
-      final left =
-          translateX(faces[i].boundingBox.left, rotation, size, absoluteImageSize);
-      final top =
-          translateY(faces[i].boundingBox.top, rotation, size, absoluteImageSize);
-      final right =
-          translateX(faces[i].boundingBox.right, rotation, size, absoluteImageSize);
+      final left = translateX(
+          faces[i].boundingBox.left, rotation, size, absoluteImageSize);
+      final top = translateY(
+          faces[i].boundingBox.top, rotation, size, absoluteImageSize);
+      final right = translateX(
+          faces[i].boundingBox.right, rotation, size, absoluteImageSize);
       final bottom = translateY(
           faces[i].boundingBox.bottom, rotation, size, absoluteImageSize);
-      final xCenter = (left + right - textPainter.width) / 2;
-      final offset = Offset(xCenter, bottom);
-      textPainter.paint(canvas, offset);
+      if (descNameList.isNotEmpty) {
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: descNameList[i] ?? "",
+            style: TextStyle(
+              color: descNameList.isNotEmpty
+                  ? descNameList[i]?.isNotEmpty ?? false
+                      ? Colors.green
+                      : Colors.red
+                  : Colors.yellow,
+              fontSize: 20,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout(
+            minWidth: 0,
+            maxWidth: size.width,
+          );
+        final xCenter = (left + right - textPainter.width) / 2;
+        final offset = Offset(xCenter, bottom);
+        textPainter.paint(canvas, offset);
+      }
       canvas.drawRect(Rect.fromLTRB(left, top, right, bottom), paint);
     }
   }
