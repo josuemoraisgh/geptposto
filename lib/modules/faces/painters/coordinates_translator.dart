@@ -25,6 +25,9 @@ double translateY(
     double y, InputImageRotation rotation, Size size, Size absoluteImageSize) {
   switch (rotation) {
     case InputImageRotation.rotation90deg:
+      return y *
+          size.height /
+          (Platform.isIOS ? absoluteImageSize.height : absoluteImageSize.width);
     case InputImageRotation.rotation270deg:
       return y *
           size.height /

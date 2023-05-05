@@ -21,7 +21,8 @@ class CameraPreviewWithPaint extends StatefulWidget {
     this.takeImageFunc,
     this.switchLiveCameraFunc,
     this.stackFit,
-    this.initialDirection = CameraLensDirection.back, this.isRealTime = false,
+    this.initialDirection = CameraLensDirection.back,
+    this.isRealTime = false,
   }) : super(key: key);
   @override
   State<CameraPreviewWithPaint> createState() => _CameraPreviewWithPaintState();
@@ -216,20 +217,20 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     if (_isBusyCamera != true &&
         _controller != null &&
         widget.takeImageFunc != null) {
-      if(widget.isRealTime) {
+      if (widget.isRealTime) {
         widget.takeImageFunc!([] as Uint8List);
-      } else{
-      _isBusyCamera = true;
-      await _controller!.stopImageStream();
-      final xfileImage = await _controller?.takePicture();
-      final uint8List = await xfileImage?.readAsBytes();
-      if (uint8List != null) {
-        await _startLiveFeed(_cameraIndex);
-        widget.takeImageFunc!(uint8List);
       } else {
-        await _startLiveFeed(_cameraIndex);
+        _isBusyCamera = true;
+        await _controller!.stopImageStream();
+        final xfileImage = await _controller?.takePicture();
+        final uint8List = await xfileImage?.readAsBytes();
+        if (uint8List != null) {
+          await _startLiveFeed(_cameraIndex);
+          widget.takeImageFunc!(uint8List);
+        } else {
+          await _startLiveFeed(_cameraIndex);
+        }
       }
     }
-        }
   }
 }

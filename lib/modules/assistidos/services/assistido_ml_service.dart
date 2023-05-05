@@ -62,10 +62,11 @@ class AssistidoMLService extends Disposable {
     double currDist = 999;
     int i = 0;
     int? index;
+    var imagemOrientation = sensorOrientation == 270 ? 270 : 180;
     imglib.Image image =
-        convertCameraImageToImageWithRotate(cameraImage, sensorOrientation);
+        convertCameraImageToImageWithRotate(cameraImage, imagemOrientation);
     InputImage? inputImage =
-        convertCameraImageToInputImage(cameraImage, sensorOrientation);
+        convertCameraImageToInputImage(cameraImage, imagemOrientation);
     if (inputImage != null) {
       final List<Face> facesDetected =
           await faceDetector.processImage(inputImage);

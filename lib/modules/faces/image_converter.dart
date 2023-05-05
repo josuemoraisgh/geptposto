@@ -100,12 +100,34 @@ CameraImage? convertInputImageToCameraImage(InputImage inputImage){
 InputImage? convertCameraImageToInputImage(
     CameraImage image, int sensorOrientation) {
   final WriteBuffer allBytes = WriteBuffer();
+  Uint8List bytes;
+  Size imageSize;
   for (final Plane plane in image.planes) {
     allBytes.putUint8List(plane.bytes);
   }
-  final bytes = allBytes.done().buffer.asUint8List();
-
-  final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+  if (sensorOrientation == 0) {
+    sensorOrientation = 270;
+    imageSize = Size(image.height.toDouble(), image.width.toDouble());
+  } else if (sensorOrientation == 180) {
+    sensorOrientation = 90;
+    imageSize = Size(image.height.toDouble(), image.width.toDouble());
+  } else {
+    imageSize = Size(image.width.toDouble(), image.height.toDouble());
+  }
+  /*if ((sensorOrientation != 270) || (sensorOrientation != 90)) {
+    sensorOrientation = sensorOrientation - 90;
+    Uint8List bytes2 = allBytes.done().buffer.asUint8List();
+    bytes = Uint8List(image.width * image.height * 2);
+    for (int h = 0; h < image.height; h++) {
+      for (int w = 0; w < image.width; w++) {
+        bytes[2 * (h * image.width + w)] = bytes2[2 * (w * image.height + h)];
+        bytes[2 * (h * image.width + w) + 1] =
+            bytes2[2 * (w * image.height + h) + 1];
+      }
+    }
+  } else {*/
+  bytes = allBytes.done().buffer.asUint8List();
+  //}
   final imageRotation = InputImageRotationValue.fromRawValue(sensorOrientation);
   if (imageRotation == null) return null;
   final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);

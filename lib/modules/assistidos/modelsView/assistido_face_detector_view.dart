@@ -108,10 +108,10 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
                   orElse: () => StreamAssistido.vazio());
               if (aux.nomeM1 != "") {
                 assistidoPresent.add(aux);
-                assistidoNomeList.add(aux.nomeM1);                
+                assistidoNomeList.add(aux.nomeM1);
               }
-            } else{
-                assistidoNomeList.add("");
+            } else {
+              assistidoNomeList.add("");
             }
           }
         }
