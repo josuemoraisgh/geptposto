@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:ml_linalg/vector.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
@@ -18,9 +17,10 @@ class AssistidoMLService extends Disposable {
 
   Future<void> init() async {
     await initializeInterpreter();
-    interpreter.allocateTensors();
+    //interpreter.allocateTensors();
     faceDetector = FaceDetector(
-      options: FaceDetectorOptions(enableContours: true),
+      options: FaceDetectorOptions(
+          performanceMode: FaceDetectorMode.accurate, enableContours: true),
     );
   }
 
@@ -51,10 +51,13 @@ class AssistidoMLService extends Disposable {
       debugPrint('Failed to load model.');
       debugPrint(e.toString());
     }
+    interpreter = await Interpreter.fromAsset('mobilefacenet3.tflite',
+        options: InterpreterOptions());
   }
 
-  Future<int?> predict(CameraImage cameraImage, int sensorOrientation,
+  Future<List<int?>> predict(CameraImage cameraImage, int sensorOrientation,
       List<StreamAssistido> assistidos) async {
+    List<int?> assistidosIdentList = [];
     double minDist = 999;
     double currDist = 999;
     int i = 0;
@@ -64,29 +67,29 @@ class AssistidoMLService extends Disposable {
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage != null) {
-      final List<Face> faceDetected =
+      final List<Face> facesDetected =
           await faceDetector.processImage(inputImage);
-      if (faceDetected.isNotEmpty) {
-        image = cropFace(image, faceDetected[0], step: 80) ?? image;
-        final classificatorArray = await classificatorImage(image);
-        for (i = 0; i < assistidos.length; i++) {
-          if (assistidos[i].fotoPoints.isNotEmpty) {
-            currDist =
-                euclideanDistance(classificatorArray, assistidos[i].fotoPoints);
-            if (classificatorArray.length != assistidos[i].fotoPoints.length) {
-              debugPrint(assistidos[i].nomeM1);
-            }
-            debugPrint(currDist.toString());
-            if (currDist <= threshold && currDist < minDist) {
-              minDist = currDist;
-              index = assistidos[i].ident;
+      if (facesDetected.isNotEmpty) {
+        for (var faceDetected in facesDetected) {
+          minDist = 999;
+          currDist = 999;
+          var imageAux = cropFace(image, faceDetected, step: 80) ?? image;
+          var classificatorArray = await classificatorImage(imageAux);
+          for (i = 0; i < assistidos.length; i++) {
+            if (assistidos[i].fotoPoints.isNotEmpty) {
+              currDist = euclideanDistance(
+                  classificatorArray, assistidos[i].fotoPoints);
+              if (currDist <= threshold && currDist < minDist) {
+                minDist = currDist;
+                index = assistidos[i].ident;
+              }
             }
           }
+          assistidosIdentList.add(index);
         }
       }
-      return index;
     }
-    return null;
+    return assistidosIdentList;
   }
 
   double norma2(List? e1) {

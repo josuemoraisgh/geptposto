@@ -33,7 +33,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   final _assistidoMmlService = Modular.get<AssistidoMLService>();
   final _assistidosStoreList = Modular.get<AssistidosStoreList>();
   List<CameraDescription>? _cameras;
-  StreamAssistido? assistidoPresent;
+  List<StreamAssistido?> assistidoPresent = [];
   CustomPaint? _customPaint;
 
   Future<bool> init() async {
@@ -70,9 +70,10 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _cameraTakeImage(Uint8List uint8ListImage) async {
     if ((widget.assistidoList?.isNotEmpty ?? false) &&
-        (widget.chamadaFunc != null) &&
-        (assistidoPresent != null)) {
-      widget.chamadaFunc!(assistidoPresent!);
+        (widget.chamadaFunc != null)) {
+      for (var assistidoPres in assistidoPresent) {
+        widget.chamadaFunc!(assistidoPres!);
+      }
     } else {
       if (widget.assistido != null) {
         _assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
@@ -84,7 +85,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _processImage(
       CameraImage cameraImage, int sensorOrientation) async {
-    String assistidoNome = "";
+    List<String> assistidoNomeList = [];
+    StreamAssistido? aux;
     InputImage? inputImage =
         convertCameraImageToInputImage(cameraImage, sensorOrientation);
     if (inputImage == null || !_canProcess || _isBusy) return;
@@ -93,19 +95,32 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         await _assistidoMmlService.faceDetector.processImage(inputImage);
     if (widget.assistidoList != null) {
       if (faces.isNotEmpty) {
-        final assisitidoIndex = await _assistidoMmlService.predict(
+        if (faces.length > 1) {
+          debugPrint("duas faces");
+        }
+        final assistidosIdentList = await _assistidoMmlService.predict(
             cameraImage, sensorOrientation, widget.assistidoList!);
-        if (assisitidoIndex != null && widget.chamadaFunc != null) {
-          assistidoPresent = widget.assistidoList!
-              .firstWhere((element) => element.ident == assisitidoIndex);
-          assistidoNome = assistidoPresent?.nomeM1 ?? "";
+        if (assistidosIdentList.isNotEmpty && widget.chamadaFunc != null) {
+          for (var assistidosIdent in assistidosIdentList) {
+            if (assistidosIdent != null) {
+              aux = widget.assistidoList!.firstWhere(
+                  (element) => element.ident == assistidosIdent,
+                  orElse: () => StreamAssistido.vazio());
+              if (aux.nomeM1 != "") {
+                assistidoPresent.add(aux);
+                assistidoNomeList.add(aux.nomeM1);                
+              }
+            } else{
+                assistidoNomeList.add("");
+            }
+          }
         }
       }
     }
     if (inputImage.inputImageData?.size != null &&
         inputImage.inputImageData?.imageRotation != null) {
       final painter = FaceDetectorPainter(
-          assistidoNome,
+          assistidoNomeList,
           faces,
           inputImage.inputImageData!.size,
           inputImage.inputImageData!.imageRotation);
