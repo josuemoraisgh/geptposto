@@ -62,11 +62,12 @@ class AssistidoMLService extends Disposable {
     double currDist = 999;
     int i = 0;
     int? index;
-    var imagemOrientation = sensorOrientation == 270 ? 270 : 180;
+    var desiredRotation =
+        sensorOrientation == 0 || sensorOrientation == 180 ? 90 : 0;
     imglib.Image image =
-        convertCameraImageToImageWithRotate(cameraImage, imagemOrientation);
-    InputImage? inputImage =
-        convertCameraImageToInputImage(cameraImage, imagemOrientation);
+        convertCameraImageToImageWithRotate(cameraImage, sensorOrientation);
+    InputImage? inputImage = convertCameraImageToInputImageWithRotate(
+        cameraImage, sensorOrientation, desiredRotation);
     if (inputImage != null) {
       final List<Face> facesDetected =
           await faceDetector.processImage(inputImage);
@@ -86,8 +87,8 @@ class AssistidoMLService extends Disposable {
               }
             }
           }
-          assistidosIdentList.add(index);
         }
+        assistidosIdentList.add(index);
       }
     }
     return assistidosIdentList;

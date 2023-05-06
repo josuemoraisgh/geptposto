@@ -4,6 +4,47 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
+InputImage imageToInputImage(imglib.Image image, int cameraRotation) {
+  // Converte a imagem para o formato NV21
+  final nv21 = image.data?.getBytes() ?? [] as Uint8List;
+  final inputImageData = InputImageData(
+    imageRotation: cameraRotation == 0
+        ? InputImageRotation.rotation90deg
+        : InputImageRotation.rotation270deg,
+    inputImageFormat: InputImageFormat.nv21,
+    size: Size(image.width.toDouble(), image.height.toDouble()),
+    planeData: [
+      InputImagePlaneMetadata(
+          width: image.width, height: image.height, bytesPerRow: 2)
+    ],
+  );
+  // Cria o objeto 'InputImage' a partir do objeto 'InputImageData'
+  final inputImage = InputImage.fromBytes(
+    bytes: nv21,
+    inputImageData: inputImageData,
+  );
+  return inputImage;
+}
+
+int getRotationAngle(int cameraRotation, int desiredRotation) {
+  int rotationAngle = desiredRotation - cameraRotation;
+  if (rotationAngle < 0) {
+    rotationAngle += 360;
+  }
+  return rotationAngle;
+}
+
+InputImage? convertCameraImageToInputImageWithRotate(
+    CameraImage cameraImage, int cameraRotation, int desiredRotation) {
+  int rotationAngle = getRotationAngle(cameraRotation, desiredRotation);
+  if (desiredRotation != 0) {
+    imglib.Image image =
+        convertCameraImageToImageWithRotate(cameraImage, rotationAngle);
+    return imageToInputImage(image, cameraRotation);
+  }
+  return convertCameraImageToInputImage(cameraImage, cameraRotation);
+}
+
 imglib.Image convertCameraImageToImageWithRotate(
     CameraImage cameraImage, num angle) {
   var img = convertCameraImageToImage(cameraImage);
@@ -92,42 +133,14 @@ imglib.Image convertYUV420ToImage(CameraImage cameraImage) {
   return image;
 }
 
-/*
-CameraImage? convertInputImageToCameraImage(InputImage inputImage){
-  return CameraImage();
-}
-*/
 InputImage? convertCameraImageToInputImage(
     CameraImage image, int sensorOrientation) {
   final WriteBuffer allBytes = WriteBuffer();
-  Uint8List bytes;
-  Size imageSize;
   for (final Plane plane in image.planes) {
     allBytes.putUint8List(plane.bytes);
   }
-  if (sensorOrientation == 0) {
-    sensorOrientation = 270;
-    imageSize = Size(image.height.toDouble(), image.width.toDouble());
-  } else if (sensorOrientation == 180) {
-    sensorOrientation = 90;
-    imageSize = Size(image.height.toDouble(), image.width.toDouble());
-  } else {
-    imageSize = Size(image.width.toDouble(), image.height.toDouble());
-  }
-  /*if ((sensorOrientation != 270) || (sensorOrientation != 90)) {
-    sensorOrientation = sensorOrientation - 90;
-    Uint8List bytes2 = allBytes.done().buffer.asUint8List();
-    bytes = Uint8List(image.width * image.height * 2);
-    for (int h = 0; h < image.height; h++) {
-      for (int w = 0; w < image.width; w++) {
-        bytes[2 * (h * image.width + w)] = bytes2[2 * (w * image.height + h)];
-        bytes[2 * (h * image.width + w) + 1] =
-            bytes2[2 * (w * image.height + h) + 1];
-      }
-    }
-  } else {*/
-  bytes = allBytes.done().buffer.asUint8List();
-  //}
+  final imageSize = Size(image.width.toDouble(), image.height.toDouble());
+  final bytes = allBytes.done().buffer.asUint8List();
   final imageRotation = InputImageRotationValue.fromRawValue(sensorOrientation);
   if (imageRotation == null) return null;
   final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
@@ -213,6 +226,34 @@ Float32List imageByteToFloat32Normal(imglib.Image imageResized) {
   return convertedBytes.buffer.asFloat32List();
 }
 
+/*
+InputImage convertCameraImageToInputImageWithRotation(CameraImage image, int cameraRotation, int desiredRotation) {
+  // Define a rotação atual da imagem com base na rotação da câmera
+  final ImageRotation rotation = rotationIntToImageRotation(cameraRotation);
+  // Cria um objeto FirebaseVisionImage a partir do objeto CameraImage
+  final FirebaseVisionImage visionImage = FirebaseVisionImage.fromCameraImage(image, rotation);
+  // Define a rotação desejada para a imagem
+  final ImageRotation desiredImageRotation = rotationIntToImageRotation(desiredRotation);
+  // Retorna um objeto InputImage rotacionado
+  return InputImage.fromFirebaseVisionImage(visionImage, desiredImageRotation);
+}
+
+// Função auxiliar para converter uma rotação de câmera em uma rotação de imagem
+ImageRotation rotationIntToImageRotation(int rotation) {
+  switch (rotation) {
+    case 0:
+      return ImageRotation.rotation0;
+    case 90:
+      return ImageRotation.rotation90;
+    case 180:
+      return ImageRotation.rotation180;
+    case 270:
+      return ImageRotation.rotation270;
+    default:
+      throw ArgumentError('Invalid rotation value');
+  }
+}
+*/
 /*
 Future<Uint8List?> cropImage(XFile? imageFile) async {
   if (imageFile != null) {

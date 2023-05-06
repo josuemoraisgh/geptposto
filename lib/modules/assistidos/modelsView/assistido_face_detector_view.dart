@@ -87,8 +87,10 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       CameraImage cameraImage, int sensorOrientation) async {
     List<String> assistidoNomeList = [];
     StreamAssistido? aux;
+    var desiredRotation = sensorOrientation == 0 || sensorOrientation == 180 ? 90 : 0;
     InputImage? inputImage =
-        convertCameraImageToInputImage(cameraImage, sensorOrientation);
+        convertCameraImageToInputImageWithRotate(cameraImage, sensorOrientation, desiredRotation);    
+
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
     final faces =
