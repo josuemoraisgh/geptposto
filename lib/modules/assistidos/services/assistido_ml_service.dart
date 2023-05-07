@@ -8,11 +8,13 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../faces/image_converter.dart';
+import '../../faces/sensor_orientation_detector.dart';
 import '../models/stream_assistido_model.dart';
 
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
   late FaceDetector faceDetector;
+  late SensorOrientationDetector orientation;
   static const double threshold = 1.2;
 
   Future<void> init() async {
@@ -22,6 +24,8 @@ class AssistidoMLService extends Disposable {
       options: FaceDetectorOptions(
           performanceMode: FaceDetectorMode.accurate, enableContours: true),
     );
+    orientation = SensorOrientationDetector();
+    await orientation.init();
   }
 
   Future initializeInterpreter() async {
@@ -62,12 +66,10 @@ class AssistidoMLService extends Disposable {
     double currDist = 999;
     int i = 0;
     int? index;
-    var desiredRotation =
-        sensorOrientation == 0 || sensorOrientation == 180 ? 90 : 0;
     imglib.Image image =
         convertCameraImageToImageWithRotate(cameraImage, sensorOrientation);
-    InputImage? inputImage = convertCameraImageToInputImageWithRotate(
-        cameraImage, sensorOrientation, desiredRotation);
+    InputImage? inputImage = await convertCameraImageToInputImageWithRotate(
+        cameraImage, sensorOrientation, orientation.value);
     if (inputImage != null) {
       final List<Face> facesDetected =
           await faceDetector.processImage(inputImage);

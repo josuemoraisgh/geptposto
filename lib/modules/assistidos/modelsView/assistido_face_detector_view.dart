@@ -2,9 +2,9 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:geptposto/modules/faces/image_converter.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../faces/camera_preview_with_paint.dart';
+import '../../faces/image_converter.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
@@ -87,9 +87,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       CameraImage cameraImage, int sensorOrientation) async {
     List<String> assistidoNomeList = [];
     StreamAssistido? aux;
-    var desiredRotation = sensorOrientation == 0 || sensorOrientation == 180 ? 90 : 0;
-    InputImage? inputImage =
-        convertCameraImageToInputImageWithRotate(cameraImage, sensorOrientation, desiredRotation);    
+    InputImage? inputImage = await convertCameraImageToInputImageWithRotate(
+        cameraImage, sensorOrientation, _assistidoMmlService.orientation.value);
 
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;

@@ -173,6 +173,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
           if (!mounted) {
             return;
           }
+          _controller?.unlockCaptureOrientation();
           _controller?.getMinZoomLevel().then((value) {
             zoomLevel = value;
             minZoomLevel = value;

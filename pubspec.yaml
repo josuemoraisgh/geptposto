@@ -5,7 +5,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.5 <3.0.0'
+  sdk: '>=2.19.6'
 
 dependencies:
   flutter:
@@ -39,6 +39,7 @@ dependencies:
   #tflite_flutter:
   #  path: assets/tflite_flutter
   ml_linalg: ^13.11.30
+  flutter_sensors: ^1.0.1
   
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:geptposto/modules/faces/sensor_orientation_detector.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
@@ -24,25 +25,6 @@ InputImage imageToInputImage(imglib.Image image, int cameraRotation) {
     inputImageData: inputImageData,
   );
   return inputImage;
-}
-
-int getRotationAngle(int cameraRotation, int desiredRotation) {
-  int rotationAngle = desiredRotation - cameraRotation;
-  if (rotationAngle < 0) {
-    rotationAngle += 360;
-  }
-  return rotationAngle;
-}
-
-InputImage? convertCameraImageToInputImageWithRotate(
-    CameraImage cameraImage, int cameraRotation, int desiredRotation) {
-  int rotationAngle = getRotationAngle(cameraRotation, desiredRotation);
-  if (desiredRotation != 0) {
-    imglib.Image image =
-        convertCameraImageToImageWithRotate(cameraImage, rotationAngle);
-    return imageToInputImage(image, cameraRotation);
-  }
-  return convertCameraImageToInputImage(cameraImage, cameraRotation);
 }
 
 imglib.Image convertCameraImageToImageWithRotate(
@@ -133,15 +115,23 @@ imglib.Image convertYUV420ToImage(CameraImage cameraImage) {
   return image;
 }
 
-InputImage? convertCameraImageToInputImage(
-    CameraImage image, int sensorOrientation) {
-  final WriteBuffer allBytes = WriteBuffer();
-  for (final Plane plane in image.planes) {
-    allBytes.putUint8List(plane.bytes);
+int getImageRotation(
+    int sensorOrientation, DeviceOrientation screemOrientation) {
+  if (screemOrientation == DeviceOrientation.landscapeLeft) {
+    debugPrint("Landscape");
+    return (sensorOrientation + 90) % 360;
+  } else {
+    debugPrint("Portrait");
+    return sensorOrientation;
   }
+}
+
+Future<InputImage?> convertCameraImageToInputImageWithRotate(CameraImage image,
+    int sensorOrientation, DeviceOrientation screemOrientation) async {
+  final rotation = getImageRotation(sensorOrientation, screemOrientation);
   final imageSize = Size(image.width.toDouble(), image.height.toDouble());
-  final bytes = allBytes.done().buffer.asUint8List();
-  final imageRotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+
+  final imageRotation = InputImageRotationValue.fromRawValue(rotation);
   if (imageRotation == null) return null;
   final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
   if (inputImageFormat == null) return null;
@@ -163,6 +153,11 @@ InputImage? convertCameraImageToInputImage(
     planeData: planeData,
   );
 
+  final WriteBuffer allBytes = WriteBuffer();
+  for (final Plane plane in image.planes) {
+    allBytes.putUint8List(plane.bytes);
+  }
+  final bytes = allBytes.done().buffer.asUint8List();
   final inputImage =
       InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
   return inputImage;
