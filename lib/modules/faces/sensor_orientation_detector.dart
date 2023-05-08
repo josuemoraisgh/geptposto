@@ -1,3 +1,4 @@
+/*
 import 'dart:async';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_sensors/flutter_sensors.dart';
@@ -16,7 +17,7 @@ class SensorOrientationDetector extends Disposable {
   Future<void> init() async {
     final stream = await SensorManager().sensorUpdates(
       sensorId: Sensors.ACCELEROMETER,
-      interval: Sensors.SENSOR_DELAY_GAME,
+      interval: const Duration(seconds: 5),
     );
 
     _accelSubscription = stream.listen((event) {
@@ -46,4 +47,4 @@ class SensorOrientationDetector extends Disposable {
   void dispose() {
     _accelSubscription?.cancel();
   }
-}
+}*/

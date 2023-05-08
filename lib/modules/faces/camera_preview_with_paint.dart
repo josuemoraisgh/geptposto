@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final List<CameraDescription> cameras;
-  final Future<void> Function(CameraImage cameraImage, int sensorOrientation)?
-      onPaintLiveImageFunc;
+  final Future<void> Function(CameraImage cameraImage, int sensorOrientation,
+      Orientation orientation)? onPaintLiveImageFunc;
   final Future<void> Function(Uint8List uint8ListImage)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
@@ -34,6 +34,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
   late bool _isBusyCamera;
+  Orientation _orientation = Orientation.portrait;
   late Future<bool> isStarted; //Não retirar muito importante
 
   Future<bool> init() async {
@@ -86,6 +87,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
           if ((widget.cameras.isNotEmpty) &&
               (snapshot.hasData) &&
               (_controller!.value.isInitialized)) {
+            _orientation = MediaQuery.of(context).orientation;
             return Stack(
               fit: widget.stackFit ?? StackFit.passthrough,
               children: <Widget>[
@@ -116,15 +118,18 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                _cameraTakeImage();
-              },
-              child: Icon(
-                (widget.initialDirection == CameraLensDirection.back)
-                    ? Icons.photo_camera_back
-                    : Icons.photo_camera_front,
-                size: 40,
+            Align(
+              alignment: Alignment.topLeft,
+              child: ElevatedButton(
+                onPressed: () {
+                  _cameraTakeImage();
+                },
+                child: Icon(
+                  (widget.initialDirection == CameraLensDirection.back)
+                      ? Icons.photo_camera_back
+                      : Icons.photo_camera_front,
+                  size: 40,
+                ),
               ),
             ),
             const SizedBox(width: 24.0),
@@ -184,7 +189,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
           if (widget.onPaintLiveImageFunc != null) {
             _controller?.startImageStream((cameraImage) {
               widget.onPaintLiveImageFunc!(
-                  cameraImage, camera.sensorOrientation);
+                  cameraImage, camera.sensorOrientation, _orientation);
             });
           }
           setState(() {});

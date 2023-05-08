@@ -1,3 +1,4 @@
+/*
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -107,3 +108,4 @@ class FaceDetectorService {
     _faceDetector.close();
   }
 }
+*/

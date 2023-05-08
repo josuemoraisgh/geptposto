@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:geptposto/modules/faces/sensor_orientation_detector.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
@@ -115,20 +114,23 @@ imglib.Image convertYUV420ToImage(CameraImage cameraImage) {
   return image;
 }
 
-int getImageRotation(
-    int sensorOrientation, DeviceOrientation screemOrientation) {
-  if (screemOrientation == DeviceOrientation.landscapeLeft) {
-    debugPrint("Landscape");
+int getImageRotation(int sensorOrientation, Orientation screemOrientation) {
+  if (screemOrientation == Orientation.landscape) {
+    debugPrint("landscapeLeft");
     return (sensorOrientation + 90) % 360;
+    // } else {
+    //   if (screemOrientation == DeviceOrientation.landscapeRight) {
+    //     debugPrint("landscapeRight");
+    //     return 360 - (sensorOrientation - 90);
   } else {
     debugPrint("Portrait");
     return sensorOrientation;
   }
+  // }
 }
 
-Future<InputImage?> convertCameraImageToInputImageWithRotate(CameraImage image,
-    int sensorOrientation, DeviceOrientation screemOrientation) async {
-  final rotation = getImageRotation(sensorOrientation, screemOrientation);
+Future<InputImage?> convertCameraImageToInputImageWithRotate(
+    CameraImage image, int rotation) async {
   final imageSize = Size(image.width.toDouble(), image.height.toDouble());
 
   final imageRotation = InputImageRotationValue.fromRawValue(rotation);

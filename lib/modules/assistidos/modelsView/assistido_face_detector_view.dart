@@ -83,12 +83,13 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     }
   }
 
-  Future<void> _processImage(
-      CameraImage cameraImage, int sensorOrientation) async {
+  Future<void> _processImage(CameraImage cameraImage, int sensorOrientation,
+      Orientation orientation) async {
     List<String> assistidoNomeList = [];
     StreamAssistido? aux;
-    InputImage? inputImage = await convertCameraImageToInputImageWithRotate(
-        cameraImage, sensorOrientation, _assistidoMmlService.orientation.value);
+    final rotation = getImageRotation(sensorOrientation, orientation);
+    InputImage? inputImage =
+        await convertCameraImageToInputImageWithRotate(cameraImage, rotation);
 
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
@@ -100,7 +101,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
           debugPrint("duas faces");
         }
         final assistidosIdentList = await _assistidoMmlService.predict(
-            cameraImage, sensorOrientation, widget.assistidoList!);
+            cameraImage, rotation, widget.assistidoList!);
         if (assistidosIdentList.isNotEmpty && widget.chamadaFunc != null) {
           for (var assistidosIdent in assistidosIdentList) {
             if (assistidosIdent != null) {
@@ -120,11 +121,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     }
     if (inputImage.inputImageData?.size != null &&
         inputImage.inputImageData?.imageRotation != null) {
-      final painter = FaceDetectorPainter(
-          assistidoNomeList,
-          faces,
-          inputImage.inputImageData!.size,
-          inputImage.inputImageData!.imageRotation);
+      final painter = FaceDetectorPainter(assistidoNomeList, faces,
+          inputImage.inputImageData!.size, sensorOrientation, rotation);
       _customPaint = CustomPaint(painter: painter);
     }
     _isBusy = false;

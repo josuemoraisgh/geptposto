@@ -225,7 +225,7 @@ class AssistidosStoreList {
       StreamAssistido? stAssist, final Uint8List uint8ListImage,
       {bool isUpload = true}) async {
     String photoFileName;
-    List<dynamic> fotoPoints = [];
+    List<double> fotoPoints = [];
     if (stAssist != null && uint8ListImage.isNotEmpty) {
       //Nomeando o arquivo
       final now = DateTime.now();

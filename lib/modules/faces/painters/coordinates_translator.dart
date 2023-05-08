@@ -1,15 +1,13 @@
 import 'dart:io';
 import 'dart:ui';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-double translateX(
-    double x, InputImageRotation rotation, Size size, Size absoluteImageSize) {
+double translateX(double x, int rotation, Size size, Size absoluteImageSize) {
   switch (rotation) {
-    case InputImageRotation.rotation90deg:
+    case 90:
       return x *
           size.width /
           (Platform.isIOS ? absoluteImageSize.width : absoluteImageSize.height);
-    case InputImageRotation.rotation270deg:
+    case 270:
       return size.width -
           x *
               size.width /
@@ -21,14 +19,13 @@ double translateX(
   }
 }
 
-double translateY(
-    double y, InputImageRotation rotation, Size size, Size absoluteImageSize) {
+double translateY(double y, int rotation, Size size, Size absoluteImageSize) {
   switch (rotation) {
-    case InputImageRotation.rotation90deg:
+    case 90:
       return y *
           size.height /
           (Platform.isIOS ? absoluteImageSize.height : absoluteImageSize.width);
-    case InputImageRotation.rotation270deg:
+    case 270:
       return y *
           size.height /
           (Platform.isIOS ? absoluteImageSize.height : absoluteImageSize.width);

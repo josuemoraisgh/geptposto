@@ -35,11 +35,11 @@ dependencies:
   intl: ^0.18.0
   image: ^4.0.15
   tflite_flutter: ^0.9.4
-  google_ml_kit: ^0.14.0
+  #google_ml_kit: ^0.14.0
   #tflite_flutter:
   #  path: assets/tflite_flutter
   ml_linalg: ^13.11.30
-  flutter_sensors: ^1.0.1
+  #flutter_sensors: ^1.0.1
   
 dev_dependencies:
   flutter_test:

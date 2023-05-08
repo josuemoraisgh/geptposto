@@ -11,7 +11,6 @@ import 'models/stream_assistido_model.dart';
 import 'modelsView/dropdown_body.dart';
 import 'modelsView/assistido_listview_silver.dart';
 import 'modelsView/search_bar.dart';
-import 'services/assistido_ml_service.dart';
 
 class AssistidosPage extends StatefulWidget {
   final Map<String, dynamic> dadosTela;
@@ -23,7 +22,6 @@ class AssistidosPage extends StatefulWidget {
 
 class _AssistidosPageState extends State<AssistidosPage> {
   final AssistidosController controller = Modular.get<AssistidosController>();
-  final _assistidoMmlService = Modular.get<AssistidoMLService>();
   final DropdownBody assistidosDropdownButton = DropdownBody(
     dateSelectedController:
         Modular.get<AssistidosController>().dateSelectedController,
@@ -301,26 +299,5 @@ class _AssistidosPageState extends State<AssistidosPage> {
                 }),
           );
         });
-  }
-
-  chamadaTesteFunc({List<StreamAssistido>? assistidos}) {
-    double minDist = 999;
-    if (assistidos != null) {
-      for (int i = 1; i < assistidos.length; i++) {
-        if (assistidos[i].fotoPoints.isNotEmpty) {
-          var currDist = _assistidoMmlService.euclideanDistance(
-              assistidos[0].fotoPoints, assistidos[i].fotoPoints);
-          if (assistidos[0].fotoPoints.length !=
-              assistidos[i].fotoPoints.length) {
-            debugPrint(assistidos[i].nomeM1);
-          }
-          debugPrint(currDist.toString());
-          if (currDist <= 1.0 && currDist < minDist) {
-            minDist = currDist;
-            debugPrint(assistidos[i].nomeM1);
-          }
-        }
-      }
-    }
   }
 }

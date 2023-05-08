@@ -3,12 +3,13 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'coordinates_translator.dart';
 
 class FaceDetectorPainter extends CustomPainter {
-  FaceDetectorPainter(
-      this.descNameList, this.faces, this.absoluteImageSize, this.rotation);
+  FaceDetectorPainter(this.descNameList, this.faces, this.absoluteImageSize,
+      this.sensorOrientation, this.rotation);
   final List<String?> descNameList;
   final List<Face> faces;
   final Size absoluteImageSize;
-  final InputImageRotation rotation;
+  final int sensorOrientation;
+  final int rotation;
 
   @override
   void paint(Canvas canvas, Size size) {
