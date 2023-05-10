@@ -47,7 +47,9 @@ class AssistidoMLService extends Disposable {
               waitType: TFLGpuDelegateWaitType.active),
         );
       }
-      var interpreterOptions = InterpreterOptions()..addDelegate(delegate!);
+      var interpreterOptions = InterpreterOptions()
+        ..threads = 2
+        ..addDelegate(delegate!);
 
       interpreter = await Interpreter.fromAsset('mobilefacenet3.tflite',
           options: interpreterOptions);
@@ -63,7 +65,7 @@ class AssistidoMLService extends Disposable {
       List<StreamAssistido> assistidos) async {
     List<int?> assistidosIdentList = [];
     List<List> inputs = [];
-    Map<int, List<double>> outputs = {};
+    Map<int, List<List<double>>> outputs = {};
     List<double> minDist = [];
     List<double> currDist = [];
     int i = 0, j = 0, k = 0;
@@ -80,20 +82,22 @@ class AssistidoMLService extends Disposable {
           assistidosIdentList.add(0);
           minDist.add(999);
           currDist.add(999);
-          outputs.addAll({k++: List.filled(512, 0)});
+          outputs.addAll({
+            k++: [List.filled(512, 0)]
+          });
           var imageAux = cropFace(image, faceDetected, step: 80) ?? image;
-          inputs.add(_preProcessImage(imageAux));
+          inputs.add([_preProcessImage(imageAux)]);
         }
-        if (inputs.length > 1) {
-          interpreter.runForMultipleInputs(inputs, outputs);
-        } else {
-          interpreter.run(inputs, [outputs[0]]);
-        }
+        //if (inputs.length > 1) {
+        interpreter.runForMultipleInputs(inputs, outputs);
+        //} else {
+        //  interpreter.run(inputs, [outputs[0]]);
+        //}
         for (i = 0; i < assistidos.length; i++) {
           for (j = 0; j < minDist.length; j++) {
             if (assistidos[i].fotoPoints.isNotEmpty) {
               var vector1 = Vector.fromList(assistidos[i].fotoPoints);
-              final vectorOut = Vector.fromList(outputs[j] ?? []);
+              final vectorOut = Vector.fromList(outputs[0]![j]);
               final n2 = vectorOut.norm();
               currDist.add(vector1.distanceTo(vectorOut / n2,
                   distance: Distance.euclidean));
