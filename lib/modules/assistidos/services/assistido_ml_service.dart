@@ -88,19 +88,17 @@ class AssistidoMLService extends Disposable {
           var imageAux = cropFace(image, faceDetected, step: 80) ?? image;
           inputs.add([_preProcessImage(imageAux)]);
         }
-        //if (inputs.length > 1) {
         interpreter.runForMultipleInputs(inputs, outputs);
-        //} else {
-        //  interpreter.run(inputs, [outputs[0]]);
-        //}
         for (i = 0; i < assistidos.length; i++) {
           for (j = 0; j < minDist.length; j++) {
             if (assistidos[i].fotoPoints.isNotEmpty) {
               var vector1 = Vector.fromList(assistidos[i].fotoPoints);
               final vectorOut = Vector.fromList(outputs[0]![j]);
               final n2 = vectorOut.norm();
-              currDist.add(vector1.distanceTo(vectorOut / n2,
-                  distance: Distance.euclidean));
+              final aux = vector1.distanceTo(vectorOut / n2,
+                  distance: Distance.euclidean);
+              //debugPrint(aux.toString());
+              currDist[j] = aux;
               if (currDist[j] <= threshold && currDist[j] < minDist[j]) {
                 minDist[j] = currDist[j];
                 assistidosIdentList[j] = assistidos[i].ident;

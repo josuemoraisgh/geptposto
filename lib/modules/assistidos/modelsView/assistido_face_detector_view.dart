@@ -85,7 +85,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _processImage(CameraImage cameraImage, int sensorOrientation,
       Orientation orientation) async {
-    List<String> assistidoNomeList = [];
+    List<String?> assistidoNomeList = [];
     StreamAssistido? aux;
     final rotation = getImageRotation(sensorOrientation, orientation);
     InputImage? inputImage =
@@ -104,16 +104,18 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
             cameraImage, rotation, widget.assistidoList!);
         if (assistidosIdentList.isNotEmpty && widget.chamadaFunc != null) {
           for (var assistidosIdent in assistidosIdentList) {
-            if (assistidosIdent != null) {
+            if (assistidosIdent != null && assistidosIdent != 999) {
               aux = widget.assistidoList!.firstWhere(
                   (element) => element.ident == assistidosIdent,
                   orElse: () => StreamAssistido.vazio());
-              if (aux.nomeM1 != "") {
+              if (aux.nomeM1 != "Nome") {
                 assistidoPresent.add(aux);
                 assistidoNomeList.add(aux.nomeM1);
+              } else {
+                assistidoNomeList.add(null);
               }
             } else {
-              assistidoNomeList.add("");
+              assistidoNomeList.add(null);
             }
           }
         }

@@ -354,7 +354,8 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                                     content: Text('Assistido Salvo')),
                               );
                               if (_isAdd) {
-                                _assistidosStoreList.add(_assistido);
+                                _assistidosStoreList
+                                    .addSaveJustRemote(_assistido);
                               } else {
                                 widget.assistido?.copy(_assistido);
                                 widget.assistido?.save();
