@@ -1,20 +1,20 @@
 Map<String, dynamic> map00 = {
   'id': 1,
-  'title': 'Chamada',
+  'title': 'Ativos',
   'img': 'assets/images/tela1.jpg',
   'active': 1
 };
 
 Map<String, dynamic> map01 = {
   'id': 2,
-  'title': 'Cadastros',
+  'title': 'Inativos',
   'img': 'assets/images/tela4.jpg',
   'active': 0
 };
 
 Map<String, dynamic> map02 = {
   'id': 3,
-  'title': 'Pedidos',
+  'title': 'Todos',
   'img': 'assets/images/tela3.jpg',
   'active': 0
 };

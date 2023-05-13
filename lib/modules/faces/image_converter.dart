@@ -116,17 +116,14 @@ imglib.Image convertYUV420ToImage(CameraImage cameraImage) {
 
 int getImageRotation(int sensorOrientation, Orientation screemOrientation) {
   if (screemOrientation == Orientation.landscape) {
-    debugPrint("landscapeLeft");
-    return (sensorOrientation + 90) % 360;
-    // } else {
-    //   if (screemOrientation == DeviceOrientation.landscapeRight) {
-    //     debugPrint("landscapeRight");
-    //     return 360 - (sensorOrientation - 90);
+    if (sensorOrientation == 270) {
+      debugPrint("270");
+      return (sensorOrientation + 90) % 360;
+    }
+    return (360 - (sensorOrientation - 90)) % 360;
   } else {
-    debugPrint("Portrait");
     return sensorOrientation;
   }
-  // }
 }
 
 Future<InputImage?> convertCameraImageToInputImageWithRotate(

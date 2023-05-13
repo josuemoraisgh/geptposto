@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import '../../faces/camera_controle_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';
 import '../models/stream_assistido_model.dart';
@@ -32,12 +33,12 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   bool _canProcess = true, _isBusy = false;
   final _assistidoMmlService = Modular.get<AssistidoMLService>();
   final _assistidosStoreList = Modular.get<AssistidosStoreList>();
-  List<CameraDescription>? _cameras;
+  CameraService? _cameraService;
   List<StreamAssistido?> assistidoPresent = [];
   CustomPaint? _customPaint;
 
   Future<bool> init() async {
-    _cameras = await Modular.get<Future<List<CameraDescription>>>();
+    _cameraService = Modular.get<CameraService>();
     return true;
   }
 
@@ -54,7 +55,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       builder: (BuildContext context, AsyncSnapshot<bool> initCameras) {
         if (initCameras.data != null) {
           return CameraPreviewWithPaint(
-            cameras: _cameras!,
+            cameraService: _cameraService,
             customPaint: _customPaint,
             onPaintLiveImageFunc: _processImage,
             takeImageFunc: _cameraTakeImage,

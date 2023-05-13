@@ -50,7 +50,14 @@ class _AssistidosPageState extends State<AssistidosPage> {
               List<StreamAssistido> list = [];
               if (isInited && assistidoList.hasData) {
                 list = controller.assistidosStoreList.search(
-                    assistidoList.data!, textEditingValue.text, "ATIVO");
+                  assistidoList.data!,
+                  textEditingValue.text,
+                  widget.dadosTela['title'] == 'Todos'
+                      ? ''
+                      : widget.dadosTela['title'] == 'Ativos'
+                          ? 'ATIVO'
+                          : 'INATIVO',
+                );
                 controller.countPresente = 0;
               }
               return Scaffold(

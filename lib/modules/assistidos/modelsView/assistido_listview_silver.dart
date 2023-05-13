@@ -39,12 +39,13 @@ class AssistidoListViewSilver extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   if (index < list.length) {
-                    return index == list.length - 1
-                        ? row(list[index])
-                        : Column(
-                            children: <Widget>[
-                              row(list[index]),
-                              Padding(
+                    return Column(
+                      children: <Widget>[
+                        row(list[index]),
+                        index == list.length - 1
+                            ? const Padding(
+                                padding: EdgeInsets.only(bottom: 50))
+                            : Padding(
                                 padding: const EdgeInsets.only(
                                   left: 100,
                                   right: 16,
@@ -54,8 +55,8 @@ class AssistidoListViewSilver extends StatelessWidget {
                                   color: Styles.linhaProdutoDivisor,
                                 ),
                               ),
-                            ],
-                          );
+                      ],
+                    );
                   }
                   return null;
                 },

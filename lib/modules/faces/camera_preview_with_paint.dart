@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
+import 'camera_controle_service.dart';
+
 class CameraPreviewWithPaint extends StatefulWidget {
-  final List<CameraDescription> cameras;
+  final CameraService? cameraService;
   final Future<void> Function(CameraImage cameraImage, int sensorOrientation,
       Orientation orientation)? onPaintLiveImageFunc;
   final Future<void> Function(Uint8List uint8ListImage)? takeImageFunc;
@@ -15,7 +17,7 @@ class CameraPreviewWithPaint extends StatefulWidget {
   final CustomPaint? customPaint;
   const CameraPreviewWithPaint({
     Key? key,
-    required this.cameras,
+    required this.cameraService,
     this.customPaint,
     this.onPaintLiveImageFunc,
     this.takeImageFunc,
@@ -29,41 +31,16 @@ class CameraPreviewWithPaint extends StatefulWidget {
 }
 
 class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
-  CameraController? _controller;
-  int _cameraIndex = -1;
   double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool _changingCameraLens = false;
-  late bool _isBusyCamera;
   Orientation _orientation = Orientation.portrait;
+  late CameraService _cameraService;
   late Future<bool> isStarted; //Não retirar muito importante
 
   Future<bool> init() async {
-    _isBusyCamera = false;
-    if (widget.cameras.any(
-      (element) =>
-          element.lensDirection == widget.initialDirection &&
-          element.sensorOrientation == 90,
-    )) {
-      _cameraIndex = widget.cameras.indexOf(
-        widget.cameras.firstWhere((element) =>
-            element.lensDirection == widget.initialDirection &&
-            element.sensorOrientation == 90),
-      );
-    } else {
-      for (var i = 0; i < widget.cameras.length; i++) {
-        if (widget.cameras[i].lensDirection == widget.initialDirection) {
-          _cameraIndex = i;
-          break;
-        }
-      }
-    }
-
-    if (_cameraIndex != -1) {
-      await _startLiveFeed(_cameraIndex);
-      return true;
-    } else {
-      return false;
-    }
+    _cameraService = widget.cameraService ?? CameraService();
+    await _startLiveFeed(widget.initialDirection);
+    return true;
   }
 
   @override
@@ -74,7 +51,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
 
   @override
   void dispose() {
-    _stopLiveFeed();
+    _cameraService.stopCameraController();
     super.dispose();
   }
 
@@ -83,10 +60,11 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     return FutureBuilder<bool>(
       future: isStarted,
       builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-        if ((snapshot.data != null) && (_controller != null)) {
-          if ((widget.cameras.isNotEmpty) &&
+        if ((snapshot.data != null) &&
+            (_cameraService.cameraController != null)) {
+          if ((_cameraService.camera != null) &&
               (snapshot.hasData) &&
-              (_controller!.value.isInitialized)) {
+              (_cameraService.cameraController!.value.isInitialized)) {
             _orientation = MediaQuery.of(context).orientation;
             return Stack(
               fit: widget.stackFit ?? StackFit.passthrough,
@@ -95,7 +73,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
                     ? const Center(
                         child: Text('Changing camera lens'),
                       )
-                    : CameraPreview(_controller!),
+                    : CameraPreview(_cameraService.cameraController!),
                 if (widget.customPaint != null) widget.customPaint!,
                 Positioned(
                   bottom: 0,
@@ -154,7 +132,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
           onChanged: (newSliderValue) {
             setState(() {
               zoomLevel = newSliderValue;
-              _controller!.setZoomLevel(zoomLevel);
+              _cameraService.cameraController!.setZoomLevel(zoomLevel);
             });
           },
           divisions: (maxZoomLevel - 1).toInt() < 1
@@ -165,31 +143,26 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     );
   }
 
-  Future<void> _startLiveFeed(int cameraIndex) async {
-    if (_controller == null) {
-      final camera = widget.cameras[cameraIndex];
-      _controller = CameraController(
-        camera,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
-      _controller?.initialize().then(
-        (_) {
+  Future<void> _startLiveFeed(CameraLensDirection cameraDirection) async {
+    if (_cameraService.cameraController == null) {
+      _cameraService.setupCameraController(
+        cameraDirection: cameraDirection,
+        initFunc: (_) async {
           if (!mounted) {
             return;
           }
-          _controller?.unlockCaptureOrientation();
-          _controller?.getMinZoomLevel().then((value) {
+          _cameraService.cameraController?.unlockCaptureOrientation();
+          _cameraService.cameraController?.getMinZoomLevel().then((value) {
             zoomLevel = value;
             minZoomLevel = value;
           });
-          _controller?.getMaxZoomLevel().then((value) {
+          _cameraService.cameraController?.getMaxZoomLevel().then((value) {
             maxZoomLevel = value;
           });
           if (widget.onPaintLiveImageFunc != null) {
-            _controller?.startImageStream((cameraImage) {
-              widget.onPaintLiveImageFunc!(
-                  cameraImage, camera.sensorOrientation, _orientation);
+            _cameraService.cameraController?.startImageStream((cameraImage) {
+              widget.onPaintLiveImageFunc!(cameraImage,
+                  _cameraService.camera!.sensorOrientation, _orientation);
             });
           }
           setState(() {});
@@ -198,21 +171,13 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
     }
   }
 
-  Future _stopLiveFeed() async {
-    if (_controller != null) {
-      if (_isBusyCamera != true) {
-        await _controller?.stopImageStream();
-      }
-      await _controller?.dispose();
-      _controller = null;
-    }
-  }
-
   Future _switchLiveCamera() async {
     setState(() => _changingCameraLens = true);
-    _cameraIndex = (_cameraIndex + 1) % widget.cameras.length;
-    await _stopLiveFeed();
-    await _startLiveFeed(_cameraIndex);
+    await _cameraService.stopCameraController();
+    await _startLiveFeed(
+        _cameraService.cameraDirection == CameraLensDirection.front
+            ? CameraLensDirection.back
+            : CameraLensDirection.front);
     if (widget.switchLiveCameraFunc != null) {
       await widget.switchLiveCameraFunc!();
     }
@@ -220,21 +185,19 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
   }
 
   Future<void> _cameraTakeImage() async {
-    if (_isBusyCamera != true &&
-        _controller != null &&
+    if (_cameraService.isBusyCamera != true &&
+        _cameraService.cameraController != null &&
         widget.takeImageFunc != null) {
       if (widget.isRealTime) {
         widget.takeImageFunc!([] as Uint8List);
       } else {
-        _isBusyCamera = true;
-        await _controller!.stopImageStream();
-        final xfileImage = await _controller?.takePicture();
+        final xfileImage = await _cameraService.takePicture();
         final uint8List = await xfileImage?.readAsBytes();
         if (uint8List != null) {
-          await _startLiveFeed(_cameraIndex);
+          await _startLiveFeed(_cameraService.cameraDirection!);
           widget.takeImageFunc!(uint8List);
         } else {
-          await _startLiveFeed(_cameraIndex);
+          await _startLiveFeed(_cameraService.cameraDirection!);
         }
       }
     }

@@ -1,7 +1,6 @@
-import 'package:camera/camera.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:geptposto/modules/assistidos/services/assistido_ml_service.dart';
-import 'package:geptposto/modules/assistidos/services/camera_controle_service.dart';
+import 'package:geptposto/modules/faces/camera_controle_service.dart';
 import '../assistidos/services/sync_hive_local_storage_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_controller.dart';
@@ -22,8 +21,6 @@ class AssistidosModule extends Module {
   List<Bind<Object>> get binds => [
         Bind.lazySingleton<CameraService>((i) => CameraService()),
         Bind.lazySingleton<AssistidoMLService>((i) => AssistidoMLService()),
-        Bind.lazySingleton<Future<List<CameraDescription>>>(
-            (i) => availableCameras()),
         Bind.lazySingleton<ProviderInterface>((i) => ProviderInterface()),
         Bind.lazySingleton<ConfigLocalStorageInterface>(
             (i) => ConfigLocalStorageService()),
