@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:hive/hive.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
@@ -12,7 +13,9 @@ import 'package:geptposto/modules/faces/image_converter.dart';
 
 import '../interfaces/assistido_local_storage_interface.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
+import '../interfaces/assistido_config_local_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
+import '../models/assistido_models.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 
@@ -39,15 +42,23 @@ Map<String, String> _caracterMap = {
 };
 
 class AssistidosStoreList {
+  late final AssistidoMLService _assistidoMmlService;
+  late final AssistidoLocalStorageInterface _localStore;
+  late final AssistidoRemoteStorageInterface _remoteStore;
+  late final AssistidoConfigLocalStorageInterface _configStore;
+  late final SyncLocalStorageInterface _syncStore;
   AssistidosStoreList(
       {SyncLocalStorageInterface? syncStore,
       AssistidoLocalStorageInterface? localStore,
-      AssistidoRemoteStorageInterface? remoteStorage,
+      AssistidoConfigLocalStorageInterface? configStore,
+      AssistidoRemoteStorageInterface? remoteStore,
       AssistidoMLService? assistidoMmlService}) {
     _syncStore = syncStore ?? Modular.get<SyncLocalStorageInterface>();
     _localStore = localStore ?? Modular.get<AssistidoLocalStorageInterface>();
-    _remoteStorage =
-        remoteStorage ?? Modular.get<AssistidoRemoteStorageInterface>();
+    _configStore =
+        configStore ?? Modular.get<AssistidoConfigLocalStorageInterface>();
+    _remoteStore =
+        remoteStore ?? Modular.get<AssistidoRemoteStorageInterface>();
     _assistidoMmlService =
         assistidoMmlService ?? Modular.get<AssistidoMLService>();
   }
@@ -62,18 +73,21 @@ class AssistidosStoreList {
   final _assistidoList = [].cast<StreamAssistido>();
   final StreamController<List<StreamAssistido>> _assistidoListStream =
       StreamController<List<StreamAssistido>>.broadcast();
-
-  late final AssistidoMLService _assistidoMmlService;
-  late final AssistidoLocalStorageInterface _localStore;
-  late final AssistidoRemoteStorageInterface _remoteStorage;
-  late final SyncLocalStorageInterface _syncStore;
-
   Stream<List<StreamAssistido>> get stream => _assistidoListStream.stream;
+
+  late final Stream<BoxEvent> dateSelectedController;
+  late final Stream<BoxEvent> itensListController;
 
   Future<void> init() async {
     await _assistidoMmlService.init();
     await _localStore.init();
-    await _remoteStorage.init();
+    await _configStore.init();
+    dateSelectedController = _configStore
+        .watch("dateSelected")
+        .asBroadcastStream() as Stream<BoxEvent>;
+    itensListController =
+        _configStore.watch("itensList").asBroadcastStream() as Stream<BoxEvent>;
+    await _remoteStore.init();
     await _syncStore.init();
     _assistidoList.addAll(
       (await _localStore.getAll()).map(
@@ -102,33 +116,32 @@ class AssistidosStoreList {
         await _syncStore.delSync(0);
         if (sync != null) {
           if (sync.synckey == 'add') {
-            status =
-                await _remoteStorage.addData(sync.syncValue as StreamAssistido);
+            status = await _remoteStore
+                .addData((sync.syncValue as StreamAssistido).toList());
           }
           if (sync.synckey == 'set') {
-            status = await _remoteStorage.setData(
-                (sync.syncValue as StreamAssistido).ident,
-                (sync.syncValue as StreamAssistido));
+            status = await _remoteStore.setData(
+                (sync.syncValue as StreamAssistido).ident.toString(),
+                (sync.syncValue as StreamAssistido).toList());
           }
           if (sync.synckey == 'del') {
-            status =
-                await _remoteStorage.deleteData((sync.syncValue as String));
+            status = await _remoteStore.deleteData((sync.syncValue as String));
           }
           if (sync.synckey == 'addImage') {
-            status = await _remoteStorage.addFile(
+            status = await _remoteStore.addFile(
                 'BDados_Images',
                 (sync.syncValue[0] as String),
                 (sync.syncValue[1] as Uint8List));
           }
           if (sync.synckey == 'setImage') {
-            status = await _remoteStorage.setFile(
+            status = await _remoteStore.setFile(
                 'BDados_Images',
                 (sync.syncValue[0] as String),
                 (sync.syncValue[1] as Uint8List));
           }
           if (sync.synckey == 'delImage') {
-            status = await _remoteStorage.deleteFile(
-                'BDados_Images', sync.syncValue);
+            status =
+                await _remoteStore.deleteFile('BDados_Images', sync.syncValue);
           }
           if (status != null) {
             countSync.value = await _syncStore.length();
@@ -139,12 +152,18 @@ class AssistidosStoreList {
           }
         }
       }
-      var remoteDataChanges = await _remoteStorage.getChanges();
+      var remoteConfigChanges = await _remoteStore.getChanges(table: "Config");
+      if (remoteConfigChanges != null) {
+        for (var e in remoteConfigChanges) {
+          _configStore.addConfig(e[0], e.sublist(1).cast<String>());
+        }
+      }
+      var remoteDataChanges = await _remoteStore.getChanges();
       if (remoteDataChanges != null) {
         final keys = await _localStore.getKeys();
         for (var e in remoteDataChanges) {
-          addSaveJustLocal(StreamAssistido(e),
-              isAdd: (keys.contains(e.ident)) ? false : true);
+          addSaveJustLocal(StreamAssistido(Assistido.fromList(e)),
+              isAdd: (keys.contains(e[0])) ? false : true);
         }
       }
       isRunningSync = false;
@@ -265,6 +284,18 @@ class AssistidosStoreList {
     return false;
   }
 
+  Future<bool> addConfig(String ident, List<String>? values) {
+    return _configStore.addConfig(ident, values);
+  }
+
+  Future<List<String>?> getConfig(String ident) {
+    return _configStore.getConfig(ident);
+  }
+
+  Future<void> delConfig(String ident) {
+    return _configStore.delConfig(ident);
+  }
+
   Future<bool> getPhoto(StreamAssistido? stAssist) async {
     if (stAssist != null) {
       if (stAssist.photoName.isNotEmpty) {
@@ -277,7 +308,7 @@ class AssistidosStoreList {
         }
         _countConnection++;
         var remoteImage =
-            await _remoteStorage.getFile('BDados_Images', stAssist.photoName);
+            await _remoteStore.getFile('BDados_Images', stAssist.photoName);
         if (remoteImage != null) {
           if (remoteImage.isNotEmpty) {
             final resp = await addSetPhoto(stAssist, base64Decode(remoteImage),

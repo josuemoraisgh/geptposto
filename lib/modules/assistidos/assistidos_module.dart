@@ -7,13 +7,13 @@ import 'assistidos_controller.dart';
 import 'assistidos_page.dart';
 import 'interfaces/assistido_local_storage_interface.dart';
 import 'interfaces/asssistido_remote_storage_interface.dart';
-import 'interfaces/config_local_storage_interface.dart';
+import 'interfaces/assistido_config_local_storage_interface.dart';
 import 'interfaces/provider_interface.dart';
 import 'interfaces/sync_local_storage_interface.dart';
 import 'pages/assistidos_edit_insert_page.dart';
 import 'repositories/assistido_gsheet_repository.dart';
 import 'services/assistido_hive_local_storage_service.dart';
-import 'services/config_hive_local_storage_service.dart';
+import 'services/assistido_config_hive_local_storage_service.dart';
 import 'stores/assistidos_store.dart';
 
 class AssistidosModule extends Module {
@@ -22,8 +22,8 @@ class AssistidosModule extends Module {
         Bind.lazySingleton<CameraService>((i) => CameraService()),
         Bind.lazySingleton<AssistidoMLService>((i) => AssistidoMLService()),
         Bind.lazySingleton<ProviderInterface>((i) => ProviderInterface()),
-        Bind.lazySingleton<ConfigLocalStorageInterface>(
-            (i) => ConfigLocalStorageService()),
+        Bind.lazySingleton<AssistidoConfigLocalStorageInterface>(
+            (i) => AssistidoConfigLocalStorageService()),
         Bind.lazySingleton<AssistidoLocalStorageInterface>(
             (i) => AssistidoLocalStorageService()),
         Bind.lazySingleton<AssistidoRemoteStorageInterface>((i) =>
@@ -33,11 +33,10 @@ class AssistidosModule extends Module {
         Bind.lazySingleton<AssistidosStoreList>((i) => AssistidosStoreList(
             syncStore: i<SyncLocalStorageInterface>(),
             localStore: i<AssistidoLocalStorageInterface>(),
-            remoteStorage: i<AssistidoRemoteStorageInterface>())),
+            configStore: i<AssistidoConfigLocalStorageService>(),
+            remoteStore: i<AssistidoRemoteStorageInterface>())),
         Bind.singleton<AssistidosController>((i) => AssistidosController(
-              assistidosStoreList: i<AssistidosStoreList>(),
-              configStore: i<ConfigLocalStorageService>(),
-            )),
+            assistidosStoreList: i<AssistidosStoreList>())),
       ];
 
   @override

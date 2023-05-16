@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:rx_notifier/rx_notifier.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../assistidos_controller.dart';
 import '../../Styles/styles.dart';
 import '../models/stream_assistido_model.dart';
@@ -22,53 +22,57 @@ class AssistidoListViewSilver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RxBuilder(builder: (BuildContext context) {
-      final data = controller.dateSelectedController.value;
-      int count = 0;
-      for (var element in list) {
-        if (element.chamada.toLowerCase().contains(data)) count++;
-      }
-      controller.countPresente = count;
-      return CustomScrollView(
-        semanticChildCount: list.length,
-        slivers: <Widget>[
-          SliverSafeArea(
-            top: false,
-            minimum: const EdgeInsets.only(top: 8),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  if (index < list.length) {
-                    return Column(
-                      children: <Widget>[
-                        row(list[index]),
-                        index == list.length - 1
-                            ? const Padding(
-                                padding: EdgeInsets.only(bottom: 50))
-                            : Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 100,
-                                  right: 16,
-                                ),
-                                child: Container(
-                                  height: 1,
-                                  color: Styles.linhaProdutoDivisor,
-                                ),
-                              ),
-                      ],
-                    );
-                  }
-                  return null;
-                },
+    return StreamBuilder<BoxEvent>(
+        stream: controller.assistidosStoreList.dateSelectedController,
+        builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
+          final data = dateSelected.data?.value;
+          if (data != null && data != "") {
+            int count = 0;
+            for (var element in list) {
+              if (element.chamada.toLowerCase().contains(data)) count++;
+            }
+            controller.countPresente = count;
+          }
+          return CustomScrollView(
+            semanticChildCount: list.length,
+            slivers: <Widget>[
+              SliverSafeArea(
+                top: false,
+                minimum: const EdgeInsets.only(top: 8),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index < list.length) {
+                        return Column(
+                          children: <Widget>[
+                            row(list[index], data),
+                            index == list.length - 1
+                                ? const Padding(
+                                    padding: EdgeInsets.only(bottom: 50))
+                                : Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 100,
+                                      right: 16,
+                                    ),
+                                    child: Container(
+                                      height: 1,
+                                      color: Styles.linhaProdutoDivisor,
+                                    ),
+                                  ),
+                          ],
+                        );
+                      }
+                      return null;
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
-      );
-    });
+            ],
+          );
+        });
   }
 
-  Widget row(StreamAssistido pessoa) {
+  Widget row(StreamAssistido pessoa, String? dateSelected) {
     return SafeArea(
       top: false,
       bottom: false,
@@ -84,12 +88,7 @@ class AssistidoListViewSilver extends StatelessWidget {
             initialData: pessoa.photoUint8List,
             stream: pessoa.photoStream,
             builder: (BuildContext context,
-                    AsyncSnapshot<Uint8List>
-                        photoUint8List) => /*{
-              if (pessoa.photoName.isNotEmpty && photoUint8List.data!.isEmpty) {
-                controller.assistidosStoreList.addSaveJustLocal(pessoa);
-              }
-              return*/
+                    AsyncSnapshot<Uint8List> photoUint8List) =>
                 ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: pessoa.photoUint8List.isEmpty
@@ -105,8 +104,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                       width: 76,
                       height: 76,
                     ),
-            ), //;
-            //},
+            ),
           ),
           Expanded(
             child: Padding(
@@ -128,43 +126,40 @@ class AssistidoListViewSilver extends StatelessWidget {
               ),
             ),
           ),
-          RxBuilder(
-            builder: (BuildContext context) =>
-                controller.dateSelectedController.value == ""
-                    ? CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {},
-                        child: const Icon(
-                          CupertinoIcons.hand_thumbsdown,
-                          color: Colors.grey,
-                          semanticLabel: 'Ausente',
-                        ))
-                    : StreamBuilder(
-                        initialData: pessoa,
-                        stream: pessoa.chamadaStream,
-                        builder: (BuildContext context,
-                            AsyncSnapshot<StreamAssistido> assistido) {
-                          return CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () => functionChamada(assistido.data!),
-                            child: assistido.data!.chamada
-                                    .toLowerCase()
-                                    .contains(controller.dateSelected)
-                                ? const Icon(
-                                    CupertinoIcons.hand_thumbsup,
-                                    color: Colors.green,
-                                    size: 30.0,
-                                    semanticLabel: 'Presente',
-                                  )
-                                : const Icon(
-                                    CupertinoIcons.hand_thumbsdown,
-                                    color: Colors.red,
-                                    semanticLabel: 'Ausente',
-                                  ),
-                          );
-                        },
-                      ),
-          ),
+          dateSelected == null || dateSelected == ""
+              ? CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () {},
+                  child: const Icon(
+                    CupertinoIcons.hand_thumbsdown,
+                    color: Colors.grey,
+                    semanticLabel: 'Ausente',
+                  ))
+              : StreamBuilder(
+                  initialData: pessoa,
+                  stream: pessoa.chamadaStream,
+                  builder: (BuildContext context,
+                      AsyncSnapshot<StreamAssistido> assistido) {
+                    return CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => functionChamada(assistido.data!),
+                      child: assistido.data!.chamada
+                              .toLowerCase()
+                              .contains(dateSelected)
+                          ? const Icon(
+                              CupertinoIcons.hand_thumbsup,
+                              color: Colors.green,
+                              size: 30.0,
+                              semanticLabel: 'Presente',
+                            )
+                          : const Icon(
+                              CupertinoIcons.hand_thumbsdown,
+                              color: Colors.red,
+                              semanticLabel: 'Ausente',
+                            ),
+                    );
+                  },
+                ),
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => functionEdit(assistido: pessoa),

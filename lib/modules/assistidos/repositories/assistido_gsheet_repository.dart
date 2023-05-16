@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/provider_interface.dart';
-import '../models/assistido_models.dart';
 import '../models/device_info_model.dart';
 
 class AssistidoRemoteStorageRepository
@@ -24,7 +23,7 @@ class AssistidoRemoteStorageRepository
   }
 
   Future<dynamic> sendGet(
-      {String table = 'BDados',
+      {String table = "BDados",
       required String func,
       required String type,
       dynamic p1,
@@ -32,29 +31,29 @@ class AssistidoRemoteStorageRepository
       dynamic p3}) async {
     var response = await provider.get(baseUrl,
         bodyUrl:
-            '/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
+            "/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec",
         queryParameters: {
-          'table': table,
-          'func': func,
-          'type': type,
-          'userName': deviceInfoModel.identify!,
-          'p1': p1,
-          'p2': p2,
-          'p3': p3,
+          "table": table,
+          "func": func,
+          "type": type,
+          "userName": deviceInfoModel.identify!,
+          "p1": p1,
+          "p2": p2,
+          "p3": p3,
         });
     if (response != null) {
-      if (response['status'] == "SUCCESS") {
-        return response['items'];
+      if (response["status"] == "SUCCESS") {
+        return response["items"];
       } else {
         debugPrint(
-            "AssistidoRemoteStorageRepository - sendUrl - ${response['status']}");
+            "AssistidoRemoteStorageRepository - sendUrl - ${response["status"]}");
       }
     }
     return null;
   }
 
   Future<dynamic> sendPost(
-      {String table = 'BDados',
+      {String table = "BDados",
       required String func,
       required String type,
       dynamic p1,
@@ -62,14 +61,14 @@ class AssistidoRemoteStorageRepository
       dynamic p3}) async {
     var response = await provider.post(baseUrl,
         bodyUrl:
-            '/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
+            "/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec",
         queryParameters: {
-          'table': table,
-          'func': func,
-          'type': type,
-          'userName': deviceInfoModel.identify!,
-          'p1': p1,
-          'p2': p2,
+          "table": table,
+          "func": func,
+          "type": type,
+          "userName": deviceInfoModel.identify!,
+          "p1": p1,
+          "p2": p2,
         },
         body: p3);
     if (response != null) {
@@ -83,35 +82,10 @@ class AssistidoRemoteStorageRepository
     return null;
   }
 
-  Future<dynamic> sendPost2(
-      {String table = 'BDados',
-      required String func,
-      required String type,
-      dynamic p1,
-      dynamic p2,
-      dynamic p3}) async {
-    const int tam = 5000;
-    int i = 0, index = 0;
-    index = await sendGet(
-        func: 'ini', type: type, p3: p3.toString().substring(0, tam));
-    debugPrint(index.toString());
-    for (i = tam; (i + tam) < p3.toString().length; i = i + tam) {
-      index = await sendGet(
-          func: 'mei', type: type, p3: p3.toString().substring(i - tam + 1, i));
-      debugPrint(index.toString());
-    }
-    return await sendGet(
-        func: 'fim',
-        type: type,
-        p1: p1,
-        p2: p2,
-        p3: p3.toString().substring(i, p3.toString().length));
-  }
-
   @override
-  Future<int?> addData(Assistido? value) async {
+  Future<int?> addData(List<dynamic>? value, {String table = "BDados"}) async {
     if (value != null) {
-      return (sendGet(func: 'add', type: 'data', p1: value.toList())
+      return (sendGet(table: table, func: 'add', type: 'data', p1: value)
           as Future<int?>);
     }
     return null;
@@ -129,21 +103,23 @@ class AssistidoRemoteStorageRepository
   }
 
   @override
-  Future<List<Assistido>?> getChanges() async {
-    final response = await sendGet(func: 'get', type: 'changes');
-    if (response != null) {
-      if ((response as List).isNotEmpty) {
+  Future<List<dynamic>?> getChanges({String table = "BDados"}) async {
+    List<dynamic>? response =
+        await sendGet(table: table, func: 'get', type: 'changes');
+    return response;
+    /*if (response != null) {
+        if ((response as List).isNotEmpty) {
         return response.map((e) => Assistido.fromList(e)).toList();
       }
     }
-    return null;
+    return null;*/
   }
 
   @override
-  Future<Assistido?> getRow(int rowId) async {
+  Future<List<dynamic>?> getRow(String rowId, {String table = "BDados"}) async {
     final List<dynamic> response =
-        await sendGet(func: 'get', type: 'datas', p1: rowId.toString());
-    return Assistido.fromList(response);
+        await sendGet(func: 'get', type: 'datas', p1: rowId);
+    return response;
   }
 
   @override
@@ -157,9 +133,10 @@ class AssistidoRemoteStorageRepository
   }
 
   @override
-  Future<String?> setData(int rowsId, Assistido data) async {
+  Future<String?> setData(String rowsId, List<dynamic> data,
+      {String table = "BDados"}) async {
     final String? response = await sendGet(
-        func: 'set', type: 'data', p1: rowsId.toString(), p2: data.toList());
+        table: table, func: 'set', type: 'data', p1: rowsId, p2: data);
     return response;
   }
 
@@ -176,8 +153,9 @@ class AssistidoRemoteStorageRepository
   }
 
   @override
-  Future<dynamic> deleteData(String row) async {
-    final response = await sendGet(func: 'del', type: 'data', p1: row);
+  Future<dynamic> deleteData(String row, {String table = "BDados"}) async {
+    final response =
+        await sendGet(table: table, func: 'del', type: 'data', p1: row);
     return response;
   }
 

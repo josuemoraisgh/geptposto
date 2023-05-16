@@ -8,9 +8,9 @@ import 'package:icon_badge/icon_badge.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'assistidos_controller.dart';
 import 'models/stream_assistido_model.dart';
+import 'modelsView/custom_search_bar.dart';
 import 'modelsView/dropdown_body.dart';
 import 'modelsView/assistido_listview_silver.dart';
-import 'modelsView/search_bar.dart';
 
 class AssistidosPage extends StatefulWidget {
   final Map<String, dynamic> dadosTela;
@@ -22,12 +22,8 @@ class AssistidosPage extends StatefulWidget {
 
 class _AssistidosPageState extends State<AssistidosPage> {
   final AssistidosController controller = Modular.get<AssistidosController>();
-  final DropdownBody assistidosDropdownButton = DropdownBody(
-    dateSelectedController:
-        Modular.get<AssistidosController>().dateSelectedController,
-    itensListController:
-        Modular.get<AssistidosController>().itensListController,
-  );
+  final DropdownBody assistidosDropdownButton =
+      DropdownBody(controller: Modular.get<AssistidosController>());
   @override
   void initState() {
     super.initState();
@@ -91,7 +87,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                         ],
                       )
                     : const Text("Inicializando")
-                : SearchBar(
+                : CustomSearchBar(
                     textController: controller.textEditing,
                     focusNode: controller.focusNode,
                   ),
@@ -208,18 +204,21 @@ class _AssistidosPageState extends State<AssistidosPage> {
     );
   }
 
-  void chamadaFunc(StreamAssistido assistido) {
-    if (assistido.insertChamadaFunc(controller.dateSelected)) {
+  Future chamadaFunc(StreamAssistido assistido) async {
+    final dateSelected =
+        await controller.assistidosStoreList.getConfig("dateSelected");
+    if (assistido.insertChamadaFunc(dateSelected)) {
       controller.countPresente++;
     }
   }
 
-  void chamadaToogleFunc(StreamAssistido pessoa) {
-    controller.countPresente +=
-        pessoa.chamadaToogleFunc(controller.dateSelected);
+  Future chamadaToogleFunc(StreamAssistido pessoa) async {
+    final dateSelected =
+        await controller.assistidosStoreList.getConfig("dateSelected");
+    controller.countPresente += pessoa.chamadaToogleFunc(dateSelected);
   }
 
-  void _checkDate(BuildContext context) {
+  Future _checkDate(BuildContext context) async {
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -231,17 +230,25 @@ class _AssistidosPageState extends State<AssistidosPage> {
             actionsOverflowButtonSpacing: 20,
             actions: [
               ElevatedButton(
-                  onPressed: () {
-                    if (controller.itensList.length > 1) {
-                      var itensRemove = controller.dateSelected;
-                      if (controller.itensList.first != itensRemove) {
-                        controller.dateSelected = controller.itensList.first;
+                  onPressed: () async {
+                    final dateSelected = (await controller.assistidosStoreList
+                        .getConfig("dateSelected"))?[0];
+                    final itensList = await controller.assistidosStoreList
+                        .getConfig("itensList");
+                    if (itensList!.length > 1 && dateSelected != null) {
+                      var itensRemove = dateSelected;
+                      if (itensList.last != itensRemove) {
+                        controller.assistidosStoreList
+                            .addConfig("dateSelected", [itensList.last]);
                       } else {
-                        controller.dateSelected = controller.itensList.last;
+                        controller.assistidosStoreList.addConfig("dateSelected",
+                            [itensList.elementAt(itensList.length - 2)]);
                       }
-                      var itens = controller.itensList;
-                      itens.removeWhere((element) => element == itensRemove);
-                      controller.itensList = itens;
+                      final itens = itensList
+                          .where((element) => element != itensRemove)
+                          .toList();
+                      controller.assistidosStoreList
+                          .addConfig("itensList", itens);
                     } else {
                       //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
                     }
@@ -284,10 +291,16 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   },
                   child: const Text("Cancelar")),
               ElevatedButton(
-                  onPressed: () {
-                    controller.itensList = controller.itensList + [value];
-                    controller.dateSelected = value;
-                    Modular.to.pop();
+                  onPressed: () async {
+                    final itensList = await controller.assistidosStoreList
+                        .getConfig("itensList");
+                    if (itensList != null) {
+                      controller.assistidosStoreList
+                          .addConfig("itensList", itensList + [value]);
+                      controller.assistidosStoreList
+                          .addConfig("dateSelected", [value]);
+                      Modular.to.pop();
+                    }
                   },
                   child: const Text("Salvar")),
             ],

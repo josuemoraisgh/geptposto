@@ -10,9 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  camera: ^0.10.3+2
+  camera: ^0.10.5
   cupertino_icons: ^1.0.5
-  image_picker: ^0.8.7+1
   google_mlkit_face_detection: ^0.6.0
   flutter_speed_dial: ^6.2.0
   path: ^1.8.2
@@ -34,7 +33,7 @@ dependencies:
   http_parser: ^4.0.2
   intl: ^0.18.0
   image: ^4.0.15
-  tflite_flutter: ^0.9.4
+  tflite_flutter: ^0.9.5
   #google_ml_kit: ^0.14.0
   #tflite_flutter:
   #  path: assets/tflite_flutter
