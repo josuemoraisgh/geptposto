@@ -19,7 +19,7 @@ class AssistidoRemoteStorageRepository
   @override
   Future<void> init() async {
     await deviceInfoModel.initPlatformState();
-    baseUrl = "script.google.com";
+    baseUrl = 'script.google.com';
   }
 
   Future<dynamic> sendGet(
@@ -31,7 +31,7 @@ class AssistidoRemoteStorageRepository
       dynamic p3}) async {
     var response = await provider.get(baseUrl,
         bodyUrl:
-            "/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec",
+            '/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
         queryParameters: {
           "table": table,
           "func": func,
@@ -61,7 +61,7 @@ class AssistidoRemoteStorageRepository
       dynamic p3}) async {
     var response = await provider.post(baseUrl,
         bodyUrl:
-            "/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec",
+            '/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
         queryParameters: {
           "table": table,
           "func": func,

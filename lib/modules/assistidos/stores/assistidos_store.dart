@@ -153,8 +153,9 @@ class AssistidosStoreList {
         }
       }
       var remoteConfigChanges = await _remoteStore.getChanges(table: "Config");
-      if (remoteConfigChanges != null) {
-        for (var e in remoteConfigChanges) {
+      if (remoteConfigChanges != null && remoteConfigChanges.isNotEmpty) {
+        for (List e in remoteConfigChanges) {
+          e.removeWhere((element) => element == "");
           _configStore.addConfig(e[0], e.sublist(1).cast<String>());
         }
       }

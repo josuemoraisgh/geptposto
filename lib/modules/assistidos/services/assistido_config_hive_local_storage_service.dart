@@ -6,19 +6,18 @@ import '../interfaces/assistido_config_local_storage_interface.dart';
 class AssistidoConfigLocalStorageService
     implements AssistidoConfigLocalStorageInterface {
   Completer<Box<List<String>>> configCompleter = Completer<Box<List<String>>>();
-  Box<List<String>>? box;
 
   @override
   Future<void> init() async {
     if (!configCompleter.isCompleted) {
       configCompleter.complete(await Hive.openBox<List<String>>('configDatas'));
-      box = await configCompleter.future;
     }
   }
 
   @override
-  Stream<BoxEvent>? watch(String key) {
-    return box?.watch(key: key);
+  Stream<BoxEvent> watch(String key) async* {
+    final box = await configCompleter.future;
+    yield* box.watch(key: key);
   }
 
   @override

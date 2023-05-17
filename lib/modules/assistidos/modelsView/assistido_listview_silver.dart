@@ -25,7 +25,7 @@ class AssistidoListViewSilver extends StatelessWidget {
     return StreamBuilder<BoxEvent>(
         stream: controller.assistidosStoreList.dateSelectedController,
         builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
-          final data = dateSelected.data?.value;
+          final data = dateSelected.data?.value[0];
           if (data != null && data != "") {
             int count = 0;
             for (var element in list) {

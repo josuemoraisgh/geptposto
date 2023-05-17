@@ -207,7 +207,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
   Future chamadaFunc(StreamAssistido assistido) async {
     final dateSelected =
         await controller.assistidosStoreList.getConfig("dateSelected");
-    if (assistido.insertChamadaFunc(dateSelected)) {
+    if (dateSelected != null && assistido.insertChamadaFunc(dateSelected[0])) {
       controller.countPresente++;
     }
   }
@@ -215,7 +215,9 @@ class _AssistidosPageState extends State<AssistidosPage> {
   Future chamadaToogleFunc(StreamAssistido pessoa) async {
     final dateSelected =
         await controller.assistidosStoreList.getConfig("dateSelected");
-    controller.countPresente += pessoa.chamadaToogleFunc(dateSelected);
+    if (dateSelected != null) {
+      controller.countPresente += pessoa.chamadaToogleFunc(dateSelected[0]);
+    }
   }
 
   Future _checkDate(BuildContext context) async {
@@ -235,7 +237,9 @@ class _AssistidosPageState extends State<AssistidosPage> {
                         .getConfig("dateSelected"))?[0];
                     final itensList = await controller.assistidosStoreList
                         .getConfig("itensList");
-                    if (itensList!.length > 1 && dateSelected != null) {
+                    if (itensList != null &&
+                        dateSelected != null &&
+                        itensList.length > 1) {
                       var itensRemove = dateSelected;
                       if (itensList.last != itensRemove) {
                         controller.assistidosStoreList
@@ -251,6 +255,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                           .addConfig("itensList", itens);
                     } else {
                       //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
+                      debugPrint("Erro em dar presença!!!");
                     }
                   },
                   child:
@@ -300,6 +305,9 @@ class _AssistidosPageState extends State<AssistidosPage> {
                       controller.assistidosStoreList
                           .addConfig("dateSelected", [value]);
                       Modular.to.pop();
+                    } else {
+                      //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
+                      debugPrint("Erro em remover a data de presença!!!");
                     }
                   },
                   child: const Text("Salvar")),
