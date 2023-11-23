@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../faces/camera_controle_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';

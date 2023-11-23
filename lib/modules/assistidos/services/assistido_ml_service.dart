@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:ml_linalg/distance.dart';
 import 'package:ml_linalg/vector.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
