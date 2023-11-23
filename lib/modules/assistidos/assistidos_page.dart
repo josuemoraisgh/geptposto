@@ -14,7 +14,7 @@ import 'modelsView/assistido_listview_silver.dart';
 
 class AssistidosPage extends StatefulWidget {
   final Map<String, dynamic> dadosTela;
-  const AssistidosPage({Key? key, required this.dadosTela}) : super(key: key);
+  const AssistidosPage({super.key, required this.dadosTela});
 
   @override
   State<AssistidosPage> createState() => _AssistidosPageState();

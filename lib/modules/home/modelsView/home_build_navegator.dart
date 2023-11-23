@@ -4,8 +4,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 class BuildNavegatorPage extends StatelessWidget {
   final Map<String, dynamic> data;
   final ValueNotifier<bool> state;
-  const BuildNavegatorPage({Key? key, required this.data, required this.state})
-      : super(key: key);
+  const BuildNavegatorPage({super.key, required this.data, required this.state});
 
   @override
   Widget build(BuildContext context) {

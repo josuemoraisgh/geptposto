@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:geptposto/modules/assistidos/services/assistido_ml_service.dart';
 import 'package:geptposto/modules/faces/camera_controle_service.dart';
@@ -8,7 +10,6 @@ import 'assistidos_page.dart';
 import 'interfaces/assistido_local_storage_interface.dart';
 import 'interfaces/asssistido_remote_storage_interface.dart';
 import 'interfaces/assistido_config_local_storage_interface.dart';
-import 'interfaces/provider_interface.dart';
 import 'interfaces/sync_local_storage_interface.dart';
 import 'pages/assistidos_edit_insert_page.dart';
 import 'repositories/assistido_gsheet_repository.dart';
@@ -18,54 +19,93 @@ import 'stores/assistidos_store.dart';
 
 class AssistidosModule extends Module {
   @override
-  List<Bind<Object>> get binds => [
-        Bind.lazySingleton<CameraService>((i) => CameraService()),
-        Bind.lazySingleton<AssistidoMLService>((i) => AssistidoMLService()),
-        Bind.lazySingleton<ProviderInterface>((i) => ProviderInterface()),
-        Bind.lazySingleton<AssistidoConfigLocalStorageInterface>(
-            (i) => AssistidoConfigLocalStorageService()),
-        Bind.lazySingleton<AssistidoLocalStorageInterface>(
-            (i) => AssistidoLocalStorageService()),
-        Bind.lazySingleton<AssistidoRemoteStorageInterface>((i) =>
-            AssistidoRemoteStorageRepository(provider: i<ProviderInterface>())),
-        Bind.lazySingleton<SyncLocalStorageInterface>(
-            (i) => SyncLocalStorageService()),
-        Bind.lazySingleton<AssistidosStoreList>((i) => AssistidosStoreList(
+void binds(Injector i) {
+        i.addInstance<CameraService>(CameraService());
+        i.addInstance<AssistidoMLService>(AssistidoMLService());
+        i.addInstance<Dio>(Dio());
+        i.addInstance<AssistidoConfigLocalStorageInterface>(
+            AssistidoConfigLocalStorageService());
+        i.addInstance<AssistidoLocalStorageInterface>(
+            AssistidoLocalStorageService());
+        i.addInstance<AssistidoRemoteStorageInterface>(
+            AssistidoRemoteStorageRepository(provider: i<Dio>()));
+        i.addInstance<SyncLocalStorageInterface>(
+            SyncLocalStorageService());
+        i.addInstance<AssistidosStoreList>(AssistidosStoreList(
             syncStore: i<SyncLocalStorageInterface>(),
             localStore: i<AssistidoLocalStorageInterface>(),
             configStore: i<AssistidoConfigLocalStorageService>(),
-            remoteStore: i<AssistidoRemoteStorageInterface>())),
-        Bind.singleton<AssistidosController>((i) => AssistidosController(
-            assistidosStoreList: i<AssistidosStoreList>())),
-      ];
+            remoteStore: i<AssistidoRemoteStorageInterface>()));
+        i.addInstance<AssistidosController>(AssistidosController(
+            assistidosStoreList: i<AssistidosStoreList>()));
+}
 
   @override
-  final List<ModularRoute> routes = [
-    ChildRoute(
+  void routes(r) {
+    r.child(
       '/',
-      child: (_, args) => AssistidosPage(
-        dadosTela: args.data,
+      child: (_) => AssistidosPage(
+        dadosTela: r.args.data,
       ),
-      customTransition: myCustomTransition,
-    ),
-    ChildRoute(
+      transition: TransitionType.custom,
+      customTransition: CustomTransition(
+        transitionBuilder: (context, anim1, anim2, child) {
+          return FadeTransition(
+            opacity: anim1,
+            child: child,
+          );
+        },
+      ),
+    );
+    r.child(
       '/faces',
-      child: (_, args) => AssistidoFaceDetectorPage(
-        assistido: args.data["assistido"],
-        assistidos: args.data["assistidos"],
-        chamadaFunc: args.data["chamadaFunc"],
+      child: (_) => AssistidoFaceDetectorPage(
+        assistido: r.args.data["assistido"],
+        assistidos: r.args.data["assistidos"],
+        chamadaFunc: r.args.data["chamadaFunc"],
         title: "Camera Ativa",
       ),
-      customTransition: myCustomTransition,
-    ),
-    ChildRoute(
-      '/insert',
-      child: (_, args) => AssistidoEditInsertPage(
-        assistido: args.data["assistido"],
+      transition: TransitionType.custom,
+      customTransition: CustomTransition(
+        transitionBuilder: (context, anim1, anim2, child) {
+          return FadeTransition(
+            opacity: anim1,
+            child: child,
+          );
+        },
       ),
-      customTransition: myCustomTransition,
-    ),
-  ];
+    );
+    r.child(
+      '/insert',
+      child: (_) => AssistidoEditInsertPage(
+        assistido: r.args.data["assistido"],
+      ),
+      transition: TransitionType.custom,
+      customTransition: CustomTransition(
+        transitionBuilder: (context, anim1, anim2, child) {
+          return FadeTransition(
+            opacity: anim1,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+}
 
-  static get myCustomTransition => null;
+class CustomTransitionBuilder extends PageTransitionsBuilder {
+  const CustomTransitionBuilder();
+  @override
+  Widget buildTransitions<T>(
+      PageRoute<T> route,
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      Widget child) {
+    final tween =
+        Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.ease));
+    return ScaleTransition(
+        scale: animation.drive(tween),
+        child: FadeTransition(opacity: animation, child: child));
+  }
 }

@@ -7,8 +7,7 @@ class BuildTagPage extends StatelessWidget {
   final ValueNotifier<List<Map<String, dynamic>>> listaTelas;
   final ValueNotifier<String> activeTagButtom;
   const BuildTagPage(
-      {Key? key, required this.activeTagButtom, required this.listaTelas})
-      : super(key: key);
+      {super.key, required this.activeTagButtom, required this.listaTelas});
 
   @override
   Widget build(BuildContext context) {

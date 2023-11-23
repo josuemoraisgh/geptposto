@@ -4,7 +4,7 @@ import '../assistidos_controller.dart';
 
 class DropdownBody extends StatelessWidget {
   final AssistidosController controller; //Lista com os items
-  const DropdownBody({Key? key, required this.controller}) : super(key: key);
+  const DropdownBody({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {

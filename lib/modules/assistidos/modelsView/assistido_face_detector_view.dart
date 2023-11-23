@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import '../../faces/camera_controle_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';
@@ -122,10 +122,10 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         }
       }
     }
-    if (inputImage.inputImageData?.size != null &&
-        inputImage.inputImageData?.imageRotation != null) {
+    if (inputImage.metadata?.size != null &&
+        inputImage.metadata?.rotation != null) {
       final painter = FaceDetectorPainter(assistidoNomeList, faces,
-          inputImage.inputImageData!.size, sensorOrientation, rotation);
+          inputImage.metadata!.size, sensorOrientation, rotation);
       _customPaint = CustomPaint(painter: painter);
     }
     _isBusy = false;

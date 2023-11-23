@@ -13,7 +13,7 @@ class StreamAssistido extends Assistido {
   final StreamController<Uint8List> _photoController =
       StreamController<Uint8List>.broadcast();
 
-  StreamAssistido(Assistido assistido) : super.assistido(assistido);
+  StreamAssistido(super.assistido) : super.assistido();
   StreamAssistido.vazio()
       : super(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
   Stream<StreamAssistido> get chamadaStream => _chamadaController.stream;

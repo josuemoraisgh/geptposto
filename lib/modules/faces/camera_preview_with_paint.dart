@@ -16,7 +16,7 @@ class CameraPreviewWithPaint extends StatefulWidget {
   final StackFit? stackFit;
   final CustomPaint? customPaint;
   const CameraPreviewWithPaint({
-    Key? key,
+    super.key,
     required this.cameraService,
     this.customPaint,
     this.onPaintLiveImageFunc,
@@ -25,7 +25,7 @@ class CameraPreviewWithPaint extends StatefulWidget {
     this.stackFit,
     this.initialDirection = CameraLensDirection.back,
     this.isRealTime = false,
-  }) : super(key: key);
+  });
   @override
   State<CameraPreviewWithPaint> createState() => _CameraPreviewWithPaintState();
 }

@@ -8,7 +8,7 @@ import '../stores/assistidos_store.dart';
 
 class AssistidosInsertEditView extends StatefulWidget {
   final StreamAssistido? assistido;
-  const AssistidosInsertEditView({Key? key, this.assistido}) : super(key: key);
+  const AssistidosInsertEditView({super.key, this.assistido});
 
   @override
   State<AssistidosInsertEditView> createState() =>

@@ -5,19 +5,16 @@ import 'home_page.dart';
 
 class HomeModule extends Module {
   @override
-  final List<Module> imports = [];
+  void binds(Injector i) {
+        i.add<HomeController>(HomeController.new);
+  }
 
   @override
-  List<Bind<Object>> get binds => [
-        Bind.singleton<HomeController>((i) => HomeController()),
-      ];
-
-  @override
-  final List<ModularRoute> routes = [
-    ChildRoute(
+  void routes(RouteManager r) {
+    r.child(
       Modular.initialRoute,
-      child: (_, args) => const HomePage(),
+      child: (_) => const HomePage(),
       customTransition: myCustomTransition,
-    )
-  ];
+    );
+}
 }

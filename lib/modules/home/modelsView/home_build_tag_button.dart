@@ -8,12 +8,11 @@ class BuildTagButton extends StatelessWidget {
   final String tag;
   final Icon icon;
   const BuildTagButton(
-      {Key? key,
+      {super.key,
       required this.activeTagButtom,
       required this.tag,
       required this.icon,
-      required this.listaTelas})
-      : super(key: key);
+      required this.listaTelas});
 
   @override
   Widget build(BuildContext context) {

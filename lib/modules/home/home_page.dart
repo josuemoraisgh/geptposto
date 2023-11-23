@@ -5,7 +5,7 @@ import 'modelsView/home_build_tag_page.dart';
 import 'home_controller.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   createState() => HomePageState();

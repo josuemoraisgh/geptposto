@@ -6,11 +6,10 @@ class DynamicAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
 
   const DynamicAppBar(
-      {Key? key,
+      {super.key,
       required this.title,
       required this.selectController,
-      required this.dynamicWidgets})
-      : super(key: key);
+      required this.dynamicWidgets});
 
   @override
   State<DynamicAppBar> createState() => _DynamicAppBarState();

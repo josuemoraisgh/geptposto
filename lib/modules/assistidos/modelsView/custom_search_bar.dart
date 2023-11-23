@@ -14,10 +14,10 @@ class CustomSearchBar extends StatelessWidget {
   final TextEditingController textController;
   final FocusNode focusNode;
   const CustomSearchBar({
-    Key? key,
+    super.key,
     required this.textController,
     required this.focusNode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

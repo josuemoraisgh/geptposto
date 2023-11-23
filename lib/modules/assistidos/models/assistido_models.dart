@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 part 'assistido_models.g.dart';
 
 @HiveType(typeId: 0, adapterName: 'AssistidoAdapter')
@@ -42,9 +43,9 @@ class Assistido extends HiveObject {
   @HiveField(18)
   String parentescos;
   @HiveField(19)
-  String nomesMoradores;
+  List<String> nomesMoradores;
   @HiveField(20)
-  String datasNasc;
+  List<String> datasNasc;
   @HiveField(21)
   List<int> photoIntList;
   @HiveField(22)
@@ -70,8 +71,8 @@ class Assistido extends HiveObject {
     this.obs = "",
     this.chamada = "",
     this.parentescos = "",
-    this.nomesMoradores = "",
-    this.datasNasc = "",
+    this.nomesMoradores = const [],
+    this.datasNasc = const [],
     this.photoIntList = const [],
     this.fotoPoints = const [],
   });
@@ -102,13 +103,46 @@ class Assistido extends HiveObject {
         fotoPoints = assistido.fotoPoints;
 
   factory Assistido.fromList(List<dynamic> value) {
+    final int yearNow = DateTime.now().year;
+    final String aux0 =
+        value[5].toString().replaceAll(RegExp(r'[^0-9;\/]'), "");
+    final String tst =
+        value[20].toString().replaceAll(RegExp(r'[^0-9;\/]'), "");
+    final List<String> aux1 = tst.isEmpty
+        ? []
+        : tst.substring(tst.length - 1) == ";" &&
+                tst.substring(tst.length - 2) != ";"
+            ? tst.substring(0, tst.length - 1).split(";")
+            : tst.split(";");
+
+    final List<String> datanasc = aux1.map((e) {
+      return e.isEmpty
+          ? DateFormat('dd/MM/yyyy').format(DateTime.now())
+          : e.length <= 3
+              ? DateFormat('dd/MM/yyyy')
+                  .format(DateTime(yearNow - int.parse(e)))
+              : e;
+    }).toList();
+
+    final String morad = value[19].toString();
+    final List<String> moradores = morad.isEmpty
+        ? []
+        : morad.substring(morad.length - 1) == ";" &&
+                tst.substring(tst.length - 2) != ";"
+            ? morad.substring(0, morad.length - 1).split(";")
+            : morad.split(";");    
     return Assistido(
       ident: value[0] as int,
       updatedApps: value[1],
       photoName: value[2].toString(),
       nomeM1: value[3].toString(),
       condicao: value[4].toString(),
-      dataNascM1: value[5].toString(),
+      dataNascM1: aux0.isEmpty
+          ? DateFormat('dd/MM/yyyy').format(DateTime.now())
+          : aux0.length <= 3
+              ? DateFormat('dd/MM/yyyy')
+                  .format(DateTime(yearNow - int.parse(aux0)))
+              : aux0,
       estadoCivil: value[6].toString(),
       fone: value[7].toString(),
       rg: value[8].toString(),
@@ -122,8 +156,8 @@ class Assistido extends HiveObject {
       obs: value[16].toString(),
       chamada: value[17].toString(),
       parentescos: value[18].toString(),
-      nomesMoradores: value[19].toString(),
-      datasNasc: value[20].toString(),
+      nomesMoradores: moradores,
+      datasNasc: datanasc,
       photoIntList: const [],
       fotoPoints: const [],
     );

@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
 
+/*
 InputImage imageToInputImage(imglib.Image image, int cameraRotation) {
   // Converte a imagem para o formato NV21
   final nv21 = image.data?.getBytes() ?? [] as Uint8List;
@@ -24,7 +25,7 @@ InputImage imageToInputImage(imglib.Image image, int cameraRotation) {
     inputImageData: inputImageData,
   );
   return inputImage;
-}
+}*/
 
 imglib.Image convertCameraImageToImageWithRotate(
     CameraImage cameraImage, num angle) {
@@ -128,28 +129,18 @@ int getImageRotation(int sensorOrientation, Orientation screemOrientation) {
 
 Future<InputImage?> convertCameraImageToInputImageWithRotate(
     CameraImage image, int rotation) async {
-  final imageSize = Size(image.width.toDouble(), image.height.toDouble());
 
+  final imageSize = Size(image.width.toDouble(), image.height.toDouble());
   final imageRotation = InputImageRotationValue.fromRawValue(rotation);
   if (imageRotation == null) return null;
   final inputImageFormat = InputImageFormatValue.fromRawValue(image.format.raw);
   if (inputImageFormat == null) return null;
 
-  final planeData = image.planes.map(
-    (Plane plane) {
-      return InputImagePlaneMetadata(
-        bytesPerRow: plane.bytesPerRow,
-        height: plane.height,
-        width: plane.width,
-      );
-    },
-  ).toList();
-
-  final inputImageData = InputImageData(
+  final inputImageMetadata = InputImageMetadata(
     size: imageSize,
-    imageRotation: imageRotation,
-    inputImageFormat: inputImageFormat,
-    planeData: planeData,
+    rotation: imageRotation,
+    format: inputImageFormat,
+    bytesPerRow: image.planes[0].bytesPerRow,
   );
 
   final WriteBuffer allBytes = WriteBuffer();
@@ -158,7 +149,7 @@ Future<InputImage?> convertCameraImageToInputImageWithRotate(
   }
   final bytes = allBytes.done().buffer.asUint8List();
   final inputImage =
-      InputImage.fromBytes(bytes: bytes, inputImageData: inputImageData);
+      InputImage.fromBytes(bytes: bytes, metadata: inputImageMetadata);
   return inputImage;
 }
 
@@ -220,34 +211,6 @@ Float32List imageByteToFloat32Normal(imglib.Image imageResized) {
   return convertedBytes.buffer.asFloat32List();
 }
 
-/*
-InputImage convertCameraImageToInputImageWithRotation(CameraImage image, int cameraRotation, int desiredRotation) {
-  // Define a rotação atual da imagem com base na rotação da câmera
-  final ImageRotation rotation = rotationIntToImageRotation(cameraRotation);
-  // Cria um objeto FirebaseVisionImage a partir do objeto CameraImage
-  final FirebaseVisionImage visionImage = FirebaseVisionImage.fromCameraImage(image, rotation);
-  // Define a rotação desejada para a imagem
-  final ImageRotation desiredImageRotation = rotationIntToImageRotation(desiredRotation);
-  // Retorna um objeto InputImage rotacionado
-  return InputImage.fromFirebaseVisionImage(visionImage, desiredImageRotation);
-}
-
-// Função auxiliar para converter uma rotação de câmera em uma rotação de imagem
-ImageRotation rotationIntToImageRotation(int rotation) {
-  switch (rotation) {
-    case 0:
-      return ImageRotation.rotation0;
-    case 90:
-      return ImageRotation.rotation90;
-    case 180:
-      return ImageRotation.rotation180;
-    case 270:
-      return ImageRotation.rotation270;
-    default:
-      throw ArgumentError('Invalid rotation value');
-  }
-}
-*/
 /*
 Future<Uint8List?> cropImage(XFile? imageFile) async {
   if (imageFile != null) {

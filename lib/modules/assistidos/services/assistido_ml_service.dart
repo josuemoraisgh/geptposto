@@ -1,18 +1,18 @@
-import 'dart:io';
 import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:ml_linalg/distance.dart';
 import 'package:ml_linalg/vector.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../faces/image_converter.dart';
 import '../models/stream_assistido_model.dart';
 
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
+  late IsolateInterpreter isolateInterpreter;
   late FaceDetector faceDetector;
   //late SensorOrientationDetector orientation;
   static const double threshold = 1.0;
@@ -29,36 +29,9 @@ class AssistidoMLService extends Disposable {
   }
 
   Future initializeInterpreter() async {
-    late Delegate? delegate;
-    try {
-      if (Platform.isAndroid) {
-        delegate = GpuDelegateV2(
-            options: GpuDelegateOptionsV2(
-          isPrecisionLossAllowed: false,
-          inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
-          inferencePriority1: TfLiteGpuInferencePriority.minLatency,
-          inferencePriority2: TfLiteGpuInferencePriority.auto,
-          inferencePriority3: TfLiteGpuInferencePriority.auto,
-        ));
-      } else if (Platform.isIOS) {
-        delegate = GpuDelegate(
-          options: GpuDelegateOptions(
-              allowPrecisionLoss: true,
-              waitType: TFLGpuDelegateWaitType.active),
-        );
-      }
-      var interpreterOptions = InterpreterOptions()
-        ..threads = 2
-        ..addDelegate(delegate!);
-
-      interpreter = await Interpreter.fromAsset('mobilefacenet3.tflite',
-          options: interpreterOptions);
-    } catch (e) {
-      debugPrint('Failed to load model.');
-      debugPrint(e.toString());
-    }
-    interpreter = await Interpreter.fromAsset('mobilefacenet3.tflite',
-        options: InterpreterOptions());
+    interpreter = await Interpreter.fromAsset('mobilefacenet3.tflite');
+    isolateInterpreter =
+        await IsolateInterpreter.create(address: interpreter.address);
   }
 
   Future<List<int?>> predict(CameraImage cameraImage, int rotation,
@@ -88,7 +61,7 @@ class AssistidoMLService extends Disposable {
           var imageAux = cropFace(image, faceDetected, step: 80) ?? image;
           inputs.add([_preProcessImage(imageAux)]);
         }
-        interpreter.runForMultipleInputs(inputs, outputs);
+        isolateInterpreter.runForMultipleInputs(inputs, outputs);
         for (i = 0; i < assistidos.length; i++) {
           for (j = 0; j < minDist.length; j++) {
             if (assistidos[i].fotoPoints.isNotEmpty) {
@@ -115,7 +88,7 @@ class AssistidoMLService extends Disposable {
     List<List<double>> output =
         List.generate(1, (index) => List.filled(512, 0));
     List input = [_preProcessImage(image)];
-    interpreter.run(input, output);
+    isolateInterpreter.run(input, output);
     final n2 = Vector.fromList(output[0]).norm();
     final resp = output[0].map((e) => e / n2).toList();
     return resp;

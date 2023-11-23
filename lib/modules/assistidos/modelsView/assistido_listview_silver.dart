@@ -13,12 +13,12 @@ class AssistidoListViewSilver extends StatelessWidget {
   final void Function({StreamAssistido? assistido}) functionEdit;
   final void Function(StreamAssistido pessoa) functionChamada;
   const AssistidoListViewSilver({
-    Key? key,
+    super.key,
     required this.controller,
     required this.list,
     required this.functionEdit,
     required this.functionChamada,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -10,20 +10,17 @@ import 'notfound_page.dart';
 
 class AppModule extends Module {
   @override
-  final List<Module> imports = [];
+  void binds(Injector i) {}
 
   @override
-  List<Bind<Object>> get binds => [];
-
-  @override
-  final List<ModularRoute> routes = [
-    ChildRoute('/', child: (context, args) => const SplashPage()),
-    ModuleRoute('/home', module: HomeModule()),
-    ModuleRoute('/assistidos', module: AssistidosModule()),
-    ModuleRoute('/colaboradores', module: ColaboradoresModule()),
-    ModuleRoute('/login', module: LoginModule()),
-    ModuleRoute('/config', module: ConfigModule()),
-    ModuleRoute('/info', module: InfoModule()),
-    WildcardRoute(child: (context, args) => const NotFoundPage()),
-  ];
+  void routes(RouteManager r) {
+    r.child('/', child: (context) => const SplashPage());
+    r.module('/home', module: HomeModule());
+    r.module('/assistidos', module: AssistidosModule());
+    r.module('/colaboradores', module: ColaboradoresModule());
+    r.module('/login', module: LoginModule());
+    r.module('/config', module: ConfigModule());
+    r.module('/info', module: InfoModule());
+    r.wildcard(child: (context) => const NotFoundPage());
+  }
 }
