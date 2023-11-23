@@ -1,6 +1,6 @@
 {
-    "name": "ia_triagem",
-    "short_name": "ia_triagem",
+    "name": "geptpostos",
+    "short_name": "geptpostos",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

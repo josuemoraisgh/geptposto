@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:geptposto/modules/assistidos/services/assistido_ml_service.dart';
-import 'package:geptposto/modules/faces/camera_controle_service.dart';
 import '../assistidos/services/sync_hive_local_storage_service.dart';
+import '../faces/camera_controle_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_controller.dart';
 import 'assistidos_page.dart';
@@ -15,6 +14,7 @@ import 'pages/assistidos_edit_insert_page.dart';
 import 'repositories/assistido_gsheet_repository.dart';
 import 'services/assistido_hive_local_storage_service.dart';
 import 'services/assistido_config_hive_local_storage_service.dart';
+import 'services/assistido_ml_service.dart';
 import 'stores/assistidos_store.dart';
 
 class AssistidosModule extends Module {

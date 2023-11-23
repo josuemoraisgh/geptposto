@@ -1,7 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.geptposto">
-   <application
-        android:label="geptposto"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:label="geptpostos"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

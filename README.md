@@ -1,4 +1,4 @@
-# geptposto
+# geptpostos
 
 A new Flutter project.
 

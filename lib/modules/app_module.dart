@@ -1,5 +1,4 @@
 import 'package:flutter_modular/flutter_modular.dart';
-import '/modules/splash_page.dart';
 import 'assistidos/assistidos_module.dart';
 import 'colaboradores/colaboradores_module.dart';
 import 'config/config_module.dart';
@@ -7,6 +6,7 @@ import 'home/home_module.dart';
 import 'info/info_module.dart';
 import 'login/login_module.dart';
 import 'notfound_page.dart';
+import 'splash_page.dart';
 
 class AppModule extends Module {
   @override

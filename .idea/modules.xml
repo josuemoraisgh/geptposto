@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/geptposto.iml" filepath="$PROJECT_DIR$/geptposto.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/geptposto_android.iml" filepath="$PROJECT_DIR$/android/geptposto_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/geptpostos.iml" filepath="$PROJECT_DIR$/geptpostos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/geptpostos_android.iml" filepath="$PROJECT_DIR$/android/geptpostos_android.iml" />
     </modules>
   </component>
 </project>
