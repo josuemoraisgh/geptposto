@@ -1,10 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:geptposto/modules/assistidos/assistidos_controller.dart';
+import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../models/stream_assistido_model.dart';
-import '../stores/assistidos_store.dart';
 
 class AssistidosInsertEditView extends StatefulWidget {
   final StreamAssistido? assistido;
@@ -17,22 +19,24 @@ class AssistidosInsertEditView extends StatefulWidget {
 
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
-  final _assistido = StreamAssistido.vazio();
-  final _assistidosStoreList = Modular.get<AssistidosStoreList>();
+  late final StreamAssistido _assistido = StreamAssistido.vazio();
+  final _assistidosStoreList =
+      Modular.get<AssistidosController>().assistidosStoreList;
   final isPhotoChanged = RxNotifier<bool>(true);
-  final _formKey = GlobalKey<FormState>();
+  final _formKey1 = GlobalKey<FormState>();
+  final _formKey2 = GlobalKey<FormState>();
 
   @override
   void initState() {
     _isAdd = widget.assistido == null ? true : false;
-    _assistido.copy(widget.assistido);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    _assistido.copy(widget.assistido);
     return Form(
-      key: _formKey,
+      key: _formKey1,
       autovalidateMode: AutovalidateMode.always, //.onUserInteraction,
       child: SingleChildScrollView(
         padding: const EdgeInsets.only(left: 20, right: 20),
@@ -331,6 +335,61 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                     labelText: "CEP"),
                 validator: (value) => null,
                 onChanged: (v) => setState(() => _assistido.cep = v)),
+            const SizedBox(height: 20),
+            Table(
+              border: TableBorder.all(),
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: <TableRow>[
+                    TableRow(
+                      children: <Widget>[
+                        TableCell(
+                          verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            width: 32,
+                            color: Colors.green,
+                            child: const Text(
+                              "Nome",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        TableCell(
+                          verticalAlignment: TableCellVerticalAlignment.top,
+                          child: Container(
+                            width: 32,
+                            color: Colors.green,
+                            child: const Text(
+                              "Idade",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] +
+                  montaTabela(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _deleteMorador(context),
+                  child: const Text("Del"),
+                ),
+                const SizedBox(width: 10), // give it width
+                ElevatedButton(
+                  onPressed: () {
+                    _assistido.nomesMoradores.add(" ");
+                    _assistido.parentescos.add(" ");
+                    _assistido.datasNasc
+                        .add(DateFormat('dd/MM/yyyy').format(DateTime.now()));
+                    setState(() {});
+                  },
+                  child: const Text("Add"),
+                ),
+                const SizedBox(width: 10), // give it width
+              ],
+            ),
             TextFormField(
                 initialValue: _assistido.obs,
                 decoration: const InputDecoration(
@@ -345,32 +404,270 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                    onPressed: _assistido.nomeM1.length > 4
-                        ? () async {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Assistido Salvo')),
-                              );
-                              if (_isAdd) {
-                                _assistidosStoreList
-                                    .addSaveJustRemote(_assistido);
-                              } else {
-                                widget.assistido?.copy(_assistido);
-                                widget.assistido?.save();
-                              }
-                              Modular.to.pop();
+                  onPressed: _assistido.nomeM1.length > 4
+                      ? () async {
+                          if (_formKey1.currentState!.validate()) {
+                            _formKey1.currentState!.save();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Assistido Salvo')),
+                            );
+                            if (_isAdd) {
+                              _assistidosStoreList
+                                  .addSaveJustRemote(_assistido);
+                            } else {
+                              widget.assistido?.copy(_assistido);
+                              widget.assistido?.save();
                             }
+                            Modular.to.pop();
                           }
-                        : null,
-                    child: const Text("Salvar Aterações")),
+                        }
+                      : null,
+                  child: const Text("Salvar Aterações"),
+                ),
                 const SizedBox(width: 10), // give it width
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _deleteMorador(BuildContext context) {
+    var condicoes = List.generate(
+      _assistido.nomesMoradores.length,
+      (index) {
+        final st = _assistido.nomesMoradores[index].split(" ");
+        return '${st[0]} ${st.length > 1 ? st[1] : ""}';
+      },
+    );
+    final RxNotifier<String> opcoes = RxNotifier<String>(condicoes[0]);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return RxBuilder(
+          builder: (BuildContext context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            title: const Text("Delete Morador"),
+            titleTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
+            actionsOverflowButtonSpacing: 20,
+            actions: [
+              ElevatedButton(
+                  onPressed: Modular.to.pop, child: const Text("Cancelar")),
+              ElevatedButton(
+                  onPressed: () {
+                    final int index = condicoes.indexOf(opcoes.value);
+                    setState(() {
+                      _assistido.datasNasc.removeAt(index);
+                      _assistido.nomesMoradores.removeAt(index);
+                      _assistido.parentescos.removeAt(index);
+                    });
+                    Modular.to.pop();
+                  },
+                  child: const Text("Deletar")),
+            ],
+            content: Row(
+              children: [
+                const Icon(Icons.admin_panel_settings, color: Colors.black54),
+                const SizedBox(width: 15),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "Condição",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.black54,
+                          decorationColor: Colors.black),
+                    ),
+                    DropdownButton<String>(
+                      value: opcoes.value,
+                      icon: const Icon(Icons.arrow_downward),
+                      elevation: 16,
+                      dropdownColor: Theme.of(context).colorScheme.background,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.black54,
+                          decorationColor: Colors.black),
+                      items: condicoes.map((String dropDownStringItem) {
+                        return DropdownMenuItem<String>(
+                          value: dropDownStringItem,
+                          child: Text(dropDownStringItem),
+                        );
+                      }).toList(),
+                      onChanged: (String? novoItemSelecionado) {
+                        if (novoItemSelecionado != null) {
+                          _formKey2.currentState?.didChangeDependencies();
+                          opcoes.value = novoItemSelecionado;
+                        }
+                      },
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _insertEditMorador(BuildContext context, int index) {
+    var condicoes = ['Cônjuge', 'Filho(a)', 'Neto(a)', 'Agregado(a)', ''];
+    String datasNasc = _assistido.datasNasc[index];
+    String nomesMoradores = _assistido.nomesMoradores[index];
+    final RxNotifier<bool> change = RxNotifier<bool>(false);
+    final RxNotifier<String> parentescos = RxNotifier<String>("");
+    try {
+      if (condicoes.contains(_assistido.parentescos[index])) {
+        parentescos.value = _assistido.parentescos[index];
+      }
+    } catch (e) {
+      for (int i = _assistido.parentescos.length; i <= index; i++) {
+        _assistido.parentescos.add("");
+      }
+    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return RxBuilder(
+          builder: (BuildContext context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            title: const Text("Insira/Edit Moradores"),
+            titleTextStyle: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
+            actionsOverflowButtonSpacing: 20,
+            actions: [
+              ElevatedButton(
+                  onPressed: Modular.to.pop, child: const Text("Cancelar")),
+              ElevatedButton(
+                  onPressed: _formKey2.currentState?.validate() ?? false
+                      ? () {
+                          setState(
+                            () {
+                              _assistido.datasNasc[index] = datasNasc;
+                              _assistido.nomesMoradores[index] = nomesMoradores;
+                              _assistido.parentescos[index] = parentescos.value;
+                            },
+                          );
+                          Modular.to.pop();
+                        }
+                      : null,
+                  child: const Text("Salvar")),
+            ],
+            content: Form(
+              key: _formKey2,
+              autovalidateMode: AutovalidateMode.always, //.onUserInteraction,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(left: 20, right: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      initialValue: nomesMoradores,
+                      decoration: const InputDecoration(
+                        border: UnderlineInputBorder(),
+                        icon: Icon(Icons.person),
+                        labelText: 'Informe o nome',
+                      ),
+                      keyboardType: TextInputType.name,
+                      autovalidateMode: AutovalidateMode.always,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor entre com um nome';
+                        } else if (value.length < 4) {
+                          return 'Nome muito pequeno';
+                        }
+                        return null;
+                      },
+                      onChanged: (v) {
+                        nomesMoradores = v;
+                        _formKey2.currentState?.didChangeDependencies();
+                        change.value = !change.value;
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      children: [
+                        const Icon(Icons.admin_panel_settings,
+                            color: Colors.black54),
+                        const SizedBox(width: 15),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Condição",
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                  decorationColor: Colors.black),
+                            ),
+                            DropdownButton<String>(
+                              value: parentescos.value,
+                              icon: const Icon(Icons.arrow_downward),
+                              elevation: 16,
+                              dropdownColor:
+                                  Theme.of(context).colorScheme.background,
+                              style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                  decorationColor: Colors.black),
+                              items: condicoes.map((String dropDownStringItem) {
+                                return DropdownMenuItem<String>(
+                                  value: dropDownStringItem,
+                                  child: Text(dropDownStringItem),
+                                );
+                              }).toList(),
+                              onChanged: (String? novoItemSelecionado) {
+                                if (novoItemSelecionado != null) {
+                                  _formKey2.currentState
+                                      ?.didChangeDependencies();
+                                  parentescos.value = novoItemSelecionado;
+                                }
+                              },
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                    TextFormField(
+                      initialValue: datasNasc,
+                      decoration: const InputDecoration(
+                          border: UnderlineInputBorder(),
+                          icon: Icon(Icons.date_range),
+                          labelText: 'Data de Nascimento'),
+                      keyboardType: TextInputType.datetime,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        DataInputFormatter(),
+                      ],
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      validator: (value) {
+                        if (value != null) {
+                          if (value.isEmpty) {
+                            return 'Data de Nascimento Incorreta!!';
+                          }
+                        }
+                        return null;
+                      },
+                      onChanged: (v) {
+                        datasNasc = v;
+                        _formKey2.currentState?.didChangeDependencies();
+                        change.value = !change.value;
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -439,6 +736,64 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
             return const Center(child: CircularProgressIndicator());
           }
         });
+  }
+
+  List<TableRow> montaTabela() {
+    List<TableRow> resp = <TableRow>[];
+    if (_assistido.nomesMoradores.isNotEmpty) {
+      final list1 = _assistido.nomesMoradores;
+      final list2 = _assistido.datasNasc;
+      for (int i = 0; i < list1.length; i++) {
+        var aux = list1[i].split(" ");
+        var nome = '${aux[0]} ${(aux.length > 1 ? aux[1] : "")}';
+        resp.add(
+          TableRow(
+            children: <Widget>[
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.top,
+                child: Container(
+                  width: 32,
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => _insertEditMorador(context, i),
+                        child: const Icon(
+                          Icons.edit,
+                          size: 30.0,
+                          color: Colors.blue,
+                          semanticLabel: 'Edit',
+                        ),
+                      ),
+                      Text(
+                        nome,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.top,
+                child: Container(
+                  width: 32,
+                  color: Colors.white,
+                  child: Text(
+                    (DateTime.now().year -
+                            DateFormat('dd/MM/yyyy').parse(list2[i]).year)
+                        .toString(),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+    return resp;
   }
 
   bool isCpf(String? cpf) {

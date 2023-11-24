@@ -35,7 +35,7 @@ class AssistidoAdapter extends TypeAdapter<Assistido> {
       cep: fields[15] as dynamic,
       obs: fields[16] as String,
       chamada: fields[17] as String,
-      parentescos: fields[18] as String,
+      parentescos: (fields[18] as List).cast<String>(),
       nomesMoradores: (fields[19] as List).cast<String>(),
       datasNasc: (fields[20] as List).cast<String>(),
       photoIntList: (fields[21] as List).cast<int>(),

@@ -41,7 +41,7 @@ class Assistido extends HiveObject {
   @HiveField(17)
   String chamada;
   @HiveField(18)
-  String parentescos;
+  List<String> parentescos;
   @HiveField(19)
   List<String> nomesMoradores;
   @HiveField(20)
@@ -70,7 +70,7 @@ class Assistido extends HiveObject {
     this.cep = "",
     this.obs = "",
     this.chamada = "",
-    this.parentescos = "",
+    this.parentescos = const [],
     this.nomesMoradores = const [],
     this.datasNasc = const [],
     this.photoIntList = const [],
@@ -128,9 +128,18 @@ class Assistido extends HiveObject {
     final List<String> moradores = morad.isEmpty
         ? []
         : morad.substring(morad.length - 1) == ";" &&
-                tst.substring(tst.length - 2) != ";"
+                morad.substring(morad.length - 2) != ";"
             ? morad.substring(0, morad.length - 1).split(";")
-            : morad.split(";");    
+            : morad.split(";");
+
+    final String parent = value[18].toString();
+    final List<String> parentes = parent.isEmpty
+        ? []
+        : parent.substring(parent.length - 1) == ";" &&
+                parent.substring(parent.length - 2) != ";"
+            ? parent.substring(0, parent.length - 1).split(";")
+            : parent.split(";");
+
     return Assistido(
       ident: value[0] as int,
       updatedApps: value[1],
@@ -155,7 +164,7 @@ class Assistido extends HiveObject {
       cep: value[15].toString(),
       obs: value[16].toString(),
       chamada: value[17].toString(),
-      parentescos: value[18].toString(),
+      parentescos: parentes,
       nomesMoradores: moradores,
       datasNasc: datanasc,
       photoIntList: const [],
@@ -251,9 +260,9 @@ class Assistido extends HiveObject {
       cep,
       obs,
       chamada,
-      parentescos,
-      nomesMoradores,
-      datasNasc
+      parentescos.join(";"),
+      nomesMoradores.join(";"),
+      datasNasc.join(";")
     ];
   }
 
