@@ -19,7 +19,7 @@ class DropdownBody extends StatelessWidget {
             DropdownButton<String>(
           dropdownColor: Theme.of(context).colorScheme.background,
           style: const TextStyle(
-              fontSize: 24, color: Colors.white, decorationColor: Colors.black),
+              fontSize: 18, color: Colors.white, decorationColor: Colors.black),
           items: itensList.data!.value
               .map((String dropDownStringItem) {
                 return DropdownMenuItem<String>(

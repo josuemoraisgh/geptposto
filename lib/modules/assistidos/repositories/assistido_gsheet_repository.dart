@@ -32,7 +32,7 @@ class AssistidoRemoteStorageRepository
     var response = await provider.get(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
-        "planilha": switch (planilha!) {
+        "planilha": switch (planilha ?? "") {
           'Bezerra de Menezes' => '0',
           'Mãe Zeferina' => '2',
           'Simão Pedro' => '3',
@@ -41,7 +41,7 @@ class AssistidoRemoteStorageRepository
         "table": table,
         "func": func,
         "type": type,
-        "userName": "",
+        "userName": deviceInfoModel.identify,
         "p1": p1,
         "p2": p2,
         "p3": p3,

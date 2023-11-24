@@ -82,7 +82,13 @@ class _AssistidosPageState extends State<AssistidosPage> {
                 ? (isInited)
                     ? Row(
                         children: [
-                          const Text("Chamada: "),
+                          const Text(
+                            "Chamada: ",
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                decorationColor: Colors.black),
+                          ),
                           assistidosDropdownButton,
                         ],
                       )

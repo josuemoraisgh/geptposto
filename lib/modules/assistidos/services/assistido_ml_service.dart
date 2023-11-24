@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
@@ -10,12 +11,43 @@ import 'package:image/image.dart' as imglib;
 import '../../faces/image_converter.dart';
 import '../models/stream_assistido_model.dart';
 
+const tfLiteGpuInferenceUsage = {
+  'TFLITE_GPU_INFERENCE_PREFERENCE_FAST_SINGLE_ANSWER': 0,
+  'TFLITE_GPU_INFERENCE_PREFERENCE_SUSTAINED_SPEED': 1,
+  'TFLITE_GPU_INFERENCE_PREFERENCE_BALANCED': 2,
+};
+
+const tfLiteGpuInferencePriority = {
+  'TFLITE_GPU_INFERENCE_PRIORITY_AUTO': 0,
+  'TFLITE_GPU_INFERENCE_PRIORITY_MAX_PRECISION': 1,
+  'TFLITE_GPU_INFERENCE_PRIORITY_MIN_LATENCY': 2,
+  'TFLITE_GPU_INFERENCE_PRIORITY_MIN_MEMORY_USAGE': 3,
+};
+
+const tfLiteGpuExperimentalFlags = {
+  'TFLITE_GPU_EXPERIMENTAL_FLAGS_NONE': 0,
+  'TFLITE_GPU_EXPERIMENTAL_FLAGS_ENABLE_QUANT': 1 << 0,
+  'TFLITE_GPU_EXPERIMENTAL_FLAGS_CL_ONLY': 1 << 1,
+  'TFLITE_GPU_EXPERIMENTAL_FLAGS_GL_ONLY': 1 << 2,
+  'TFLITE_GPU_EXPERIMENTAL_FLAGS_ENABLE_SERIALIZATION': 1 << 3,
+};
+
+const tFLGpuDelegateWaitType = {
+  'TFLGpuDelegateWaitTypePassive': 0,
+  'TFLGpuDelegateWaitTypeActive': 1,
+  'TFLGpuDelegateWaitTypeDoNotWait': 2,
+  'TFLGpuDelegateWaitTypeAggressive': 3,
+};
+
 class AssistidoMLService extends Disposable {
   late Interpreter interpreter;
-  late IsolateInterpreter isolateInterpreter;
+  //late IsolateInterpreter isolateInterpreter;
   late FaceDetector faceDetector;
   //late SensorOrientationDetector orientation;
   static const double threshold = 1.0;
+
+  static const pontosdoModelo = 192; //512
+  static const nomedoInterpreter = 'assets/mobilefacenet2.tflite';//'assets/mobilefacenet3.tflite'
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -29,9 +61,39 @@ class AssistidoMLService extends Disposable {
   }
 
   Future initializeInterpreter() async {
-    interpreter = await Interpreter.fromAsset('mobilefacenet3.tflite');
-    isolateInterpreter =
-        await IsolateInterpreter.create(address: interpreter.address);
+    Delegate? delegate;
+    try {
+      if (Platform.isAndroid) {
+        delegate = GpuDelegateV2(
+            options: GpuDelegateOptionsV2(
+          isPrecisionLossAllowed: false,
+          inferencePreference: tfLiteGpuInferenceUsage[
+              'TFLITE_GPU_INFERENCE_PREFERENCE_FAST_SINGLE_ANSWER']!,
+          inferencePriority1: tfLiteGpuInferencePriority[
+              'TFLITE_GPU_INFERENCE_PRIORITY_MIN_LATENCY']!,
+          inferencePriority2:
+              tfLiteGpuInferencePriority['TFLITE_GPU_INFERENCE_PRIORITY_AUTO']!,
+          inferencePriority3:
+              tfLiteGpuInferencePriority['TFLITE_GPU_INFERENCE_PRIORITY_AUTO']!,
+        ));
+      } else if (Platform.isIOS) {
+        delegate = GpuDelegate(
+          options: GpuDelegateOptions(
+              allowPrecisionLoss: true,
+              waitType:
+                  tFLGpuDelegateWaitType['TFLGpuDelegateWaitTypeActive']!),
+        );
+      }
+      InterpreterOptions interpreterOptions = InterpreterOptions()
+        ..addDelegate(delegate!);
+
+      interpreter = await Interpreter.fromAsset(nomedoInterpreter,
+          options: interpreterOptions);
+      //isolateInterpreter = await IsolateInterpreter.create(address: interpreter.address);
+    } catch (e) {
+      debugPrint('Filed to load model.');
+      debugPrint(e.toString());
+    }
   }
 
   Future<List<int?>> predict(CameraImage cameraImage, int rotation,
@@ -56,12 +118,12 @@ class AssistidoMLService extends Disposable {
           minDist.add(999);
           currDist.add(999);
           outputs.addAll({
-            k++: [List.filled(512, 0)]
+            k++: [List.filled(pontosdoModelo, 0)]
           });
           var imageAux = cropFace(image, faceDetected, step: 80) ?? image;
           inputs.add([_preProcessImage(imageAux)]);
         }
-        isolateInterpreter.runForMultipleInputs(inputs, outputs);
+        interpreter.runForMultipleInputs(inputs, outputs);
         for (i = 0; i < assistidos.length; i++) {
           for (j = 0; j < minDist.length; j++) {
             if (assistidos[i].fotoPoints.isNotEmpty) {
@@ -86,9 +148,9 @@ class AssistidoMLService extends Disposable {
 
   Future<List<double>> classificatorImage(imglib.Image image) async {
     List<List<double>> output =
-        List.generate(1, (index) => List.filled(512, 0));
+        List.generate(1, (index) => List.filled(pontosdoModelo, 0));
     List input = [_preProcessImage(image)];
-    isolateInterpreter.run(input, output);
+    interpreter.run(input, output);
     final n2 = Vector.fromList(output[0]).norm();
     final resp = output[0].map((e) => e / n2).toList();
     return resp;

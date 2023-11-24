@@ -6,10 +6,6 @@ import '../faces/camera_controle_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_controller.dart';
 import 'assistidos_page.dart';
-import 'interfaces/assistido_local_storage_interface.dart';
-import 'interfaces/asssistido_remote_storage_interface.dart';
-import 'interfaces/assistido_config_local_storage_interface.dart';
-import 'interfaces/sync_local_storage_interface.dart';
 import 'pages/assistidos_edit_insert_page.dart';
 import 'repositories/assistido_gsheet_repository.dart';
 import 'services/assistido_hive_local_storage_service.dart';
@@ -19,26 +15,21 @@ import 'stores/assistidos_store.dart';
 
 class AssistidosModule extends Module {
   @override
-void binds(Injector i) {
-        i.addInstance<CameraService>(CameraService());
-        i.addInstance<AssistidoMLService>(AssistidoMLService());
-        i.addInstance<Dio>(Dio());
-        i.addInstance<AssistidoConfigLocalStorageInterface>(
-            AssistidoConfigLocalStorageService());
-        i.addInstance<AssistidoLocalStorageInterface>(
-            AssistidoLocalStorageService());
-        i.addInstance<AssistidoRemoteStorageInterface>(
-            AssistidoRemoteStorageRepository(provider: i<Dio>()));
-        i.addInstance<SyncLocalStorageInterface>(
-            SyncLocalStorageService());
-        i.addInstance<AssistidosStoreList>(AssistidosStoreList(
-            syncStore: i<SyncLocalStorageInterface>(),
-            localStore: i<AssistidoLocalStorageInterface>(),
-            configStore: i<AssistidoConfigLocalStorageService>(),
-            remoteStore: i<AssistidoRemoteStorageInterface>()));
-        i.addInstance<AssistidosController>(AssistidosController(
-            assistidosStoreList: i<AssistidosStoreList>()));
-}
+  void binds(Injector i) {
+    i.addInstance<CameraService>(CameraService());
+    i.addInstance<AssistidoMLService>(AssistidoMLService());
+    i.addInstance<AssistidosController>(
+      AssistidosController(
+        assistidosStoreList: AssistidosStoreList(
+          syncStore: SyncLocalStorageService(),
+          localStore: AssistidoLocalStorageService(),
+          configStore: AssistidoConfigLocalStorageService(),
+          remoteStore: AssistidoRemoteStorageRepository(provider: Dio()),
+          assistidoMmlService: AssistidoMLService(),
+        ),
+      ),
+    );
+  }
 
   @override
   void routes(r) {
