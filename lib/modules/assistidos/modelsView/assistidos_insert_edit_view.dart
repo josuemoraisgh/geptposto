@@ -107,6 +107,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
                       _assistido.condicao = novoItemSelecionado;
+                      setState(() {});
                     }
                   },
                   value: _assistido.condicao.replaceAll(" ", ""),
@@ -525,7 +526,8 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
     String datasNasc = _assistido.datasNasc[index];
     String nomesMoradores = _assistido.nomesMoradores[index];
     final RxNotifier<bool> change = RxNotifier<bool>(false);
-    final RxNotifier<String> parentescos = RxNotifier<String>(" ");//Tem que ser igual ao ultimo elemento de condicoes
+    final RxNotifier<String> parentescos = RxNotifier<String>(
+        " "); //Tem que ser igual ao ultimo elemento de condicoes
     if (_assistido.parentescos.length > index) {
       if (condicoes.contains(_assistido.parentescos[index])) {
         parentescos.value = _assistido.parentescos[index];
