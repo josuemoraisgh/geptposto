@@ -526,11 +526,11 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
     String nomesMoradores = _assistido.nomesMoradores[index];
     final RxNotifier<bool> change = RxNotifier<bool>(false);
     final RxNotifier<String> parentescos = RxNotifier<String>("");
-    try {
+    if (_assistido.parentescos.length > index) {
       if (condicoes.contains(_assistido.parentescos[index])) {
         parentescos.value = _assistido.parentescos[index];
       }
-    } catch (e) {
+    } else {
       for (int i = _assistido.parentescos.length; i <= index; i++) {
         _assistido.parentescos.add("");
       }
