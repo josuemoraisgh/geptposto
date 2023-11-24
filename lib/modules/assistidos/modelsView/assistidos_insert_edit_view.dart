@@ -379,11 +379,16 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 const SizedBox(width: 10), // give it width
                 ElevatedButton(
                   onPressed: () {
-                    _assistido.nomesMoradores.add(" ");
-                    _assistido.parentescos.add(" ");
-                    _assistido.datasNasc
-                        .add(DateFormat('dd/MM/yyyy').format(DateTime.now()));
-                    setState(() {});
+                    setState(
+                      () {
+                        _assistido.nomesMoradores.add(" ");
+                        _assistido.parentescos.add(" ");
+                        _assistido.datasNasc.add(
+                            DateFormat('dd/MM/yyyy').format(DateTime.now()));
+                      },
+                    );
+                    _insertEditMorador(
+                        context, _assistido.nomesMoradores.length - 1);
                   },
                   child: const Text("Add"),
                 ),
