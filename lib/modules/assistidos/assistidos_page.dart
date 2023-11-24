@@ -312,8 +312,8 @@ class _AssistidosPageState extends State<AssistidosPage> {
                           .addConfig("dateSelected", [value]);
                       Modular.to.pop();
                     } else {
-                      //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
-                      debugPrint("Erro em remover a data de presença!!!");
+                      debugPrint(
+                          "Erro itensList nulo!! Não é possível inserir dados.");
                     }
                   },
                   child: const Text("Salvar")),

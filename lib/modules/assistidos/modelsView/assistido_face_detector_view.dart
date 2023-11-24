@@ -6,6 +6,7 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../../faces/camera_controle_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';
+import '../assistidos_controller.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
@@ -30,15 +31,19 @@ class AssistidoFaceDetectorView extends StatefulWidget {
 
 class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   late Future<bool> isInited;
+  late final AssistidosStoreList assistidosStoreList;
+  late final AssistidoMLService assistidoMmlService;
   bool _canProcess = true, _isBusy = false;
-  final _assistidoMmlService = Modular.get<AssistidoMLService>();
-  final _assistidosStoreList = Modular.get<AssistidosStoreList>();
-  CameraService? _cameraService;
+
+  CameraService? _cameraService = Modular.get<CameraService>();
   List<StreamAssistido?> assistidoPresent = [];
   CustomPaint? _customPaint;
 
   Future<bool> init() async {
-    _cameraService = Modular.get<CameraService>();
+    assistidosStoreList =
+        Modular.get<AssistidosController>().assistidosStoreList;
+    assistidoMmlService = assistidosStoreList.assistidoMmlService;
+    _cameraService = _cameraService ?? CameraService();
     return true;
   }
 
@@ -77,7 +82,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       }
     } else {
       if (widget.assistido != null) {
-        _assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
+        assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
             isUpload: true);
       }
       Modular.to.pop();
@@ -95,13 +100,13 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
     final faces =
-        await _assistidoMmlService.faceDetector.processImage(inputImage);
+        await assistidoMmlService.faceDetector.processImage(inputImage);
     if (widget.assistidoList != null) {
       if (faces.isNotEmpty) {
         if (faces.length > 1) {
           debugPrint("duas faces");
         }
-        final assistidosIdentList = await _assistidoMmlService.predict(
+        final assistidosIdentList = await assistidoMmlService.predict(
             cameraImage, rotation, widget.assistidoList!);
         if (assistidosIdentList.isNotEmpty && widget.chamadaFunc != null) {
           for (var assistidosIdent in assistidosIdentList) {

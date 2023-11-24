@@ -7,8 +7,6 @@ import 'modules/app_widget.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  Modular.to.addListener(() {
-    debugPrint("main - ${Modular.to.path}");
-  });
+  //Modular.to.addListener(() { debugPrint("main - ${Modular.to.path}");});
   runApp(ModularApp(module: AppModule(), child: const AppWidget()));
 }

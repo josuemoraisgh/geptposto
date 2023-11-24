@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import '../app_module.dart';
 import '../assistidos/services/sync_hive_local_storage_service.dart';
-import '../faces/camera_controle_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_controller.dart';
 import 'assistidos_page.dart';
@@ -15,17 +15,20 @@ import 'stores/assistidos_store.dart';
 
 class AssistidosModule extends Module {
   @override
+  List<Module> get imports => [
+        AppModule(),
+      ];
+
+  @override
   void binds(Injector i) {
-    i.addInstance<CameraService>(CameraService());
-    i.addInstance<AssistidoMLService>(AssistidoMLService());
     i.addInstance<AssistidosController>(
       AssistidosController(
         assistidosStoreList: AssistidosStoreList(
-          syncStore: SyncLocalStorageService(),
-          localStore: AssistidoLocalStorageService(),
-          configStore: AssistidoConfigLocalStorageService(),
-          remoteStore: AssistidoRemoteStorageRepository(provider: Dio()),
-          assistidoMmlService: AssistidoMLService(),
+          syncStoreAux: SyncLocalStorageService(),
+          localStoreAux: AssistidoLocalStorageService(),
+          configStoreAux: AssistidoConfigLocalStorageService(),
+          remoteStoreAux: AssistidoRemoteStorageRepository(provider: Dio()),
+          assistidoMmlServiceAux: AssistidoMLService(),
         ),
       ),
     );

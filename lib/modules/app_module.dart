@@ -2,6 +2,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'assistidos/assistidos_module.dart';
 import 'colaboradores/colaboradores_module.dart';
 import 'config/config_module.dart';
+import 'faces/camera_controle_service.dart';
 import 'home/home_module.dart';
 import 'info/info_module.dart';
 import 'login/login_module.dart';
@@ -10,7 +11,9 @@ import 'splash_page.dart';
 
 class AppModule extends Module {
   @override
-  void binds(Injector i) {}
+  void exportedBinds(Injector i) {
+    i.addInstance<CameraService>(CameraService());
+  }
 
   @override
   void routes(RouteManager r) {
