@@ -521,18 +521,18 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   }
 
   void _insertEditMorador(BuildContext context, int index) {
-    var condicoes = ['Cônjuge', 'Filho(a)', 'Neto(a)', 'Agregado(a)', ''];
+    var condicoes = ['Cônjuge', 'Filho(a)', 'Neto(a)', 'Agregado(a)', ' '];
     String datasNasc = _assistido.datasNasc[index];
     String nomesMoradores = _assistido.nomesMoradores[index];
     final RxNotifier<bool> change = RxNotifier<bool>(false);
-    final RxNotifier<String> parentescos = RxNotifier<String>("");
+    final RxNotifier<String> parentescos = RxNotifier<String>(" ");
     if (_assistido.parentescos.length > index) {
       if (condicoes.contains(_assistido.parentescos[index])) {
         parentescos.value = _assistido.parentescos[index];
       }
     } else {
       for (int i = _assistido.parentescos.length; i <= index; i++) {
-        _assistido.parentescos.add("");
+        _assistido.parentescos.add(" ");
       }
     }
     showDialog(
