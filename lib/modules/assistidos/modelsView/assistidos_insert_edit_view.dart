@@ -521,7 +521,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   }
 
   void _insertEditMorador(BuildContext context, int index) {
-    var condicoes = ['Cônjuge', 'Filho(a)', 'Neto(a)', 'Agregado(a)', ' '];
+    var condicoes = ['Cônjuge', 'Filho(a)', 'Neto(a)', 'Agregado(a)', ' ',''];
     String datasNasc = _assistido.datasNasc[index];
     String nomesMoradores = _assistido.nomesMoradores[index];
     final RxNotifier<bool> change = RxNotifier<bool>(false);
