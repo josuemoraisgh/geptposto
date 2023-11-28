@@ -5,24 +5,28 @@ import '../interfaces/asssistido_remote_storage_interface.dart';
 import '../interfaces/assistido_config_local_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
 import '../models/assistido_models.dart';
+import '../services/assistido_ml_service.dart';
 
 class AssistidosStore {
   late final AssistidoLocalStorageInterface localStore;
   late final AssistidoRemoteStorageInterface remoteStore;
   late final AssistidoConfigLocalStorageInterface configStore;
   late final SyncLocalStorageInterface syncStore;
-  AssistidosStore({
-    SyncLocalStorageInterface? syncStoreAux,
-    AssistidoLocalStorageInterface? localStoreAux,
-    AssistidoConfigLocalStorageInterface? configStoreAux,
-    AssistidoRemoteStorageInterface? remoteStoreAux,
-  }) {
+  late final AssistidoMLService assistidoMmlService;
+  AssistidosStore(
+      {SyncLocalStorageInterface? syncStoreAux,
+      AssistidoLocalStorageInterface? localStoreAux,
+      AssistidoConfigLocalStorageInterface? configStoreAux,
+      AssistidoRemoteStorageInterface? remoteStoreAux,
+      AssistidoMLService? assistidoMmlServiceAux}) {
     syncStore = syncStoreAux ?? Modular.get<SyncLocalStorageInterface>();
     localStore = localStoreAux ?? Modular.get<AssistidoLocalStorageInterface>();
     configStore =
         configStoreAux ?? Modular.get<AssistidoConfigLocalStorageInterface>();
     remoteStore =
         remoteStoreAux ?? Modular.get<AssistidoRemoteStorageInterface>();
+    assistidoMmlService =
+        assistidoMmlServiceAux ?? Modular.get<AssistidoMLService>();        
   }
 
   Future<void> init() async {
@@ -30,6 +34,7 @@ class AssistidosStore {
     await configStore.init();
     await remoteStore.init();
     await syncStore.init();
+    await assistidoMmlService.init();    
   }
 
   Future<Assistido?> getRow(int rowId) async {

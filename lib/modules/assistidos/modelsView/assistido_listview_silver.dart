@@ -26,7 +26,7 @@ class AssistidoListViewSilver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BoxEvent>(
-      stream: controller.assistidosStoreList.dateSelectedController,
+      stream: controller.assistidosStoreSync.dateSelectedController,
       builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
         final data = dateSelected.data?.value[0];
         if (data != null && data != "") {

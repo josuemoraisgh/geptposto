@@ -11,6 +11,7 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   Completer<Box<Assistido>> completerAssistidos = Completer<Box<Assistido>>();
   late final ValueListenable<Box<Assistido>> _listenable;
 
+
   @override
   Future<void> init() async {
     if (!Hive.isBoxOpen('assistidosDados')) {

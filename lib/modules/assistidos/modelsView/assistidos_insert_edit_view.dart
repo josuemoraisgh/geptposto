@@ -21,7 +21,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
   late final StreamAssistido _assistido;
   final _assistidosStoreList =
-      Modular.get<AssistidosController>().assistidosStoreList;
+      Modular.get<AssistidosController>().assistidosStoreSync;
   final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
@@ -419,8 +419,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                               const SnackBar(content: Text('Assistido Salvo')),
                             );
                             if (_isAdd) {
-                              _assistidosStoreList
-                                  .addSaveJustRemote(_assistido);
+                              _assistido.saveJustRemote();              
                             } else {
                               widget.assistido?.copy(_assistido);
                               widget.assistido?.save();

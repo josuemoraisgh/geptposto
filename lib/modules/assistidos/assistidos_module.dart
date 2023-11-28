@@ -12,7 +12,7 @@ import 'services/assistido_hive_local_storage_service.dart';
 import 'services/assistido_config_hive_local_storage_service.dart';
 import 'services/assistido_ml_service.dart';
 import 'stores/assistidos_store.dart';
-import 'stores/assistidos_store_list.dart';
+import 'stores/assistidos_store_sync.dart';
 
 class AssistidosModule extends Module {
   @override
@@ -24,14 +24,14 @@ class AssistidosModule extends Module {
   void binds(Injector i) {
     i.addSingleton<AssistidosController>(
       () => AssistidosController(
-        assistidosStoreList: AssistidosStoreList(
+        assistidosStoreSyncAux: AssistidosStoreSync(
           assistidosStoreAux: AssistidosStore(
             syncStoreAux: SyncLocalStorageService(),
             localStoreAux: AssistidoLocalStorageService(),
             configStoreAux: AssistidoConfigLocalStorageService(),
             remoteStoreAux: AssistidoRemoteStorageRepository(provider: Dio()),
+            assistidoMmlServiceAux: AssistidoMLService(),
           ),
-          assistidoMmlServiceAux: AssistidoMLService(),
         ),
       ),
     );

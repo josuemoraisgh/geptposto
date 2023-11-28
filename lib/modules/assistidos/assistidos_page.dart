@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:icon_badge/icon_badge.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'assistidos_controller.dart';
+import 'models/assistido_models.dart';
 import 'models/stream_assistido_model.dart';
 import 'modelsView/assistido_face_detector_view.dart';
 import 'modelsView/custom_search_bar.dart';
@@ -32,42 +34,46 @@ class _AssistidosPageState extends State<AssistidosPage> {
   }
 
   @override
-  Widget build(BuildContext context) => StreamBuilder<List<StreamAssistido>>(
-        initialData: const [],
-        stream: controller.assistidosStoreList.stream,
-        builder: (BuildContext context,
-                AsyncSnapshot<List<StreamAssistido>> assistidoList) =>
-            ValueListenableBuilder<bool>(
-          valueListenable: controller.isInitedController,
-          builder: (BuildContext context, bool isInited, _) =>
-              ValueListenableBuilder(
-            valueListenable: controller.textEditing,
-            builder:
-                (BuildContext context, TextEditingValue textEditingValue, _) {
-              List<StreamAssistido> list = [];
-              if (isInited && assistidoList.hasData) {
-                list = controller.assistidosStoreList.search(
-                  assistidoList.data!,
-                  textEditingValue.text,
-                  widget.dadosTela['title'] == 'Todos'
-                      ? ''
-                      : widget.dadosTela['title'] == 'Ativos'
-                          ? 'ATIVO'
-                          : 'INATIVO',
+  Widget build(BuildContext context) => ValueListenableBuilder<Box<Assistido>>(
+        valueListenable: controller
+            .assistidosStoreSync.assistidosStore.localStore
+            .listenable(),
+        builder: (BuildContext context, Box<Assistido> assistidoBox, _) {
+          var assistidoList = assistidoBox.values.map((e) => StreamAssistido(
+              e, controller.assistidosStoreSync.assistidosStore)).toList();
+          return ValueListenableBuilder<bool>(
+            valueListenable: controller.isInitedController,
+            builder: (BuildContext context, bool isInited, _) =>
+                ValueListenableBuilder(
+              valueListenable: controller.textEditing,
+              builder:
+                  (BuildContext context, TextEditingValue textEditingValue, _) {
+                List<StreamAssistido> list = [];
+                if (isInited) {
+                  list = controller.search(
+                    assistidoList,
+                    textEditingValue.text,
+                    widget.dadosTela['title'] == 'Todos'
+                        ? ''
+                        : widget.dadosTela['title'] == 'Ativos'
+                            ? 'ATIVO'
+                            : 'INATIVO',
+                  );
+                  controller.countPresente = 0;
+                }
+                return Scaffold(
+                  appBar: customAppBar(isInited),
+                  body: isInited
+                      ? customBody(context, list)
+                      : const Center(child: CircularProgressIndicator()),
+                  floatingActionButton: isInited
+                      ? customFloatingActionButton(context, list)
+                      : null,
                 );
-                controller.countPresente = 0;
-              }
-              return Scaffold(
-                appBar: customAppBar(isInited),
-                body: isInited
-                    ? customBody(context, list)
-                    : const Center(child: CircularProgressIndicator()),
-                floatingActionButton:
-                    isInited ? customFloatingActionButton(context, list) : null,
-              );
-            },
-          ),
-        ),
+              },
+            ),
+          );
+        },
       );
 
   AppBar customAppBar(bool isInited) => AppBar(
@@ -104,13 +110,13 @@ class _AssistidosPageState extends State<AssistidosPage> {
           RxBuilder(
             builder: (BuildContext context) => IconBadge(
               icon: const Icon(Icons.sync),
-              itemCount: controller.assistidosStoreList.countSync.value,
+              itemCount: controller.assistidosStoreSync.countSync.value,
               badgeColor: Colors.red,
               itemColor: Colors.white,
               maxCount: 99,
               hideZero: true,
               onTap: () async {
-                controller.assistidosStoreList.sync();
+                controller.assistidosStoreSync.sync();
               },
             ),
           ),
@@ -215,7 +221,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
 
   Future chamadaFunc(StreamAssistido assistido) async {
     final dateSelected =
-        await controller.assistidosStoreList.getConfig("dateSelected");
+        await controller.assistidosStoreSync.getConfig("dateSelected");
     if (dateSelected != null && assistido.insertChamadaFunc(dateSelected[0])) {
       controller.countPresente++;
     }
@@ -223,7 +229,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
 
   Future chamadaToogleFunc(StreamAssistido pessoa) async {
     final dateSelected =
-        await controller.assistidosStoreList.getConfig("dateSelected");
+        await controller.assistidosStoreSync.getConfig("dateSelected");
     if (dateSelected != null) {
       controller.countPresente += pessoa.chamadaToogleFunc(dateSelected[0]);
     }
@@ -242,25 +248,25 @@ class _AssistidosPageState extends State<AssistidosPage> {
             actions: [
               ElevatedButton(
                   onPressed: () async {
-                    final dateSelected = (await controller.assistidosStoreList
+                    final dateSelected = (await controller.assistidosStoreSync
                         .getConfig("dateSelected"))?[0];
-                    final itensList = await controller.assistidosStoreList
+                    final itensList = await controller.assistidosStoreSync
                         .getConfig("itensList");
                     if (itensList != null &&
                         dateSelected != null &&
                         itensList.length > 1) {
                       var itensRemove = dateSelected;
                       if (itensList.last != itensRemove) {
-                        controller.assistidosStoreList
+                        controller.assistidosStoreSync
                             .addConfig("dateSelected", [itensList.last]);
                       } else {
-                        controller.assistidosStoreList.addConfig("dateSelected",
+                        controller.assistidosStoreSync.addConfig("dateSelected",
                             [itensList.elementAt(itensList.length - 2)]);
                       }
                       final itens = itensList
                           .where((element) => element != itensRemove)
                           .toList();
-                      controller.assistidosStoreList
+                      controller.assistidosStoreSync
                           .addConfig("itensList", itens);
                     } else {
                       //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
@@ -306,12 +312,12 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   child: const Text("Cancelar")),
               ElevatedButton(
                   onPressed: () async {
-                    final itensList = await controller.assistidosStoreList
+                    final itensList = await controller.assistidosStoreSync
                         .getConfig("itensList");
                     if (itensList != null) {
-                      controller.assistidosStoreList
+                      controller.assistidosStoreSync
                           .addConfig("itensList", itensList + [value]);
-                      controller.assistidosStoreList
+                      controller.assistidosStoreSync
                           .addConfig("dateSelected", [value]);
                       Modular.to.pop();
                     } else {

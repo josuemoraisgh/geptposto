@@ -23,10 +23,10 @@ class _DropdownBodyState extends State<DropdownBody> {
   Future<bool> init() async {
     try {
       final List<String>? aux1 = await widget
-          .controller.assistidosStoreList.assistidosStore.configStore
+          .controller.assistidosStoreSync.assistidosStore.configStore
           .getConfig('dateSelected');
       final List<String>? aux2 = await widget
-          .controller.assistidosStoreList.assistidosStore.configStore
+          .controller.assistidosStoreSync.assistidosStore.configStore
           .getConfig('itensList');
       if ((aux1 != null) && (aux1.isNotEmpty)) {
         dateSelected = BoxEvent("", aux1, false);
@@ -49,13 +49,13 @@ class _DropdownBodyState extends State<DropdownBody> {
           ? StreamBuilder(
               initialData: dateSelected,
               stream:
-                  widget.controller.assistidosStoreList.dateSelectedController,
+                  widget.controller.assistidosStoreSync.dateSelectedController,
               builder: (BuildContext context,
                       AsyncSnapshot<BoxEvent> dateSelected) =>
                   StreamBuilder(
                 initialData: itensList,
                 stream:
-                    widget.controller.assistidosStoreList.itensListController,
+                    widget.controller.assistidosStoreSync.itensListController,
                 builder:
                     (BuildContext context, AsyncSnapshot<BoxEvent> itensList) =>
                         DropdownButton<String>(
@@ -79,7 +79,7 @@ class _DropdownBodyState extends State<DropdownBody> {
                       .cast<DropdownMenuItem<String>>(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      widget.controller.assistidosStoreList
+                      widget.controller.assistidosStoreSync
                           .addConfig("dateSelected", [novoItemSelecionado]);
                     }
                   },

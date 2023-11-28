@@ -1,6 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:intl/intl.dart';
+
+import '../../faces/image_converter.dart';
 import '../stores/assistidos_store.dart';
+import 'package:image/image.dart' as imglib;
 import 'assistido_models.dart';
 
 class StreamAssistido extends Assistido {
@@ -57,6 +62,52 @@ class StreamAssistido extends Assistido {
     assistidoStore.delete(this);
     super.delete();
   }
+
+  Future<bool> addSetPhoto(final Uint8List uint8ListImage,
+      {bool isUpload = true}) async {
+    String photoFileName;
+    List<double> fotoPoints = [];
+    if(uint8ListImage.isNotEmpty) {
+      //Nomeando o arquivo
+      final now = DateTime.now();
+      final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
+      photoFileName = (photoName == "")
+          ? '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg'
+          : photoName;
+      //Criando o arquivo - Armazenamento Local
+      final file = await assistidoStore.localStore
+          .addSetFile('aux.jpg', uint8ListImage);
+      //Processando a imagem para o reconhecimento futuro
+      imglib.Image? image = imglib.decodeJpg(uint8ListImage);
+      if (image != null) {
+        final inputImage = InputImage.fromFile(file);
+        final faceDetected =
+            await assistidoStore.assistidoMmlService.faceDetector.processImage(inputImage);
+        if (faceDetected.isNotEmpty) {
+          image = isUpload
+              ? cropFace(image, faceDetected[0], step: 80) ?? image
+              : image;
+          fotoPoints = (await assistidoStore.assistidoMmlService.classificatorImage(image));
+        }
+        photo = [
+          photoFileName,
+          imglib.encodeJpg(image),
+          fotoPoints,
+        ];
+        saveJustLocal();
+        if (isUpload) {
+          assistidoStore.syncStore.addSync(
+            'setImage',
+            [photoFileName, imglib.encodeJpg(image)],
+          ).then((_) => saveJustRemote());
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+
 
   @override
   void changeItens(String? itens, dynamic datas) {
