@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
+
 import '../models/assistido_models.dart';
 
 abstract class AssistidoLocalStorageInterface {
@@ -17,4 +20,6 @@ abstract class AssistidoLocalStorageInterface {
   Future<bool> delRow(String row); //Deleta um Linha
   Future<bool> delAll(); //Limpa o Banco de Dados
   Future<bool> delFile(String fileName); //Deleta arquivo
+  Stream<BoxEvent> watch(String key);
+  ValueListenable<Box<Assistido>> listenable();
 }

@@ -19,7 +19,7 @@ class AssistidosInsertEditView extends StatefulWidget {
 
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
-  late final StreamAssistido _assistido = StreamAssistido.vazio();
+  late final StreamAssistido _assistido;
   final _assistidosStoreList =
       Modular.get<AssistidosController>().assistidosStoreList;
   final isPhotoChanged = RxNotifier<bool>(true);
@@ -28,6 +28,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
 
   @override
   void initState() {
+    _assistido = StreamAssistido.vazio(_assistidosStoreList.assistidosStore);
     _isAdd = widget.assistido == null ? true : false;
     super.initState();
   }

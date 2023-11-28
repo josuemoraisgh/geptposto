@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import 'stores/assistidos_store.dart';
+import 'models/stream_assistido_model.dart';
+import 'stores/assistidos_store_list.dart';
 
 class AssistidosController {
   final isInitedController = RxNotifier<bool>(false);
@@ -11,6 +12,8 @@ class AssistidosController {
   final focusNode = FocusNode();
   final presentCount = RxNotifier<int>(0);
   final whatWidget = RxNotifier<int>(0);
+  final assistidoProvavelList = RxNotifier<List<StreamAssistido>>([]);
+  final faceDetector = RxNotifier<bool>(false);
   late final AssistidosStoreList assistidosStoreList;
 
   AssistidosController({AssistidosStoreList? assistidosStoreList}) {

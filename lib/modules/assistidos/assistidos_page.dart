@@ -8,6 +8,7 @@ import 'package:icon_badge/icon_badge.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'assistidos_controller.dart';
 import 'models/stream_assistido_model.dart';
+import 'modelsView/assistido_face_detector_view.dart';
 import 'modelsView/custom_search_bar.dart';
 import 'modelsView/dropdown_body.dart';
 import 'modelsView/assistido_listview_silver.dart';
@@ -129,11 +130,20 @@ class _AssistidosPageState extends State<AssistidosPage> {
             fit: BoxFit.cover,
           ),
         ),
-        child: AssistidoListViewSilver(
-          controller: controller,
-          list: assistidoList,
-          functionChamada: chamadaToogleFunc,
-          functionEdit: editAddFunc,
+        child: RxBuilder(
+          builder: (BuildContext context) => AssistidoListViewSilver(
+            controller: controller,
+            list: controller.faceDetector.value == true
+                ? controller.assistidoProvavelList.value
+                : assistidoList,
+            functionChamada: chamadaToogleFunc,
+            functionEdit: editAddFunc,
+            faceDetectorView: controller.faceDetector.value == true
+                ? AssistidoFaceDetectorView(
+                    assistidoList: assistidoList,
+                    assistidoProvavel: controller.assistidoProvavelList)
+                : null,
+          ),
         ),
       );
 
@@ -163,14 +173,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                 assistidos:
                     assistidoList), */
             onTap: () {
-              Modular.to.pushNamed(
-                "faces",
-                arguments: {
-                  "assistidos": assistidoList,
-                  "chamadaFunc": chamadaFunc,
-                  "Title": "Tire sua Foto",
-                },
-              );
+              controller.faceDetector.value = !controller.faceDetector.value;
             },
           ),
           SpeedDialChild(
@@ -312,6 +315,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                           .addConfig("dateSelected", [value]);
                       Modular.to.pop();
                     } else {
+                      //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
                       debugPrint(
                           "Erro itensList nulo!! Não é possível inserir dados.");
                     }

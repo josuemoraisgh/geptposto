@@ -2,14 +2,13 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-
 import 'camera_controle_service.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final CameraService? cameraService;
   final Future<void> Function(CameraImage cameraImage, int sensorOrientation,
       Orientation orientation)? onPaintLiveImageFunc;
-  final Future<void> Function(Uint8List uint8ListImage)? takeImageFunc;
+  final Future<void> Function(Uint8List? uint8ListImage)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
   final bool isRealTime;
@@ -189,7 +188,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
         _cameraService.cameraController != null &&
         widget.takeImageFunc != null) {
       if (widget.isRealTime) {
-        widget.takeImageFunc!([] as Uint8List);
+        widget.takeImageFunc!(null);
       } else {
         final xfileImage = await _cameraService.takePicture();
         final uint8List = await xfileImage?.readAsBytes();

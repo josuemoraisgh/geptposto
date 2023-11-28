@@ -12,6 +12,7 @@ import 'services/assistido_hive_local_storage_service.dart';
 import 'services/assistido_config_hive_local_storage_service.dart';
 import 'services/assistido_ml_service.dart';
 import 'stores/assistidos_store.dart';
+import 'stores/assistidos_store_list.dart';
 
 class AssistidosModule extends Module {
   @override
@@ -21,13 +22,15 @@ class AssistidosModule extends Module {
 
   @override
   void binds(Injector i) {
-    i.addInstance<AssistidosController>(
-      AssistidosController(
+    i.addSingleton<AssistidosController>(
+      () => AssistidosController(
         assistidosStoreList: AssistidosStoreList(
-          syncStoreAux: SyncLocalStorageService(),
-          localStoreAux: AssistidoLocalStorageService(),
-          configStoreAux: AssistidoConfigLocalStorageService(),
-          remoteStoreAux: AssistidoRemoteStorageRepository(provider: Dio()),
+          assistidosStoreAux: AssistidosStore(
+            syncStoreAux: SyncLocalStorageService(),
+            localStoreAux: AssistidoLocalStorageService(),
+            configStoreAux: AssistidoConfigLocalStorageService(),
+            remoteStoreAux: AssistidoRemoteStorageRepository(provider: Dio()),
+          ),
           assistidoMmlServiceAux: AssistidoMLService(),
         ),
       ),
@@ -56,7 +59,6 @@ class AssistidosModule extends Module {
       child: (_) => AssistidoFaceDetectorPage(
         assistido: r.args.data["assistido"],
         assistidos: r.args.data["assistidos"],
-        chamadaFunc: r.args.data["chamadaFunc"],
         title: "Camera Ativa",
       ),
       transition: TransitionType.custom,

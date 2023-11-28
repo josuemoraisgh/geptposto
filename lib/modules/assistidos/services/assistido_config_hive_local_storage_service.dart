@@ -12,6 +12,11 @@ class AssistidoConfigLocalStorageService
     if (!configCompleter.isCompleted) {
       configCompleter.complete(await Hive.openBox<List<String>>('configDatas'));
     }
+    final box = await configCompleter.future;
+    if (box.isEmpty) {
+      addConfig("dateSelected", ["01/01/2023"]);
+      addConfig("itensList", ["01/01/2023"]);
+    }
   }
 
   @override

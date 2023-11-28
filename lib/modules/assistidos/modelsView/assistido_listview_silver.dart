@@ -6,10 +6,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../assistidos_controller.dart';
 import '../../Styles/styles.dart';
 import '../models/stream_assistido_model.dart';
+import 'assistido_face_detector_view.dart';
 
 class AssistidoListViewSilver extends StatelessWidget {
   final List<StreamAssistido> list;
   final AssistidosController controller;
+  final AssistidoFaceDetectorView? faceDetectorView;
   final void Function({StreamAssistido? assistido}) functionEdit;
   final void Function(StreamAssistido pessoa) functionChamada;
   const AssistidoListViewSilver({
@@ -18,58 +20,72 @@ class AssistidoListViewSilver extends StatelessWidget {
     required this.list,
     required this.functionEdit,
     required this.functionChamada,
+    this.faceDetectorView,
   });
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BoxEvent>(
-        stream: controller.assistidosStoreList.dateSelectedController,
-        builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
-          final data = dateSelected.data?.value[0];
-          if (data != null && data != "") {
-            int count = 0;
-            for (var element in list) {
-              if (element.chamada.toLowerCase().contains(data)) count++;
-            }
-            controller.countPresente = count;
+      stream: controller.assistidosStoreList.dateSelectedController,
+      builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
+        final data = dateSelected.data?.value[0];
+        if (data != null && data != "") {
+          int count = 0;
+          for (var element in list) {
+            if (element.chamada.toLowerCase().contains(data)) count++;
           }
-          return CustomScrollView(
-            semanticChildCount: list.length,
-            slivers: <Widget>[
-              SliverSafeArea(
-                top: false,
-                minimum: const EdgeInsets.only(top: 8),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < list.length) {
-                        return Column(
-                          children: <Widget>[
-                            row(list[index], data),
-                            index == list.length - 1
-                                ? const Padding(
-                                    padding: EdgeInsets.only(bottom: 50))
-                                : Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 100,
-                                      right: 16,
-                                    ),
-                                    child: Container(
-                                      height: 1,
-                                      color: Styles.linhaProdutoDivisor,
-                                    ),
-                                  ),
-                          ],
-                        );
-                      }
-                      return null;
-                    },
+          controller.countPresente = count;
+        }
+        return Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if (faceDetectorView != null)
+              SizedBox(
+                  height: 300,
+                  width: MediaQuery.of(context).size.width,
+                  child: faceDetectorView!),
+            Expanded(
+              child: CustomScrollView(
+                semanticChildCount: list.length,
+                slivers: <Widget>[
+                  SliverSafeArea(
+                    top: false,
+                    minimum: const EdgeInsets.only(top: 8),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index < list.length) {
+                            return Column(
+                              children: <Widget>[
+                                row(list[index], data),
+                                index == list.length - 1
+                                    ? const Padding(
+                                        padding: EdgeInsets.only(bottom: 50))
+                                    : Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 100,
+                                          right: 16,
+                                        ),
+                                        child: Container(
+                                          height: 1,
+                                          color: Styles.linhaProdutoDivisor,
+                                        ),
+                                      ),
+                              ],
+                            );
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          );
-        });
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget row(StreamAssistido pessoa, String? dateSelected) {

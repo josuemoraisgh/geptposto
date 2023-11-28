@@ -1,20 +1,17 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:flutter/widgets.dart';
-
+import '../stores/assistidos_store.dart';
 import 'assistido_models.dart';
 
 class StreamAssistido extends Assistido {
-  Function(StreamAssistido value)? saveJustLocalExt;
-  Function(StreamAssistido value)? saveJustRemoteExt;
-  Function(StreamAssistido value)? deleteExt;
+  final AssistidosStore assistidoStore;
   final StreamController<StreamAssistido> _chamadaController =
       StreamController<StreamAssistido>.broadcast();
   final StreamController<Uint8List> _photoController =
       StreamController<Uint8List>.broadcast();
 
-  StreamAssistido(super.assistido) : super.assistido();
-  StreamAssistido.vazio()
+  StreamAssistido(super.assistido, this.assistidoStore) : super.assistido();
+  StreamAssistido.vazio(this.assistidoStore)
       : super(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
   Stream<StreamAssistido> get chamadaStream => _chamadaController.stream;
   Stream<Uint8List> get photoStream => _photoController.stream;
@@ -43,29 +40,21 @@ class StreamAssistido extends Assistido {
 
   @override
   Future<void> save() async {
-    await saveJustLocal();
-    await saveJustRemote();
+    await assistidoStore.addSaveJustLocal(this);
+    await assistidoStore.addSaveJustRemote(this);
   }
 
   Future<void> saveJustLocal() async {
-    if (saveJustLocalExt != null) {
-      saveJustLocalExt!(this); //Save no modo remoto
-    } else {
-      debugPrint("save Local Func - NULL");
-    }
+    assistidoStore.addSaveJustLocal(this);
   }
 
   Future<void> saveJustRemote() async {
-    if (saveJustRemoteExt != null) {
-      saveJustRemoteExt!(this); //Save no modo remoto
-    } else {
-      debugPrint("save Remote Func - NULL");
-    }
+    assistidoStore.addSaveJustRemote(this);
   }
 
   @override
   Future<void> delete() async {
-    if (deleteExt != null) deleteExt!(this);
+    assistidoStore.delete(this);
     super.delete();
   }
 

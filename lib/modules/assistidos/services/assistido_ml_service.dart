@@ -6,6 +6,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:ml_linalg/distance.dart';
 import 'package:ml_linalg/vector.dart';
+import 'package:rx_notifier/rx_notifier.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
 import '../../faces/image_converter.dart';
@@ -47,7 +48,8 @@ class AssistidoMLService extends Disposable {
   static const double threshold = 1.0;
 
   static const pontosdoModelo = 192; //512
-  static const nomedoInterpreter = 'assets/mobilefacenet2.tflite';//'assets/mobilefacenet3.tflite'
+  static const nomedoInterpreter =
+      'assets/mobilefacenet2.tflite'; //'assets/mobilefacenet3.tflite'
 
   Future<void> init() async {
     await initializeInterpreter();
@@ -96,13 +98,14 @@ class AssistidoMLService extends Disposable {
     }
   }
 
-  Future<List<int?>> predict(CameraImage cameraImage, int rotation,
-      List<StreamAssistido> assistidos) async {
-    List<int?> assistidosIdentList = [];
+  Future<void> predict(
+      CameraImage cameraImage,
+      int rotation,
+      List<StreamAssistido> assistidos,
+      RxNotifier<List<StreamAssistido>> assistidoProvavel) async {
+    List<StreamAssistido> assistidosIdentList = [];
     List<List> inputs = [];
     Map<int, List<List<double>>> outputs = {};
-    List<double> minDist = [];
-    List<double> currDist = [];
     int i = 0, j = 0, k = 0;
     imglib.Image image =
         convertCameraImageToImageWithRotate(cameraImage, rotation);
@@ -114,9 +117,6 @@ class AssistidoMLService extends Disposable {
       if (facesDetected.isNotEmpty) {
         k = 0;
         for (var faceDetected in facesDetected) {
-          assistidosIdentList.add(0);
-          minDist.add(999);
-          currDist.add(999);
           outputs.addAll({
             k++: [List.filled(pontosdoModelo, 0)]
           });
@@ -125,7 +125,7 @@ class AssistidoMLService extends Disposable {
         }
         interpreter.runForMultipleInputs(inputs, outputs);
         for (i = 0; i < assistidos.length; i++) {
-          for (j = 0; j < minDist.length; j++) {
+          for (j = 0; j < outputs.length; j++) {
             if (assistidos[i].fotoPoints.isNotEmpty) {
               var vector1 = Vector.fromList(assistidos[i].fotoPoints);
               final vectorOut = Vector.fromList(outputs[0]![j]);
@@ -133,17 +133,15 @@ class AssistidoMLService extends Disposable {
               final aux = vector1.distanceTo(vectorOut / n2,
                   distance: Distance.euclidean);
               //debugPrint(aux.toString());
-              currDist[j] = aux;
-              if (currDist[j] <= threshold && currDist[j] < minDist[j]) {
-                minDist[j] = currDist[j];
-                assistidosIdentList[j] = assistidos[i].ident;
+              if (aux <= threshold) {
+                assistidosIdentList.add(assistidos[i]);
               }
             }
           }
         }
       }
     }
-    return assistidosIdentList;
+    assistidoProvavel.value = assistidosIdentList;
   }
 
   Future<List<double>> classificatorImage(imglib.Image image) async {

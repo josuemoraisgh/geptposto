@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:rx_notifier/rx_notifier.dart';
 import '../../faces/camera_controle_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';
@@ -10,19 +11,21 @@ import '../assistidos_controller.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
-import '../stores/assistidos_store.dart';
+import '../stores/assistidos_store_list.dart';
 
 class AssistidoFaceDetectorView extends StatefulWidget {
-  final Function(StreamAssistido pessoa)? chamadaFunc;
+  final RxNotifier<List<StreamAssistido>>? assistidoProvavel;
+  final RxNotifier<bool>? isPhotoChanged;
   final StreamAssistido? assistido;
   final List<StreamAssistido>? assistidoList;
   final StackFit? stackFit;
   const AssistidoFaceDetectorView(
       {super.key,
       this.assistidoList,
-      this.chamadaFunc,
+      this.assistidoProvavel,
       this.assistido,
-      this.stackFit});
+      this.stackFit,
+      this.isPhotoChanged});
 
   @override
   State<AssistidoFaceDetectorView> createState() =>
@@ -36,7 +39,9 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   bool _canProcess = true, _isBusy = false;
 
   CameraService? _cameraService = Modular.get<CameraService>();
-  List<StreamAssistido?> assistidoPresent = [];
+  CameraImage? cameraImage;
+  List<Face>? faces;
+
   CustomPaint? _customPaint;
 
   Future<bool> init() async {
@@ -74,16 +79,27 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     );
   }
 
-  Future<void> _cameraTakeImage(Uint8List uint8ListImage) async {
-    if ((widget.assistidoList?.isNotEmpty ?? false) &&
-        (widget.chamadaFunc != null)) {
-      for (var assistidoPres in assistidoPresent) {
-        widget.chamadaFunc!(assistidoPres!);
+  Future<void> _cameraTakeImage(Uint8List? uint8ListImage) async {
+    if (widget.assistidoList?.isNotEmpty ?? false) {
+      if ((faces?.isNotEmpty ?? false) &&
+          (cameraImage != null) &&
+          (_cameraService?.camera != null)) {
+        if (faces!.length > 1) {
+          debugPrint("duas faces");
+        }
+        await assistidoMmlService.predict(
+            cameraImage!,
+            _cameraService!.camera!.sensorOrientation,
+            widget.assistidoList!,
+            widget.assistidoProvavel!);
       }
     } else {
-      if (widget.assistido != null) {
+      if ((widget.assistido != null) && (uint8ListImage != null)) {
         assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
             isUpload: true);
+        if (widget.isPhotoChanged != null) {
+          widget.isPhotoChanged!.value = !widget.isPhotoChanged!.value;
+        }
       }
       Modular.to.pop();
     }
@@ -91,46 +107,22 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<void> _processImage(CameraImage cameraImage, int sensorOrientation,
       Orientation orientation) async {
-    List<String?> assistidoNomeList = [];
-    StreamAssistido? aux;
+    this.cameraImage = cameraImage;
     final rotation = getImageRotation(sensorOrientation, orientation);
     InputImage? inputImage =
         await convertCameraImageToInputImageWithRotate(cameraImage, rotation);
 
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
-    final faces =
-        await assistidoMmlService.faceDetector.processImage(inputImage);
-    if (widget.assistidoList != null) {
-      if (faces.isNotEmpty) {
-        if (faces.length > 1) {
-          debugPrint("duas faces");
-        }
-        final assistidosIdentList = await assistidoMmlService.predict(
-            cameraImage, rotation, widget.assistidoList!);
-        if (assistidosIdentList.isNotEmpty && widget.chamadaFunc != null) {
-          for (var assistidosIdent in assistidosIdentList) {
-            if (assistidosIdent != null && assistidosIdent != 999) {
-              aux = widget.assistidoList!.firstWhere(
-                  (element) => element.ident == assistidosIdent,
-                  orElse: () => StreamAssistido.vazio());
-              if (aux.nomeM1 != "Nome") {
-                assistidoPresent.add(aux);
-                assistidoNomeList.add(aux.nomeM1);
-              } else {
-                assistidoNomeList.add(null);
-              }
-            } else {
-              assistidoNomeList.add(null);
-            }
-          }
-        }
-      }
+    faces = await assistidoMmlService.faceDetector.processImage(inputImage);
+    if (faces?.isEmpty ?? true) {
+      _isBusy = false;
+      return;
     }
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
-      final painter = FaceDetectorPainter(assistidoNomeList, faces,
-          inputImage.metadata!.size, sensorOrientation, rotation);
+      final painter = FaceDetectorPainter(
+          [], faces!, inputImage.metadata!.size, sensorOrientation, rotation);
       _customPaint = CustomPaint(painter: painter);
     }
     _isBusy = false;
