@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../interfaces/sync_local_storage_interface.dart';
 import '../models/sync_models.dart';
@@ -7,7 +6,6 @@ import '../models/sync_models.dart';
 //implements == interface
 class SyncLocalStorageService implements SyncLocalStorageInterface {
   Completer<Box<SyncType>> completerSync = Completer<Box<SyncType>>();
-  late final ValueListenable<Box<SyncType>> _listenable;
 
   @override
   Future<void> init() async {
@@ -17,13 +15,12 @@ class SyncLocalStorageService implements SyncLocalStorageInterface {
     if (!completerSync.isCompleted) {
       completerSync.complete(await Hive.openBox<SyncType>('syncDatas'));
     }
-    final box = await completerSync.future;
-    _listenable = box.listenable();
   }
 
   @override
-  void addListener(Function() func) {
-    _listenable.addListener(func);
+  Future<void> addListener(Function() func) async {
+    final box = await completerSync.future;
+    box.listenable().addListener(func);
   }
 
   @override

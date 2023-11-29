@@ -20,5 +20,5 @@ abstract class AssistidoLocalStorageInterface {
   Future<bool> delAll(); //Limpa o Banco de Dados
   Future<bool> delFile(String fileName); //Deleta arquivo
   Stream<BoxEvent> watch(String key);
-  ValueListenable<Box<Assistido>> listenable();
+  Future<void> addListener(Function() func);
 }

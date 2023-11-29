@@ -22,12 +22,10 @@ class _DropdownBodyState extends State<DropdownBody> {
 
   Future<bool> init() async {
     try {
-      final List<String>? aux1 = await widget
-          .controller.assistidosStoreSync.assistidosStore.configStore
-          .getConfig('dateSelected');
-      final List<String>? aux2 = await widget
-          .controller.assistidosStoreSync.assistidosStore.configStore
-          .getConfig('itensList');
+      final List<String>? aux1 =
+          await widget.controller.assistidosStoreList.getConfig('dateSelected');
+      final List<String>? aux2 =
+          await widget.controller.assistidosStoreList.getConfig('itensList');
       if ((aux1 != null) && (aux1.isNotEmpty)) {
         dateSelected = BoxEvent("", aux1, false);
       }
@@ -49,13 +47,13 @@ class _DropdownBodyState extends State<DropdownBody> {
           ? StreamBuilder(
               initialData: dateSelected,
               stream:
-                  widget.controller.assistidosStoreSync.dateSelectedController,
+                  widget.controller.assistidosStoreList.dateSelectedController,
               builder: (BuildContext context,
                       AsyncSnapshot<BoxEvent> dateSelected) =>
                   StreamBuilder(
                 initialData: itensList,
                 stream:
-                    widget.controller.assistidosStoreSync.itensListController,
+                    widget.controller.assistidosStoreList.itensListController,
                 builder:
                     (BuildContext context, AsyncSnapshot<BoxEvent> itensList) =>
                         DropdownButton<String>(
@@ -79,7 +77,7 @@ class _DropdownBodyState extends State<DropdownBody> {
                       .cast<DropdownMenuItem<String>>(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      widget.controller.assistidosStoreSync
+                      widget.controller.assistidosStoreList
                           .addConfig("dateSelected", [novoItemSelecionado]);
                     }
                   },

@@ -11,7 +11,7 @@ import '../assistidos_controller.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/assistido_ml_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
-import '../stores/assistidos_store_sync.dart';
+import '../stores/assistidos_store.dart';
 
 class AssistidoFaceDetectorView extends StatefulWidget {
   final RxNotifier<List<StreamAssistido>>? assistidoProvavel;
@@ -34,7 +34,7 @@ class AssistidoFaceDetectorView extends StatefulWidget {
 
 class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   late Future<bool> isInited;
-  late final AssistidosStoreSync assistidosStoreList;
+  late final AssistidosStoreList assistidosStoreList;
   late final AssistidoMLService assistidoMmlService;
   bool _canProcess = true, _isBusy = false;
 
@@ -46,7 +46,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
   Future<bool> init() async {
     assistidosStoreList =
-        Modular.get<AssistidosController>().assistidosStoreSync;
+        Modular.get<AssistidosController>().assistidosStoreList;
     assistidoMmlService = assistidoMmlService;
     _cameraService = _cameraService ?? CameraService();
     return true;
@@ -95,7 +95,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       }
     } else {
       if ((widget.assistido != null) && (uint8ListImage != null)) {
-      widget.assistido?.addSetPhoto(uint8ListImage,
+        assistidosStoreList.addSetPhoto(widget.assistido, uint8ListImage,
             isUpload: true);
         if (widget.isPhotoChanged != null) {
           widget.isPhotoChanged!.value = !widget.isPhotoChanged!.value;

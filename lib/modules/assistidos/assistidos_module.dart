@@ -4,15 +4,14 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../app_module.dart';
 import '../assistidos/services/sync_hive_local_storage_service.dart';
 import 'pages/assistido_face_detector_page.dart';
-import 'assistidos_controller.dart';
 import 'assistidos_page.dart';
 import 'pages/assistidos_edit_insert_page.dart';
 import 'repositories/assistido_gsheet_repository.dart';
 import 'services/assistido_hive_local_storage_service.dart';
 import 'services/assistido_config_hive_local_storage_service.dart';
 import 'services/assistido_ml_service.dart';
+import 'assistidos_controller.dart';
 import 'stores/assistidos_store.dart';
-import 'stores/assistidos_store_sync.dart';
 
 class AssistidosModule extends Module {
   @override
@@ -22,16 +21,27 @@ class AssistidosModule extends Module {
 
   @override
   void binds(Injector i) {
-    i.addSingleton<AssistidosController>(
+    /*i.addSingleton<AssistidosController>(
       () => AssistidosController(
-        assistidosStoreSyncAux: AssistidosStoreSync(
-          assistidosStoreAux: AssistidosStore(
+        assistidosStoreSyncAux: AssistidoProviderSync(
+          assistidoProviderStoreAux: AssistidosProviderStore(
             syncStoreAux: SyncLocalStorageService(),
             localStoreAux: AssistidoLocalStorageService(),
             configStoreAux: AssistidoConfigLocalStorageService(),
             remoteStoreAux: AssistidoRemoteStorageRepository(provider: Dio()),
             assistidoMmlServiceAux: AssistidoMLService(),
           ),
+        ),
+      ),
+    );*/
+    i.addInstance<AssistidosController>(
+      AssistidosController(
+        assistidosStoreList: AssistidosStoreList(
+          syncStore: SyncLocalStorageService(),
+          localStore: AssistidoLocalStorageService(),
+          configStore: AssistidoConfigLocalStorageService(),
+          remoteStore: AssistidoRemoteStorageRepository(provider: Dio()),
+          assistidoMmlService: AssistidoMLService(),
         ),
       ),
     );

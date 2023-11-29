@@ -9,8 +9,6 @@ import '../models/assistido_models.dart';
 //implements == interface
 class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
   Completer<Box<Assistido>> completerAssistidos = Completer<Box<Assistido>>();
-  late final ValueListenable<Box<Assistido>> _listenable;
-
 
   @override
   Future<void> init() async {
@@ -21,13 +19,12 @@ class AssistidoLocalStorageService implements AssistidoLocalStorageInterface {
       completerAssistidos
           .complete(await Hive.openBox<Assistido>('assistidosDados'));
     }
-    final box = await completerAssistidos.future;
-    _listenable = box.listenable();
   }
 
   @override
-  ValueListenable<Box<Assistido>> listenable() {
-    return _listenable;
+  Future<void> addListener(Function() func) async {
+    final box = await completerAssistidos.future;
+    box.listenable().addListener(func);
   }
 
   @override

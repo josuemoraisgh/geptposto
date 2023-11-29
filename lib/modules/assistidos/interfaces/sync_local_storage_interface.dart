@@ -6,5 +6,5 @@ abstract class SyncLocalStorageInterface {
   Future<bool> addSync(String key, dynamic syncValue); //Adiciona varias linhas
   Future<SyncType?> getSync(int index); //Adiciona varias linhas
   Future<bool> delSync(int index);
-  void addListener(Function() func);
+  Future<void> addListener(Function() func);
 }
