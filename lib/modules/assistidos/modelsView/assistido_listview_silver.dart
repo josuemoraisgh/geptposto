@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../assistidos_controller.dart';
+import '../assistidos_controller2.dart';
 import '../../Styles/styles.dart';
-import '../models/stream_assistido_model.dart';
+import '../models/stream_assistido_model2.dart';
 import 'assistido_face_detector_view.dart';
 
 class AssistidoListViewSilver extends StatelessWidget {
@@ -26,7 +26,7 @@ class AssistidoListViewSilver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BoxEvent>(
-      stream: controller.assistidosStoreList.dateSelectedController,
+      stream: controller.assistidoProviderSync.dateSelectedController,
       builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
         final data = dateSelected.data?.value[0];
         if (data != null && data != "") {

@@ -6,8 +6,8 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:icon_badge/icon_badge.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import 'assistidos_controller.dart';
-import 'models/stream_assistido_model.dart';
+import 'assistidos_controller2.dart';
+import 'models/stream_assistido_model2.dart';
 import 'modelsView/assistido_face_detector_view.dart';
 import 'modelsView/custom_search_bar.dart';
 import 'modelsView/dropdown_body.dart';
@@ -34,7 +34,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
   @override
   Widget build(BuildContext context) => StreamBuilder<List<StreamAssistido>>(
         initialData: const [],
-        stream: controller.assistidosStoreList.stream,
+        stream: controller.assistidoProviderSync.stream, //controller.assistidosStoreList.stream,
         builder: (BuildContext context,
                 AsyncSnapshot<List<StreamAssistido>> assistidoList) =>
             ValueListenableBuilder<bool>(
@@ -46,7 +46,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                 (BuildContext context, TextEditingValue textEditingValue, _) {
               List<StreamAssistido> list = [];
               if (isInited && assistidoList.hasData) {
-                list = controller.assistidosStoreList.search(
+                list = controller.search(
                   assistidoList.data!,
                   textEditingValue.text,
                   widget.dadosTela['title'] == 'Todos'
@@ -104,13 +104,13 @@ class _AssistidosPageState extends State<AssistidosPage> {
           RxBuilder(
             builder: (BuildContext context) => IconBadge(
               icon: const Icon(Icons.sync),
-              itemCount: controller.assistidosStoreList.countSync.value,
+              itemCount: controller.assistidoProviderSync.countSync.value,
               badgeColor: Colors.red,
               itemColor: Colors.white,
               maxCount: 99,
               hideZero: true,
               onTap: () async {
-                controller.assistidosStoreList.sync();
+                controller.assistidoProviderSync.sync();
               },
             ),
           ),
@@ -215,7 +215,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
 
   Future chamadaFunc(StreamAssistido assistido) async {
     final dateSelected =
-        await controller.assistidosStoreList.getConfig("dateSelected");
+        await controller.assistidoProviderSync.assistidoProviderStore.getConfig("dateSelected");
     if (dateSelected != null && assistido.insertChamadaFunc(dateSelected[0])) {
       controller.countPresente++;
     }
@@ -223,7 +223,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
 
   Future chamadaToogleFunc(StreamAssistido pessoa) async {
     final dateSelected =
-        await controller.assistidosStoreList.getConfig("dateSelected");
+        await controller.assistidoProviderSync.assistidoProviderStore.getConfig("dateSelected");
     if (dateSelected != null) {
       controller.countPresente += pessoa.chamadaToogleFunc(dateSelected[0]);
     }
@@ -242,26 +242,26 @@ class _AssistidosPageState extends State<AssistidosPage> {
             actions: [
               ElevatedButton(
                   onPressed: () async {
-                    final dateSelected = (await controller.assistidosStoreList
+                    final dateSelected = (await controller.assistidoProviderSync.assistidoProviderStore
                         .getConfig("dateSelected"))?[0];
-                    final itensList = await controller.assistidosStoreList
+                    final itensList = await controller.assistidoProviderSync.assistidoProviderStore
                         .getConfig("itensList");
                     if (itensList != null &&
                         dateSelected != null &&
                         itensList.length > 1) {
                       var itensRemove = dateSelected;
                       if (itensList.last != itensRemove) {
-                        controller.assistidosStoreList
-                            .addConfig("dateSelected", [itensList.last]);
+                        controller.assistidoProviderSync.assistidoProviderStore
+                            .setConfig("dateSelected", [itensList.last]);
                       } else {
-                        controller.assistidosStoreList.addConfig("dateSelected",
+                        controller..assistidoProviderSync.assistidoProviderStore.setConfig("dateSelected",
                             [itensList.elementAt(itensList.length - 2)]);
                       }
                       final itens = itensList
                           .where((element) => element != itensRemove)
                           .toList();
-                      controller.assistidosStoreList
-                          .addConfig("itensList", itens);
+                      controller.assistidoProviderSync.assistidoProviderStore
+                          .setConfig("itensList", itens);
                     } else {
                       //Fazer uma mensagem de erro informando que não pode remover todos os elementos.
                       debugPrint("Erro em dar presença!!!");
@@ -306,13 +306,13 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   child: const Text("Cancelar")),
               ElevatedButton(
                   onPressed: () async {
-                    final itensList = await controller.assistidosStoreList
+                    final itensList = await controller.assistidoProviderSync.assistidoProviderStore
                         .getConfig("itensList");
                     if (itensList != null) {
-                      controller.assistidosStoreList
-                          .addConfig("itensList", itensList + [value]);
-                      controller.assistidosStoreList
-                          .addConfig("dateSelected", [value]);
+                      controller.assistidoProviderSync.assistidoProviderStore
+                          .setConfig("itensList", itensList + [value]);
+                      controller.assistidoProviderSync.assistidoProviderStore
+                          .setConfig("dateSelected", [value]);
                       Modular.to.pop();
                     } else {
                       //Fazer uma mensagem de erro informando que não pode remover todos os elementos.

@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:geptposto/modules/assistidos/assistidos_controller.dart';
+import 'package:geptposto/modules/assistidos/assistidos_controller2.dart';
 import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import '../models/stream_assistido_model.dart';
+import '../models/stream_assistido_model2.dart';
 
 class AssistidosInsertEditView extends StatefulWidget {
   final StreamAssistido? assistido;
@@ -20,16 +20,15 @@ class AssistidosInsertEditView extends StatefulWidget {
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
   late final StreamAssistido _assistido;
-  final _assistidosStoreList =
-      Modular.get<AssistidosController>().assistidosStoreList;
+  final _assistidoProviderSync =
+      Modular.get<AssistidosController>().assistidoProviderSync;
   final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
 
   @override
   void initState() {
-    _assistido = StreamAssistido.vazio();
-
+    _assistido = StreamAssistido.vazio(_assistidoProviderSync.assistidoProviderStore);
     _isAdd = widget.assistido == null ? true : false;
     super.initState();
   }
@@ -420,8 +419,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                               const SnackBar(content: Text('Assistido Salvo')),
                             );
                             if (_isAdd) {
-                              _assistidosStoreList
-                                  .addSaveJustRemote(_assistido);
+                              _assistido.saveJustRemote();
                             } else {
                               widget.assistido?.copy(_assistido);
                               widget.assistido?.save();
@@ -705,7 +703,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                           const SizedBox(height: 4.0),
                           FloatingActionButton(
                             onPressed: () async {
-                              await _assistidosStoreList.delPhoto(_assistido);
+                              await _assistido.delPhoto();
                               setState(() {});
                             },
                             backgroundColor: Colors.redAccent,

@@ -7,7 +7,7 @@ import '../interfaces/assistido_storage_interface.dart';
 import '../models/assistido_models.dart';
 
 //implements == interface
-class AssistidoLocalStorageService implements AssistidoStorageInterface {
+class AssistidoStorageService implements AssistidoStorageInterface {
   Completer<Box<Assistido>> completerAssistidos = Completer<Box<Assistido>>();
 
   @override
@@ -22,9 +22,9 @@ class AssistidoLocalStorageService implements AssistidoStorageInterface {
   }
 
   @override
-  Future<void> addListener(Function() func) async {
+  Future<ValueListenable<Box<Assistido>>> listenable({List<dynamic>? keys}) async {
     final box = await completerAssistidos.future;
-    box.listenable().addListener(func);
+    return box.listenable();
   }
 
   @override

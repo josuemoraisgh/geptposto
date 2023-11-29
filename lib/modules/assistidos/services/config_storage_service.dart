@@ -1,4 +1,6 @@
+// ignore: file_names
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../interfaces/config_storage_interface.dart';
 
@@ -12,11 +14,12 @@ class ConfigStorageService
     if (!configCompleter.isCompleted) {
       configCompleter.complete(await Hive.openBox<List<String>>('configDatas'));
     }
+  }
+  
+  @override
+  Future<ValueListenable<Box<List<String>>>> listenable({List<dynamic>? keys}) async {
     final box = await configCompleter.future;
-    if (box.isEmpty) {
-      addConfig("dateSelected", ["01/01/2023"]);
-      addConfig("itensList", ["01/01/2023"]);
-    }
+    return box.listenable();
   }
 
   @override

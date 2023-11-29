@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-
-import '../assistidos_controller.dart';
+import '../assistidos_controller2.dart';
 
 class DropdownBody extends StatefulWidget {
   final AssistidosController controller;
@@ -23,9 +22,9 @@ class _DropdownBodyState extends State<DropdownBody> {
   Future<bool> init() async {
     try {
       final List<String>? aux1 =
-          await widget.controller.assistidosStoreList.getConfig('dateSelected');
+          await widget.controller.assistidoProviderSync.assistidoProviderStore.getConfig('dateSelected');
       final List<String>? aux2 =
-          await widget.controller.assistidosStoreList.getConfig('itensList');
+          await widget.controller.assistidoProviderSync.assistidoProviderStore.getConfig('itensList');
       if ((aux1 != null) && (aux1.isNotEmpty)) {
         dateSelected = BoxEvent("", aux1, false);
       }
@@ -47,13 +46,13 @@ class _DropdownBodyState extends State<DropdownBody> {
           ? StreamBuilder(
               initialData: dateSelected,
               stream:
-                  widget.controller.assistidosStoreList.dateSelectedController,
+                  widget.controller.assistidoProviderSync.dateSelectedController,
               builder: (BuildContext context,
                       AsyncSnapshot<BoxEvent> dateSelected) =>
                   StreamBuilder(
                 initialData: itensList,
                 stream:
-                    widget.controller.assistidosStoreList.itensListController,
+                    widget.controller.assistidoProviderSync.itensListController,
                 builder:
                     (BuildContext context, AsyncSnapshot<BoxEvent> itensList) =>
                         DropdownButton<String>(
@@ -77,8 +76,8 @@ class _DropdownBodyState extends State<DropdownBody> {
                       .cast<DropdownMenuItem<String>>(),
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
-                      widget.controller.assistidosStoreList
-                          .addConfig("dateSelected", [novoItemSelecionado]);
+                      widget.controller.assistidoProviderSync.assistidoProviderStore
+                          .setConfig("dateSelected", [novoItemSelecionado]);
                     }
                   },
                   value: dateSelected.data!.value[0],

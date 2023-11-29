@@ -10,7 +10,7 @@ import 'package:rx_notifier/rx_notifier.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
 import '../../faces/image_converter.dart';
-import '../models/stream_assistido_model.dart';
+import '../models/stream_assistido_model2.dart';
 
 const tfLiteGpuInferenceUsage = {
   'TFLITE_GPU_INFERENCE_PREFERENCE_FAST_SINGLE_ANSWER': 0,

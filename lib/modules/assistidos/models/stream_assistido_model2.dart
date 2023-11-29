@@ -45,22 +45,26 @@ class StreamAssistido extends Assistido {
 
   @override
   Future<void> save() async {
-    await assistidoStore.addSaveJustLocal(this);
-    await assistidoStore.addSaveJustRemote(this);
+    assistidoStore.save(this);
   }
 
-  Future<void> saveJustLocal() async {
-    assistidoStore.addSaveJustLocal(this);
-  }
-
-  Future<void> saveJustRemote() async {
-    assistidoStore.addSaveJustRemote(this);
-  }
+  void saveJustLocal() => assistidoStore.saveJustLocal(this);
+  void saveJustRemote() => assistidoStore.addSaveJustRemote(this);
 
   @override
   Future<void> delete() async {
+    delPhoto();
     assistidoStore.delete(this);
-    super.delete();
+  }
+
+ Future<void> delPhoto() async {
+      //Atualiza os arquivos
+      assistidoStore.syncStore
+          .addSync('delImage', photoName);
+      await assistidoStore.localStore.delFile(photoName);
+      //Atualiza o cadastro
+      photo = ["", Uint8List(0), []];
+      save();
   }
 
   Future<bool> addSetPhoto(final Uint8List uint8ListImage,
@@ -82,13 +86,13 @@ class StreamAssistido extends Assistido {
       if (image != null) {
         final inputImage = InputImage.fromFile(file);
         final faceDetected = await assistidoStore
-            .assistidoMmlService.faceDetector
+            .faceDetectionService.faceDetector
             .processImage(inputImage);
         if (faceDetected.isNotEmpty) {
           image = isUpload
               ? cropFace(image, faceDetected[0], step: 80) ?? image
               : image;
-          fotoPoints = (await assistidoStore.assistidoMmlService
+          fotoPoints = (await assistidoStore.faceDetectionService
               .classificatorImage(image));
         }
         photo = [

@@ -15,46 +15,48 @@ class AssistidoProviderSync {
       StreamController<List<StreamAssistido>>.broadcast();
   Stream<List<StreamAssistido>> get stream => _assistidoChangeStream.stream;
 
-  void Function()? atualiza;
-  void Function()? desatualiza;
-
-  bool isRunningSync = false;
+  final isRunningSync = RxNotifier<bool>(false);
   final countSync = RxNotifier<int>(0);
 
   late final Stream<BoxEvent> dateSelectedController;
   late final Stream<BoxEvent> itensListController;
 
-  int _countConnection = 0;
+  static int _countConnection = 0;
 
-  AssistidoProviderSync({AssistidosProviderStore? assistidoProviderStoreAux}) {
-    assistidoProviderStore =
-        assistidoProviderStoreAux ?? Modular.get<AssistidosProviderStore>();
+  AssistidoProviderSync({AssistidosProviderStore? assistidoProviderStore}) {
+    this.assistidoProviderStore =
+        assistidoProviderStore ?? Modular.get<AssistidosProviderStore>();
   }
 
   Future<void> init() async {
+    assistidoProviderStore.init();
+
     dateSelectedController = assistidoProviderStore.configStore
         .watch("dateSelected")
         .asBroadcastStream() as Stream<BoxEvent>;
+
     itensListController = assistidoProviderStore.configStore
         .watch("itensList")
         .asBroadcastStream() as Stream<BoxEvent>;
-    assistidoProviderStore.syncStore.addListener(sync);
-    sync();
-    assistidoProviderStore.localStore.addListener(sinkAdd);
+
+    (await assistidoProviderStore.localStore.listenable()).addListener(() => sinkAdd());
+    (await assistidoProviderStore.syncStore.listenable()).addListener(() => sync());
+
     sinkAdd();
+    sync();
   }
 
   Future<void> sinkAdd() async {
-    _assistidoChangeStream.sink.add(
-      (await assistidoProviderStore.localStore.getAll())
-          .map((element) => StreamAssistido(element, assistidoProviderStore))
-          .toList(),
-    );
+    final tst = (await assistidoProviderStore.localStore.getAll())
+        .map((element) => StreamAssistido(element, assistidoProviderStore))
+        .toList();
+    _assistidoChangeStream.sink.add(tst);
   }
 
   Future<void> sync() async {
-    if (isRunningSync == false) {
-      isRunningSync = true;
+    dynamic status;    
+    if (isRunningSync.value == false) {
+      isRunningSync.value = true;
       countSync.value = await assistidoProviderStore.syncStore.length();
       while ((await assistidoProviderStore.syncStore.length()) > 0) {
         while (_countConnection >= 10) {
@@ -62,18 +64,18 @@ class AssistidoProviderSync {
               milliseconds: 500)); //so faz 10 requisições por vez.
         }
         _countConnection++;
-        dynamic status;
+        status = null;
         var sync = await assistidoProviderStore.syncStore.getSync(0);
         await assistidoProviderStore.syncStore.delSync(0);
         if (sync != null) {
           if (sync.synckey == 'add') {
             status = await assistidoProviderStore.remoteStore
-                .addData((sync.syncValue as StreamAssistido).toList());
+                .addData((sync.syncValue as Assistido).toList());
           }
           if (sync.synckey == 'set') {
             status = await assistidoProviderStore.remoteStore.setData(
-                (sync.syncValue as StreamAssistido).ident.toString(),
-                (sync.syncValue as StreamAssistido).toList());
+                (sync.syncValue as Assistido).ident.toString(),
+                (sync.syncValue as Assistido).toList());
           }
           if (sync.synckey == 'del') {
             status = await assistidoProviderStore.remoteStore
@@ -94,6 +96,27 @@ class AssistidoProviderSync {
           if (sync.synckey == 'delImage') {
             status = await assistidoProviderStore.remoteStore
                 .deleteFile('BDados_Images', sync.syncValue);
+          }
+          if (sync.synckey == 'setConfig') {
+            status = await assistidoProviderStore.remoteStore.setData(
+                (sync.syncValue as List<String>)[0].toString(),
+                (sync.syncValue as List<String>).sublist(1).toList(),
+                table: 'Config');
+          }
+          if (sync.synckey == 'getPhoto') {
+            var stAssist = (sync.syncValue as StreamAssistido);
+            if (stAssist.photoName.isNotEmpty) {
+              if (stAssist.photoUint8List.isEmpty) {
+                var remoteImage = await assistidoProviderStore.remoteStore
+                    .getFile('BDados_Images', stAssist.photoName);
+                if (remoteImage != null) {
+                  if (remoteImage.isNotEmpty) {
+                    status = (await stAssist.addSetPhoto(base64Decode(remoteImage),
+                        isUpload: false)) == true ? true : null;
+                  }
+                }
+              }
+            }
           }
           if (status != null) {
             countSync.value = await assistidoProviderStore.syncStore.length();
@@ -120,78 +143,11 @@ class AssistidoProviderSync {
         for (var e in remoteDataChanges) {
           final stAssist =
               StreamAssistido(Assistido.fromList(e), assistidoProviderStore);
-          assistidoProviderStore.localStore.setRow(stAssist).then(
-            (value) async {
-              getPhoto(stAssist);
-            },
-          );
+          assistidoProviderStore.localStore.setRow(stAssist).then((value) =>
+              assistidoProviderStore.syncStore.addSync('getPhoto', stAssist));
         }
       }
-      isRunningSync = false;
+      isRunningSync.value = false;
     }
-    if (desatualiza != null) desatualiza!();
-    if (atualiza != null) atualiza!();
-  }
-
-  Future<bool> addConfig(String ident, List<String>? values) {
-    return assistidoProviderStore.configStore.addConfig(ident, values);
-  }
-
-  Future<List<String>?> getConfig(String ident) {
-    return assistidoProviderStore.configStore.getConfig(ident);
-  }
-
-  Future<void> delConfig(String ident) {
-    return assistidoProviderStore.configStore.delConfig(ident);
-  }
-
-  Future<bool> getPhoto(StreamAssistido? stAssist) async {
-    if (stAssist != null) {
-      if (stAssist.photoName.isNotEmpty) {
-        if (stAssist.photoUint8List.isNotEmpty) {
-          return true;
-        }
-        while (_countConnection >= 10) {
-          //so faz 10 requisições por vez.
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-        _countConnection++;
-        var remoteImage = await assistidoProviderStore.remoteStore
-            .getFile('BDados_Images', stAssist.photoName);
-        if (remoteImage != null) {
-          if (remoteImage.isNotEmpty) {
-            final resp = await stAssist.addSetPhoto(base64Decode(remoteImage),
-                isUpload: false);
-            _countConnection--;
-            return resp;
-          }
-        }
-        _countConnection--;
-      }
-    }
-    return false;
-  }
-
-  Future<bool> delPhoto(StreamAssistido? stAssist) async {
-    if (stAssist != null) {
-      //Atualiza os arquivos
-      assistidoProviderStore.syncStore
-          .addSync('delImage', stAssist.photoName)
-          .then((_) => sync());
-      await assistidoProviderStore.localStore.delFile(stAssist.photoName);
-      //Atualiza o cadastro
-      stAssist.photo = ["", Uint8List(0), []];
-      stAssist.save();
-    }
-    return false;
-  }
-
-  Future<bool> delete(StreamAssistido stAssist) async {
-    final rowId = stAssist.ident.toString();
-    assistidoProviderStore.syncStore.addSync('del', rowId).then((_) => sync());
-    if (await assistidoProviderStore.localStore.delRow(rowId)) {
-      return true;
-    }
-    return false;
   }
 }

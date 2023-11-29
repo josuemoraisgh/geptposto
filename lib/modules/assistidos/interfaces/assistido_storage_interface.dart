@@ -6,7 +6,7 @@ import '../models/assistido_models.dart';
 
 abstract class AssistidoStorageInterface {
   Future<void> init();
-
+  Future<ValueListenable<Box<Assistido>>> listenable({List<dynamic>? keys});
   Future<List<dynamic>> getKeys();
   Future<File> addSetFile(String fileName, final Uint8List uint8ListImage);
 
@@ -20,5 +20,4 @@ abstract class AssistidoStorageInterface {
   Future<bool> delAll(); //Limpa o Banco de Dados
   Future<bool> delFile(String fileName); //Deleta arquivo
   Stream<BoxEvent> watch(String key);
-  Future<void> addListener(Function() func);
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import 'models/stream_assistido_model.dart';
+import 'models/stream_assistido_model2.dart';
 import 'provider/assistido_provider_sync.dart';
 
 Map<String, String> _caracterMap = {
@@ -28,28 +28,28 @@ Map<String, String> _caracterMap = {
 };
 
 class AssistidosController {
-  final isInitedController = RxNotifier<bool>(false);
   final textEditing = TextEditingController(text: "");
   final countPresenteController = RxNotifier<int>(0);
+  final isInitedController = RxNotifier<bool>(false);
   final focusNode = FocusNode();
   final presentCount = RxNotifier<int>(0);
   final whatWidget = RxNotifier<int>(0);
   final assistidoProvavelList = RxNotifier<List<StreamAssistido>>([]);
   final faceDetector = RxNotifier<bool>(false);
 
-  late final AssistidoProviderSync assistidosStoreSync;
+  late final AssistidoProviderSync assistidoProviderSync;
 
-  AssistidosController({AssistidoProviderSync? assistidosStoreSyncAux}) {
-    assistidosStoreSync =
-        assistidosStoreSyncAux ?? Modular.get<AssistidoProviderSync>();
-    assistidosStoreSync.atualiza = () => isInitedController.value = true;
-    assistidosStoreSync.desatualiza = () => isInitedController.value = false;
+  AssistidosController({AssistidoProviderSync? assistidoProviderSync}) {
+    this.assistidoProviderSync =
+        assistidoProviderSync ?? Modular.get<AssistidoProviderSync>();
   }
 
-  Future<bool> init() async {
-    await assistidosStoreSync.init();
-    assistidosStoreSync.sync();
-    return true;
+  Future<void> init() async {
+    if (isInitedController.value == false) {
+      isInitedController.value = true;
+      await assistidoProviderSync.init();
+    }
+    assistidoProviderSync.sync();
   }
 
   int get countPresente => countPresenteController.value;

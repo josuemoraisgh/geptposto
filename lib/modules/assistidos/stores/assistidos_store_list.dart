@@ -14,7 +14,7 @@ import 'package:geptposto/modules/faces/image_converter.dart';
 import '../interfaces/assistido_storage_interface.dart';
 import '../interfaces/remote_storage_interface.dart';
 import '../interfaces/config_storage_interface.dart';
-import '../interfaces/sync_local_storage_interface.dart';
+import '../interfaces/sync_storage_interface.dart';
 import '../models/assistido_models.dart';
 import '../models/stream_assistido_model.dart';
 import '../services/face_detection_service.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/stream_assistido_model.dart';
+import '../models/stream_assistido_model2.dart';
 import '../modelsView/assistidos_insert_edit_view.dart';
 
 class AssistidoEditInsertPage extends StatelessWidget {

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:hive/hive.dart';
 import '../interfaces/assistido_storage_interface.dart';
 import '../interfaces/remote_storage_interface.dart';
 import '../interfaces/config_storage_interface.dart';
-import '../interfaces/sync_local_storage_interface.dart';
+import '../interfaces/sync_storage_interface.dart';
 import '../models/assistido_models.dart';
 import '../services/face_detection_service.dart';
 
@@ -12,21 +14,21 @@ class AssistidosProviderStore {
   late final RemoteStorageInterface remoteStore;
   late final ConfigStorageInterface configStore;
   late final SyncStorageInterface syncStore;
-  late final FaceDetectionService assistidoMmlService;
+  late final FaceDetectionService faceDetectionService;
+  late final ValueListenable<Box<Assistido>> localStoreListenable;
+
   AssistidosProviderStore(
-      {SyncStorageInterface? syncStoreAux,
-      AssistidoStorageInterface? localStoreAux,
-      ConfigStorageInterface? configStoreAux,
-      RemoteStorageInterface? remoteStoreAux,
-      FaceDetectionService? assistidoMmlServiceAux}) {
-    syncStore = syncStoreAux ?? Modular.get<SyncStorageInterface>();
-    localStore = localStoreAux ?? Modular.get<AssistidoStorageInterface>();
-    configStore =
-        configStoreAux ?? Modular.get<ConfigStorageInterface>();
-    remoteStore =
-        remoteStoreAux ?? Modular.get<RemoteStorageInterface>();
-    assistidoMmlService =
-        assistidoMmlServiceAux ?? Modular.get<FaceDetectionService>();
+      {SyncStorageInterface? syncStore,
+      AssistidoStorageInterface? localStore,
+      ConfigStorageInterface? configStore,
+      RemoteStorageInterface? remoteStore,
+      FaceDetectionService? faceDetectionService}) {
+    this.syncStore = syncStore ?? Modular.get<SyncStorageInterface>();
+    this.localStore = localStore ?? Modular.get<AssistidoStorageInterface>();
+    this.configStore = configStore ?? Modular.get<ConfigStorageInterface>();
+    this.remoteStore = remoteStore ?? Modular.get<RemoteStorageInterface>();
+    this.faceDetectionService =
+        faceDetectionService ?? Modular.get<FaceDetectionService>();
   }
 
   Future<void> init() async {
@@ -34,7 +36,7 @@ class AssistidosProviderStore {
     await configStore.init();
     await remoteStore.init();
     await syncStore.init();
-    await assistidoMmlService.init();
+    await faceDetectionService.init();
   }
 
   Future<Assistido?> getRow(int rowId) async {
@@ -42,14 +44,13 @@ class AssistidosProviderStore {
     return resp;
   }
 
-  Future<String?> add(Assistido stAssist) async {
-    addSaveJustRemote(stAssist, isAdd: true);
-    return addSaveJustLocal(stAssist, isAdd: true);
+  Future<bool> add(Assistido stAssist) async {
+    return addSaveJustRemote(stAssist, isAdd: true);
   }
 
   Future<String?> save(Assistido stAssist) async {
     addSaveJustRemote(stAssist, isAdd: false);
-    return addSaveJustLocal(stAssist, isAdd: false);
+    return saveJustLocal(stAssist);
   }
 
   Future<bool> addSaveJustRemote(Assistido stAssist,
@@ -58,9 +59,8 @@ class AssistidosProviderStore {
     return true;
   }
 
-  Future<String?> addSaveJustLocal(Assistido stAssist,
-      {bool isAdd = false}) async {
-    return isAdd ? localStore.setRow(stAssist) : localStore.setRow(stAssist);
+  Future<String?> saveJustLocal(Assistido stAssist) async {
+    return localStore.setRow(stAssist);
   }
 
   Future<bool> deleteAll() async {
@@ -72,10 +72,19 @@ class AssistidosProviderStore {
 
   Future<bool> delete(Assistido stAssist) async {
     final rowId = stAssist.ident.toString();
-    syncStore.addSync('del', rowId);
+    syncStore.addSync('del', rowId);    
     if (await localStore.delRow(rowId)) {
       return true;
     }
     return false;
+  }
+
+  Future<bool> setConfig(String ident, List<String>? values) async {
+    syncStore.addSync('setConfig', [ident] + values!);
+    return configStore.addConfig(ident, values);
+  }
+
+  Future<List<String>?> getConfig(String ident) {
+    return configStore.getConfig(ident);
   }
 }
