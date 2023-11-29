@@ -1,4 +1,4 @@
-abstract class AssistidoConfigLocalStorageInterface {
+abstract class ConfigStorageInterface {
   Future<void> init();
   Future<bool> addConfig(
       String ident, List<String>? values); //Adiciona varias linhas

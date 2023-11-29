@@ -1,32 +1,32 @@
 import 'dart:async';
 import 'package:flutter_modular/flutter_modular.dart';
-import '../interfaces/assistido_local_storage_interface.dart';
-import '../interfaces/asssistido_remote_storage_interface.dart';
-import '../interfaces/assistido_config_local_storage_interface.dart';
+import '../interfaces/assistido_storage_interface.dart';
+import '../interfaces/remote_storage_interface.dart';
+import '../interfaces/config_storage_interface.dart';
 import '../interfaces/sync_local_storage_interface.dart';
 import '../models/assistido_models.dart';
-import '../services/assistido_ml_service.dart';
+import '../services/face_detection_service.dart';
 
 class AssistidosProviderStore {
-  late final AssistidoLocalStorageInterface localStore;
-  late final AssistidoRemoteStorageInterface remoteStore;
-  late final AssistidoConfigLocalStorageInterface configStore;
-  late final SyncLocalStorageInterface syncStore;
-  late final AssistidoMLService assistidoMmlService;
+  late final AssistidoStorageInterface localStore;
+  late final RemoteStorageInterface remoteStore;
+  late final ConfigStorageInterface configStore;
+  late final SyncStorageInterface syncStore;
+  late final FaceDetectionService assistidoMmlService;
   AssistidosProviderStore(
-      {SyncLocalStorageInterface? syncStoreAux,
-      AssistidoLocalStorageInterface? localStoreAux,
-      AssistidoConfigLocalStorageInterface? configStoreAux,
-      AssistidoRemoteStorageInterface? remoteStoreAux,
-      AssistidoMLService? assistidoMmlServiceAux}) {
-    syncStore = syncStoreAux ?? Modular.get<SyncLocalStorageInterface>();
-    localStore = localStoreAux ?? Modular.get<AssistidoLocalStorageInterface>();
+      {SyncStorageInterface? syncStoreAux,
+      AssistidoStorageInterface? localStoreAux,
+      ConfigStorageInterface? configStoreAux,
+      RemoteStorageInterface? remoteStoreAux,
+      FaceDetectionService? assistidoMmlServiceAux}) {
+    syncStore = syncStoreAux ?? Modular.get<SyncStorageInterface>();
+    localStore = localStoreAux ?? Modular.get<AssistidoStorageInterface>();
     configStore =
-        configStoreAux ?? Modular.get<AssistidoConfigLocalStorageInterface>();
+        configStoreAux ?? Modular.get<ConfigStorageInterface>();
     remoteStore =
-        remoteStoreAux ?? Modular.get<AssistidoRemoteStorageInterface>();
+        remoteStoreAux ?? Modular.get<RemoteStorageInterface>();
     assistidoMmlService =
-        assistidoMmlServiceAux ?? Modular.get<AssistidoMLService>();
+        assistidoMmlServiceAux ?? Modular.get<FaceDetectionService>();
   }
 
   Future<void> init() async {

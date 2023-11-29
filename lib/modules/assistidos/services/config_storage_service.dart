@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../interfaces/assistido_config_local_storage_interface.dart';
+import '../interfaces/config_storage_interface.dart';
 
 //implements == interface
-class AssistidoConfigLocalStorageService
-    implements AssistidoConfigLocalStorageInterface {
+class ConfigStorageService
+    implements ConfigStorageInterface {
   Completer<Box<List<String>>> configCompleter = Completer<Box<List<String>>>();
 
   @override

@@ -40,7 +40,7 @@ const tFLGpuDelegateWaitType = {
   'TFLGpuDelegateWaitTypeAggressive': 3,
 };
 
-class AssistidoMLService extends Disposable {
+class FaceDetectionService extends Disposable {
   late Interpreter interpreter;
   //late IsolateInterpreter isolateInterpreter;
   late FaceDetector faceDetector;

@@ -2,16 +2,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../app_module.dart';
-import '../assistidos/services/sync_hive_local_storage_service.dart';
+import 'services/sync_storage_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_page.dart';
 import 'pages/assistidos_edit_insert_page.dart';
-import 'repositories/assistido_gsheet_repository.dart';
-import 'services/assistido_hive_local_storage_service.dart';
-import 'services/assistido_config_hive_local_storage_service.dart';
-import 'services/assistido_ml_service.dart';
+import 'services/remote_storage_service.dart';
+import 'services/assistido_local_storage_service.dart';
+import 'services/config_storage_service.dart';
+import 'services/face_detection_service.dart';
 import 'assistidos_controller.dart';
-import 'stores/assistidos_store.dart';
+import 'stores/assistidos_store_list.dart';
 
 class AssistidosModule extends Module {
   @override
@@ -37,11 +37,11 @@ class AssistidosModule extends Module {
     i.addInstance<AssistidosController>(
       AssistidosController(
         assistidosStoreList: AssistidosStoreList(
-          syncStore: SyncLocalStorageService(),
+          syncStore: SyncStorageService(),
           localStore: AssistidoLocalStorageService(),
-          configStore: AssistidoConfigLocalStorageService(),
-          remoteStore: AssistidoRemoteStorageRepository(provider: Dio()),
-          assistidoMmlService: AssistidoMLService(),
+          configStore: ConfigStorageService(),
+          remoteStore: AssistidoRemoteStorageService(provider: Dio()),
+          faceDetectionService: FaceDetectionService(),
         ),
       ),
     );

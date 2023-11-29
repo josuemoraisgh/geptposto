@@ -9,9 +9,9 @@ import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';
 import '../assistidos_controller.dart';
 import '../models/stream_assistido_model.dart';
-import '../services/assistido_ml_service.dart';
+import '../services/face_detection_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
-import '../stores/assistidos_store.dart';
+import '../stores/assistidos_store_list.dart';
 
 class AssistidoFaceDetectorView extends StatefulWidget {
   final RxNotifier<List<StreamAssistido>>? assistidoProvavel;
@@ -35,7 +35,7 @@ class AssistidoFaceDetectorView extends StatefulWidget {
 class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   late Future<bool> isInited;
   late final AssistidosStoreList assistidosStoreList;
-  late final AssistidoMLService assistidoMmlService;
+  late final FaceDetectionService faceDetectionService;
   bool _canProcess = true, _isBusy = false;
 
   CameraService? _cameraService = Modular.get<CameraService>();
@@ -47,7 +47,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   Future<bool> init() async {
     assistidosStoreList =
         Modular.get<AssistidosController>().assistidosStoreList;
-    assistidoMmlService = assistidoMmlService;
+    faceDetectionService = assistidosStoreList.faceDetectionService;
     _cameraService = _cameraService ?? CameraService();
     return true;
   }
@@ -87,7 +87,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         if (faces!.length > 1) {
           debugPrint("duas faces");
         }
-        await assistidoMmlService.predict(
+        await faceDetectionService.predict(
             cameraImage!,
             _cameraService!.camera!.sensorOrientation,
             widget.assistidoList!,
@@ -114,7 +114,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
 
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
-    faces = await assistidoMmlService.faceDetector.processImage(inputImage);
+    faces = await faceDetectionService.faceDetector.processImage(inputImage);
     if (faces?.isEmpty ?? true) {
       _isBusy = false;
       return;

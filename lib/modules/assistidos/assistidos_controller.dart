@@ -4,7 +4,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 
 import 'models/stream_assistido_model.dart';
-import 'stores/assistidos_store.dart';
+import 'stores/assistidos_store_list.dart';
 
 class AssistidosController {
   final isInitedController = RxNotifier<bool>(false);

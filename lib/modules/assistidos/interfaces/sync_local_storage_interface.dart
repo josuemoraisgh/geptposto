@@ -1,6 +1,6 @@
 import '../models/sync_models.dart';
 
-abstract class SyncLocalStorageInterface {
+abstract class SyncStorageInterface {
   Future<void> init();
   Future<int> length();
   Future<bool> addSync(String key, dynamic syncValue); //Adiciona varias linhas
