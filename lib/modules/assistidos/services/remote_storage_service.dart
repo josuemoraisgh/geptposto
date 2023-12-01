@@ -6,11 +6,11 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '../interfaces/remote_storage_interface.dart';
 import '../models/device_info_model.dart';
 
-class AssistidoRemoteStorageService
-    implements RemoteStorageInterface {
+class AssistidoRemoteStorageService implements RemoteStorageInterface {
   late final Dio provider;
-  final String baseUrl = 'https://script.google.com';  
+  final String baseUrl = 'https://script.google.com';
   final DeviceInfoModel deviceInfoModel = DeviceInfoModel();
+  static int _countConnection = 0;
 
   AssistidoRemoteStorageService({Dio? provider}) {
     this.provider = provider ?? Modular.get<Dio>();
@@ -29,6 +29,11 @@ class AssistidoRemoteStorageService
       dynamic p1,
       dynamic p2,
       dynamic p3}) async {
+    while (_countConnection >= 10) {
+      //so faz 10 requisições por vez.
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    _countConnection++;
     var response = await provider.get(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
@@ -55,10 +60,11 @@ class AssistidoRemoteStorageService
             "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
       }
     }
+    _countConnection--;
     return null;
   }
 
-   @override
+  @override
   Future<int?> addData(List<dynamic>? value,
       {String? planilha, String table = "BDados"}) async {
     if (value != null) {

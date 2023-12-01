@@ -39,8 +39,10 @@ class AssistidoProviderSync {
         .watch("itensList")
         .asBroadcastStream() as Stream<BoxEvent>;
 
-    (await assistidoProviderStore.localStore.listenable()).addListener(() => sinkAdd());
-    (await assistidoProviderStore.syncStore.listenable()).addListener(() => sync());
+    (await assistidoProviderStore.localStore.listenable())
+        .addListener(() => sinkAdd());
+    (await assistidoProviderStore.syncStore.listenable())
+        .addListener(() => sync());
 
     sinkAdd();
     sync();
@@ -54,7 +56,7 @@ class AssistidoProviderSync {
   }
 
   Future<void> sync() async {
-    dynamic status;    
+    dynamic status;
     if (isRunningSync.value == false) {
       isRunningSync.value = true;
       countSync.value = await assistidoProviderStore.syncStore.length();
@@ -104,19 +106,8 @@ class AssistidoProviderSync {
                 table: 'Config');
           }
           if (sync.synckey == 'getPhoto') {
-            var stAssist = (sync.syncValue as StreamAssistido);
-            if (stAssist.photoName.isNotEmpty) {
-              if (stAssist.photoUint8List.isEmpty) {
-                var remoteImage = await assistidoProviderStore.remoteStore
-                    .getFile('BDados_Images', stAssist.photoName);
-                if (remoteImage != null) {
-                  if (remoteImage.isNotEmpty) {
-                    status = (await stAssist.addSetPhoto(base64Decode(remoteImage),
-                        isUpload: false)) == true ? true : null;
-                  }
-                }
-              }
-            }
+            getPhoto(sync.syncValue as StreamAssistido);
+            status = true;
           }
           if (status != null) {
             countSync.value = await assistidoProviderStore.syncStore.length();
@@ -148,6 +139,37 @@ class AssistidoProviderSync {
         }
       }
       isRunningSync.value = false;
+    } else {
+      await Future.delayed(const Duration(
+              milliseconds: 500)); //so faz 10 requisições por vez.
+      sync();
     }
+  }
+
+  Future<bool?> getPhoto(StreamAssistido? stAssist) async {
+    if (stAssist != null) {
+      if (stAssist.photoName.isNotEmpty) {
+        if ((stAssist.photoUint8List as Uint8List).isNotEmpty) {
+          return true;
+        }
+        while (_countConnection >= 10) {
+          //so faz 10 requisições por vez.
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+        _countConnection++;
+        var remoteImage =
+            await assistidoProviderStore.remoteStore.getFile('BDados_Images', stAssist.photoName);
+        if (remoteImage != null) {
+          if (remoteImage.isNotEmpty) {
+            final resp = await stAssist.addSetPhoto(base64Decode(remoteImage),
+                isUpload: false);
+            _countConnection--;
+            return resp.isEmpty ? true : null;
+          }
+        }
+        _countConnection--;
+      }
+    }
+    return null;
   }
 }

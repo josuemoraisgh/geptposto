@@ -100,26 +100,26 @@ class AssistidoListViewSilver extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          StreamBuilder<Uint8List>(
-            initialData: pessoa.photoUint8List,
-            stream: pessoa.photoStream,
-            builder: (BuildContext context,
-                    AsyncSnapshot<Uint8List> photoUint8List) =>
+          FutureBuilder(
+            future: pessoa.photoUint8List,
+            builder: (BuildContext context, AsyncSnapshot photoUint8List) =>
                 ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: pessoa.photoUint8List.isEmpty
-                  ? Image.asset(
-                      "assets/images/semFoto.png",
-                      fit: BoxFit.cover,
-                      width: 76,
-                      height: 76,
-                    )
-                  : Image.memory(
-                      Uint8List.fromList(pessoa.photoUint8List),
-                      fit: BoxFit.cover,
-                      width: 76,
-                      height: 76,
-                    ),
+              child: photoUint8List.hasData
+                  ? Center(child: CircularProgressIndicator())
+                  : (photoUint8List.data as Uint8List).isEmpty
+                      ? Image.asset(
+                          "assets/images/semFoto.png",
+                          fit: BoxFit.cover,
+                          width: 76,
+                          height: 76,
+                        )
+                      : Image.memory(
+                          Uint8List.fromList(photoUint8List.data),
+                          fit: BoxFit.cover,
+                          width: 76,
+                          height: 76,
+                        ),
             ),
           ),
           Expanded(

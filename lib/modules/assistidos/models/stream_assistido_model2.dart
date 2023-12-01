@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:intl/intl.dart';
@@ -12,14 +13,12 @@ class StreamAssistido extends Assistido {
   final AssistidosProviderStore assistidoStore;
   final StreamController<StreamAssistido> _chamadaController =
       StreamController<StreamAssistido>.broadcast();
-  final StreamController<Uint8List> _photoController =
-      StreamController<Uint8List>.broadcast();
 
   StreamAssistido(super.assistido, this.assistidoStore) : super.assistido();
   StreamAssistido.vazio(this.assistidoStore)
       : super(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
   Stream<StreamAssistido> get chamadaStream => _chamadaController.stream;
-  Stream<Uint8List> get photoStream => _photoController.stream;
+
   Assistido get assistido => this;
 
   bool insertChamadaFunc(dateSelected) {
@@ -57,20 +56,20 @@ class StreamAssistido extends Assistido {
     assistidoStore.delete(this);
   }
 
- Future<void> delPhoto() async {
-      //Atualiza os arquivos
-      assistidoStore.syncStore
-          .addSync('delImage', photoName);
-      await assistidoStore.localStore.delFile(photoName);
-      //Atualiza o cadastro
-      photo = ["", Uint8List(0), []];
-      save();
+  Future<void> delPhoto() async {
+    //Atualiza os arquivos
+    assistidoStore.syncStore.addSync('delImage', photoName);
+    await assistidoStore.localStore.delFile(photoName);
+    //Atualiza o cadastro
+    photo = ["", Uint8List(0), []];
+    save();
   }
 
-  Future<bool> addSetPhoto(final Uint8List uint8ListImage,
+  Future<Uint8List> addSetPhoto(final Uint8List uint8ListImage,
       {bool isUpload = true}) async {
     String photoFileName;
-    List<double> fotoPoints = [];
+    //List<double> fotoPoints = [];
+    Uint8List resp = Uint8List(0);
     if (uint8ListImage.isNotEmpty) {
       //Nomeando o arquivo
       final now = DateTime.now();
@@ -95,22 +94,23 @@ class StreamAssistido extends Assistido {
           fotoPoints = (await assistidoStore.faceDetectionService
               .classificatorImage(image));
         }
+        resp = imglib.encodeJpg(image);
         photo = [
           photoFileName,
-          imglib.encodeJpg(image),
-          fotoPoints,
+          resp,
+          //fotoPoints,
         ];
         saveJustLocal();
         if (isUpload) {
           assistidoStore.syncStore.addSync(
             'setImage',
-            [photoFileName, imglib.encodeJpg(image)],
+            [photoFileName, resp],
           ).then((_) => saveJustRemote());
         }
-        return true;
+        return resp;
       }
     }
-    return false;
+    return resp;
   }
 
   @override
@@ -154,24 +154,31 @@ class StreamAssistido extends Assistido {
       nomesMoradores = assistido.nomesMoradores;
       datasNasc = assistido.datasNasc;
       photoIntList = assistido.photoIntList;
-      fotoPoints = assistido.fotoPoints;
+      //fotoPoints = assistido.fotoPoints;
     }
     _chamadaController.sink.add(this);
-    _photoController.sink.add(photoUint8List);
   }
 
-  Uint8List get photoUint8List => Uint8List.fromList(super.photoIntList);
-  set photoUint8List(Uint8List data) {
-    super.photoIntList = data;
+  Future<Uint8List> get photoUint8List async {
+    if (this.photoName.isNotEmpty) {
+      if (this.photoIntList.isNotEmpty) {
+        return Uint8List.fromList(super.photoIntList);
+      }
+      var remoteImage = await assistidoStore.remoteStore
+          .getFile('BDados_Images', this.photoName);
+      if ((remoteImage != null) && (remoteImage.isNotEmpty)) {
+          return this.addSetPhoto(base64Decode(remoteImage), isUpload: false);
+      }
+    }
+    return Uint8List(0);
   }
 
   List<dynamic> get photo =>
       [super.photoName, photoUint8List, super.fotoPoints];
   set photo(List<dynamic> datas) {
     super.photoName = datas[0];
-    photoUint8List = datas[1];
-    super.fotoPoints = datas[2].cast<double>();
-    _photoController.sink.add(datas[1]);
+    photoIntList = datas[1];
+    //super.fotoPoints = datas[2].cast<double>();
   }
 
   @override
