@@ -7,11 +7,11 @@ import 'package:rx_notifier/rx_notifier.dart';
 import '../../faces/camera_controle_service.dart';
 import '../../faces/camera_preview_with_paint.dart';
 import '../../faces/image_converter.dart';
-import '../provider/assistido_provider_sync.dart';
+import '../provider/assistido_provider_store.dart';
 import '../services/face_detection_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
-import '../assistidos_controller2.dart';
-import '../models/stream_assistido_model2.dart';
+import '../assistidos_controller.dart';
+import '../models/stream_assistido_model.dart';
 
 class AssistidoFaceDetectorView extends StatefulWidget {
   final RxNotifier<List<StreamAssistido>>? assistidoProvavel;
@@ -34,7 +34,7 @@ class AssistidoFaceDetectorView extends StatefulWidget {
 
 class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   late Future<bool> isInited;
-  late final AssistidoProviderSync assistidoProviderSync;
+  late final AssistidosProviderStore assistidosProviderStore;
   late final FaceDetectionService faceDetectionService;
   bool _canProcess = true, _isBusy = false;
 
@@ -45,9 +45,9 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   CustomPaint? _customPaint;
 
   Future<bool> init() async {
-    assistidoProviderSync =
-        Modular.get<AssistidosController>().assistidoProviderSync;
-    faceDetectionService = assistidoProviderSync.assistidoProviderStore.faceDetectionService;
+    assistidosProviderStore =
+        Modular.get<AssistidosController>().assistidosProviderStore;
+    faceDetectionService = assistidosProviderStore.faceDetectionService;
     _cameraService = _cameraService ?? CameraService();
     return true;
   }

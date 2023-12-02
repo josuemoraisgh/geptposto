@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:geptposto/modules/assistidos/assistidos_controller2.dart';
+import 'package:geptposto/modules/assistidos/assistidos_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
-import '../models/stream_assistido_model2.dart';
+import '../models/stream_assistido_model.dart';
 
 class AssistidosInsertEditView extends StatefulWidget {
   final StreamAssistido? assistido;
@@ -20,8 +20,8 @@ class AssistidosInsertEditView extends StatefulWidget {
 class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late bool _isAdd;
   late final StreamAssistido _assistido;
-  final _assistidoProviderSync =
-      Modular.get<AssistidosController>().assistidoProviderSync;
+  final _assistidosProviderStore =
+      Modular.get<AssistidosController>().assistidosProviderStore;
   final isPhotoChanged = RxNotifier<bool>(true);
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
@@ -29,7 +29,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   @override
   void initState() {
     _assistido =
-        StreamAssistido.vazio(_assistidoProviderSync.assistidoProviderStore);
+        StreamAssistido.vazio(_assistidosProviderStore);
     _isAdd = widget.assistido == null ? true : false;
     super.initState();
   }

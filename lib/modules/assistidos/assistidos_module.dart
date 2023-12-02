@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import '../app_module.dart';
 import 'provider/assistido_provider_store.dart';
-import 'provider/assistido_provider_sync.dart';
 import 'services/sync_storage_service.dart';
 import 'pages/assistido_face_detector_page.dart';
 import 'assistidos_page.dart';
@@ -12,7 +11,7 @@ import 'services/remote_storage_service.dart';
 import 'services/assistido_storage_service.dart';
 import 'services/config_storage_service.dart';
 import 'services/face_detection_service.dart';
-import 'assistidos_controller2.dart';
+import 'assistidos_controller.dart';
 
 class AssistidosModule extends Module {
   @override
@@ -22,20 +21,18 @@ class AssistidosModule extends Module {
 
   @override
   void binds(Injector i) {
-   i.addSingleton<AssistidosController>(
+    i.addSingleton<AssistidosController>(
       () => AssistidosController(
-        assistidoProviderSync: AssistidoProviderSync(
-          assistidoProviderStore: AssistidosProviderStore(
-            syncStore: SyncStorageService(),
-            localStore: AssistidoStorageService(),
-            configStore: ConfigStorageService(),
-            remoteStore: AssistidoRemoteStorageService(provider: Dio()),
-            faceDetectionService: FaceDetectionService(),
-          ),
+        assistidosProviderStore: AssistidosProviderStore(
+          syncStore: SyncStorageService(),
+          localStore: AssistidoStorageService(),
+          configStore: ConfigStorageService(),
+          remoteStore: AssistidoRemoteStorageService(provider: Dio()),
+          faceDetectionService: FaceDetectionService(),
         ),
       ),
     );
-     /*i.addInstance<AssistidosController>(
+    /*i.addInstance<AssistidosController>(
       AssistidosController(
         assistidosStoreList: AssistidosStoreList(
           syncStore: SyncStorageService(),

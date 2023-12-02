@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../modelsView/assistido_face_detector_view.dart';
-import '../models/stream_assistido_model2.dart';
+import '../models/stream_assistido_model.dart';
 
 class AssistidoFaceDetectorPage extends StatelessWidget {
   final String title;

@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../assistidos_controller2.dart';
+import '../assistidos_controller.dart';
 import '../../Styles/styles.dart';
-import '../models/stream_assistido_model2.dart';
+import '../models/stream_assistido_model.dart';
 import 'assistido_face_detector_view.dart';
 
 class AssistidoListViewSilver extends StatelessWidget {
@@ -26,7 +26,9 @@ class AssistidoListViewSilver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<BoxEvent>(
-      stream: controller.assistidoProviderSync.dateSelectedController,
+      stream: controller.assistidosProviderStore.configStore
+          .watch("dateSelected")
+          .asBroadcastStream() as Stream<BoxEvent>,
       builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
         final data = dateSelected.data?.value[0];
         if (data != null && data != "") {
@@ -106,8 +108,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                 ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: photoUint8List.hasData
-                  ? Center(child: CircularProgressIndicator())
-                  : (photoUint8List.data as Uint8List).isEmpty
+                  ? (photoUint8List.data as Uint8List).isEmpty
                       ? Image.asset(
                           "assets/images/semFoto.png",
                           fit: BoxFit.cover,
@@ -119,7 +120,8 @@ class AssistidoListViewSilver extends StatelessWidget {
                           fit: BoxFit.cover,
                           width: 76,
                           height: 76,
-                        ),
+                        )
+                  : Center(child: CircularProgressIndicator()),
             ),
           ),
           Expanded(
