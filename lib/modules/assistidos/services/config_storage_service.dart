@@ -5,8 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../interfaces/config_storage_interface.dart';
 
 //implements == interface
-class ConfigStorageService
-    implements ConfigStorageInterface {
+class ConfigStorageService implements ConfigStorageInterface {
   Completer<Box<List<String>>> configCompleter = Completer<Box<List<String>>>();
 
   @override
@@ -15,9 +14,10 @@ class ConfigStorageService
       configCompleter.complete(await Hive.openBox<List<String>>('configDatas'));
     }
   }
-  
+
   @override
-  Future<ValueListenable<Box<List<String>>>> listenable({List<dynamic>? keys}) async {
+  Future<ValueListenable<Box<List<String>>>> listenable(
+      {List<dynamic>? keys}) async {
     final box = await configCompleter.future;
     return box.listenable();
   }

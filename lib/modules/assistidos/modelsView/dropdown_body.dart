@@ -21,11 +21,9 @@ class _DropdownBodyState extends State<DropdownBody> {
 
   Future<bool> init() async {
     try {
-      final List<String>? aux1 = await widget
-          .controller.assistidosProviderStore
+      final List<String>? aux1 = await widget.controller.assistidosProviderStore
           .getConfig('dateSelected');
-      final List<String>? aux2 = await widget
-          .controller.assistidosProviderStore
+      final List<String>? aux2 = await widget.controller.assistidosProviderStore
           .getConfig('itensList');
       if ((aux1 != null) && (aux1.isNotEmpty)) {
         dateSelected = BoxEvent("", aux1, false);
@@ -43,52 +41,73 @@ class _DropdownBodyState extends State<DropdownBody> {
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: init(),
-      builder: (BuildContext context, AsyncSnapshot<void> value) =>
-          value.hasData
-              ? StreamBuilder(
-                  initialData: dateSelected,
-                  stream: widget.controller.assistidosProviderStore.configStore
-                      .watch("dateSelected")
-                      .asBroadcastStream() as Stream<BoxEvent>,
-                  builder: (BuildContext context,
-                          AsyncSnapshot<BoxEvent> dateSelected) =>
-                      StreamBuilder(
-                    initialData: itensList,
-                    stream: widget.controller.assistidosProviderStore.configStore
-                        .watch("itensList")
-                        .asBroadcastStream() as Stream<BoxEvent>,
-                    builder: (BuildContext context,
-                            AsyncSnapshot<BoxEvent> itensList) =>
-                        DropdownButton<String>(
-                      iconEnabledColor: Colors.white,
-                      dropdownColor: Theme.of(context).colorScheme.background,
-                      focusColor: Theme.of(context).colorScheme.background,
-                      items: itensList.data!.value
-                          .map((String dropDownStringItem) {
-                            return DropdownMenuItem<String>(
-                              value: dropDownStringItem,
-                              child: Text(
-                                dropDownStringItem,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black,
-                                ),
+      builder: (BuildContext context, AsyncSnapshot<void> value) => value
+              .hasData
+          ? StreamBuilder(
+              initialData: dateSelected,
+              stream: widget.controller.assistidosProviderStore.configStore
+                  .watch("dateSelected")
+                  .asBroadcastStream() as Stream<BoxEvent>,
+              builder: (BuildContext context,
+                      AsyncSnapshot<BoxEvent> dateSelected) =>
+                  StreamBuilder(
+                initialData: itensList,
+                stream: widget.controller.assistidosProviderStore.configStore
+                    .watch("itensList")
+                    .asBroadcastStream() as Stream<BoxEvent>,
+                builder:
+                    (BuildContext context, AsyncSnapshot<BoxEvent> itensList) =>
+                        SizedBox(
+                  height: 25,
+                  child: DropdownButton<String>(
+                    value: dateSelected.data!.value[0],
+                    onChanged: (String? novoItemSelecionado) {
+                      if (novoItemSelecionado != null) {
+                        widget.controller.assistidosProviderStore
+                            .setConfig("dateSelected", [novoItemSelecionado]);
+                      }
+                    },
+                    style: const TextStyle(
+                      color: Colors.black,
+                    ),
+                    underline: Container(),
+                    iconEnabledColor: Colors.white,
+                    dropdownColor: Theme.of(context).colorScheme.background,
+                    focusColor: Theme.of(context).colorScheme.background,
+                    selectedItemBuilder: (BuildContext context) {
+                      return (itensList.data!.value as List<String>)
+                          .map((String value) {
+                            return Text(
+                              value,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
                               ),
                             );
                           })
                           .toList()
-                          .cast<DropdownMenuItem<String>>(),
-                      onChanged: (String? novoItemSelecionado) {
-                        if (novoItemSelecionado != null) {
-                          widget.controller.assistidosProviderStore
-                              .setConfig("dateSelected", [novoItemSelecionado]);
-                        }
-                      },
-                      value: dateSelected.data!.value[0],
-                    ),
+                          .cast<Widget>();
+                    },
+                    items: itensList.data!.value
+                        .map((String dropDownStringItem) {
+                          return DropdownMenuItem<String>(
+                            value: dropDownStringItem,
+                            child: Text(
+                              dropDownStringItem,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                              ),
+                            ),
+                          );
+                        })
+                        .toList()
+                        .cast<DropdownMenuItem<String>>(),
                   ),
-                )
-              : const CircularProgressIndicator(),
+                ),
+              ),
+            )
+          : const CircularProgressIndicator(),
     );
   }
 }

@@ -28,8 +28,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
 
   @override
   void initState() {
-    _assistido =
-        StreamAssistido.vazio(_assistidosProviderStore);
+    _assistido = StreamAssistido.vazio(_assistidosProviderStore);
     _isAdd = widget.assistido == null ? true : false;
     super.initState();
   }
@@ -686,8 +685,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
       future: _assistido.photoUint8List,
       builder: (BuildContext context, AsyncSnapshot photoUint8List) {
         return photoUint8List.hasData
-            ? Center(child: CircularProgressIndicator())
-            : Center(
+            ? Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxWidth: screenWidth,
@@ -738,7 +736,8 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                           ],
                         ),
                 ),
-              );
+              )
+            : const Center(child: CircularProgressIndicator());
       },
     );
   }

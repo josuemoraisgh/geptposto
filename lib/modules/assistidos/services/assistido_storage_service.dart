@@ -22,7 +22,8 @@ class AssistidoStorageService implements AssistidoStorageInterface {
   }
 
   @override
-  Future<ValueListenable<Box<Assistido>>> listenable({List<dynamic>? keys}) async {
+  Future<ValueListenable<Box<Assistido>>> listenable(
+      {List<dynamic>? keys}) async {
     final box = await completerAssistidos.future;
     return box.listenable();
   }
@@ -100,22 +101,19 @@ class AssistidoStorageService implements AssistidoStorageInterface {
   }
 
   @override
-  Future<Uint8List> getFile(String fileName) async {
+  Future<File> getFile(String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$fileName');
-    return file.readAsBytes();
+    return File('${directory.path}/$fileName');
+    //file.readAsBytes();
   }
 
   @override
   Future<bool> delFile(String fileName) async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      if ((await File('${directory.path}/$fileName').exists()) == true) {
-        await File('${directory.path}/$fileName').delete(recursive: true);
-      }
+    final directory = await getApplicationDocumentsDirectory();
+    if ((await File('${directory.path}/$fileName').exists()) == true) {
+      await File('${directory.path}/$fileName').delete(recursive: true);
       return true;
-    } catch (e) {
-      return false;
     }
+    return false;
   }
 }

@@ -1,14 +1,16 @@
 import 'dart:io';
 import 'dart:math';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:image/image.dart' as imglib;
 import 'package:ml_linalg/distance.dart';
 import 'package:ml_linalg/vector.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
-import 'package:image/image.dart' as imglib;
+
 import '../../faces/image_converter.dart';
 import '../models/stream_assistido_model.dart';
 
@@ -43,7 +45,7 @@ const tFLGpuDelegateWaitType = {
 class FaceDetectionService extends Disposable {
   late Interpreter interpreter;
   //late IsolateInterpreter isolateInterpreter;
-  late FaceDetector faceDetector;
+  late final FaceDetector faceDetector;
   //late SensorOrientationDetector orientation;
   static const double threshold = 1.0;
 
@@ -51,13 +53,13 @@ class FaceDetectionService extends Disposable {
   static const nomedoInterpreter =
       'assets/mobilefacenet2.tflite'; //'assets/mobilefacenet3.tflite'
 
+  FaceDetectionService({FaceDetector? faceDetector}) {
+    this.faceDetector = faceDetector ?? Modular.get<FaceDetector>();
+  }
+
   Future<void> init() async {
     await initializeInterpreter();
     //interpreter.allocateTensors();
-    faceDetector = FaceDetector(
-      options: FaceDetectorOptions(
-          performanceMode: FaceDetectorMode.accurate, enableContours: true),
-    );
     //orientation = SensorOrientationDetector();
     //await orientation.init();
   }
@@ -105,6 +107,7 @@ class FaceDetectionService extends Disposable {
       RxNotifier<List<StreamAssistido>> assistidoProvavel) async {
     List<StreamAssistido> assistidosIdentList = [];
     List<List> inputs = [];
+    double min = 2.0;
     Map<int, List<List<double>>> outputs = {};
     int i = 0, j = 0, k = 0;
     imglib.Image image =
@@ -134,7 +137,12 @@ class FaceDetectionService extends Disposable {
                   distance: Distance.euclidean);
               //debugPrint(aux.toString());
               if (aux <= threshold) {
-                assistidosIdentList.add(assistidos[i]);
+                if (aux < min) {
+                  min = aux;
+                  assistidosIdentList = [assistidos[i]] + assistidosIdentList;
+                } else {
+                  assistidosIdentList.add(assistidos[i]);
+                }
               }
             }
           }

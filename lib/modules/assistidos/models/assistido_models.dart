@@ -47,8 +47,6 @@ class Assistido extends HiveObject {
   @HiveField(20)
   List<String> datasNasc;
   @HiveField(21)
-  List<int> photoIntList;
-  @HiveField(22)
   List<double> fotoPoints;
 
   Assistido({
@@ -73,7 +71,6 @@ class Assistido extends HiveObject {
     this.parentescos = const [],
     this.nomesMoradores = const [],
     this.datasNasc = const [],
-    this.photoIntList = const [],
     this.fotoPoints = const [],
   });
 
@@ -99,7 +96,6 @@ class Assistido extends HiveObject {
         parentescos = assistido.parentescos,
         nomesMoradores = assistido.nomesMoradores,
         datasNasc = assistido.datasNasc,
-        photoIntList = assistido.photoIntList,
         fotoPoints = assistido.fotoPoints;
 
   factory Assistido.fromList(List<dynamic> value) {
@@ -167,7 +163,6 @@ class Assistido extends HiveObject {
       parentescos: parentes,
       nomesMoradores: moradores,
       datasNasc: datanasc,
-      photoIntList: const [],
       fotoPoints: const [],
     );
   }

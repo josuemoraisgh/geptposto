@@ -34,8 +34,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<bool>(
         valueListenable: controller.isInitedController,
-        builder: (BuildContext context, bool isInited, _) => 
-        isInited == true
+        builder: (BuildContext context, bool isInited, _) => isInited == true
             ? ValueListenableBuilder<Box>(
                 valueListenable: controller
                     .listenableAssistido, //controller.assistidosStoreList.stream,
@@ -72,52 +71,62 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   },
                 ),
               )
-            : Center(child: CircularProgressIndicator()),
+            : const Center(child: CircularProgressIndicator()),
       );
 
   AppBar customAppBar(bool isInited) => AppBar(
-        title: bg.Badge(
-          badgeStyle: const bg.BadgeStyle(badgeColor: Colors.green),
-          position: bg.BadgePosition.topStart(top: 0),
-          badgeContent: RxBuilder(
-              builder: (BuildContext context) => Text(
-                  '${controller.countPresente}',
-                  style: const TextStyle(color: Colors.white, fontSize: 10.0))),
-          child: RxBuilder(
-            builder: (BuildContext context) => controller.whatWidget.value == 0
-                ? (isInited)
-                    ? Row(
-                        children: [
-                          const Text(
-                            "Chamada: ",
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                decorationColor: Colors.black),
-                          ),
-                          assistidosDropdownButton,
-                        ],
-                      )
-                    : const Text("Inicializando")
-                : CustomSearchBar(
-                    textController: controller.textEditing,
-                    focusNode: controller.focusNode,
-                  ),
+        title: RxBuilder(
+          builder: (BuildContext context) => bg.Badge(
+            badgeStyle: bg.BadgeStyle(
+                badgeColor:
+                    controller.countPresente == 0 ? Colors.red : Colors.green),
+            position: bg.BadgePosition.topStart(top: -10, start: -15),
+            badgeContent: Text(
+              '${controller.countPresente}',
+              style: const TextStyle(color: Colors.white, fontSize: 10.0),
+            ),
+            child: RxBuilder(
+              builder: (BuildContext context) =>
+                  controller.whatWidget.value == 0
+                      ? (isInited)
+                          ? Row(
+                              children: [
+                                const Text(
+                                  "Chamada: ",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      decorationColor: Colors.black),
+                                ),
+                                assistidosDropdownButton,
+                              ],
+                            )
+                          : const Text("Inicializando")
+                      : CustomSearchBar(
+                          textController: controller.textEditing,
+                          focusNode: controller.focusNode,
+                        ),
+            ),
           ),
         ),
         actions: <Widget>[
-          bg.Badge(
-            badgeStyle: const bg.BadgeStyle(badgeColor: Colors.red),
-            position: bg.BadgePosition.topStart(top: 0,start:-2),
-            badgeContent: RxBuilder(
-                builder: (BuildContext context) => Text(
-                    '${controller.countSync.value}',
-                    style: const TextStyle(color: Colors.white, fontSize: 10.0))),
-            child: IconButton(
-              icon: const Icon(Icons.sync),
-              onPressed: () async {
-                controller.sync();
-              },
+          RxBuilder(
+            builder: (BuildContext context) => bg.Badge(
+              badgeStyle: bg.BadgeStyle(
+                  badgeColor: controller.countSync.value == 0
+                      ? Colors.green
+                      : Colors.red),
+              position: bg.BadgePosition.topStart(top: 0, start: -2),
+              badgeContent: Text(
+                '${controller.countSync.value}',
+                style: const TextStyle(color: Colors.white, fontSize: 10.0),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.sync),
+                onPressed: () async {
+                  controller.sync();
+                },
+              ),
             ),
           ),
         ],
@@ -261,9 +270,9 @@ class _AssistidosPageState extends State<AssistidosPage> {
                         controller.assistidosProviderStore
                             .setConfig("dateSelected", [itensList.last]);
                       } else {
-                        controller
-                          ..assistidosProviderStore.setConfig("dateSelected",
-                              [itensList.elementAt(itensList.length - 2)]);
+                        controller.assistidosProviderStore.setConfig(
+                            "dateSelected",
+                            [itensList.elementAt(itensList.length - 2)]);
                       }
                       final itens = itensList
                           .where((element) => element != itensRemove)

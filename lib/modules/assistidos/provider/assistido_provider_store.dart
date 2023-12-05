@@ -72,7 +72,7 @@ class AssistidosProviderStore {
 
   Future<bool> delete(Assistido stAssist) async {
     final rowId = stAssist.ident.toString();
-    syncStore.addSync('del', rowId);    
+    syncStore.addSync('del', rowId);
     if (await localStore.delRow(rowId)) {
       return true;
     }
@@ -80,8 +80,11 @@ class AssistidosProviderStore {
   }
 
   Future<bool> setConfig(String ident, List<String>? values) async {
-    syncStore.addSync('setConfig', [ident] + values!);
-    return configStore.addConfig(ident, values);
+    if (values != null) {
+      syncStore.addSync('setConfig', [ident, values.join(";")]);
+      return configStore.addConfig(ident, values);
+    }
+    return false;
   }
 
   Future<List<String>?> getConfig(String ident) {

@@ -121,7 +121,7 @@ class AssistidoListViewSilver extends StatelessWidget {
                           width: 76,
                           height: 76,
                         )
-                  : Center(child: CircularProgressIndicator()),
+                  : const Center(child: CircularProgressIndicator()),
             ),
           ),
           Expanded(

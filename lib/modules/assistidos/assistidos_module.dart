@@ -12,6 +12,7 @@ import 'services/assistido_storage_service.dart';
 import 'services/config_storage_service.dart';
 import 'services/face_detection_service.dart';
 import 'assistidos_controller.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class AssistidosModule extends Module {
   @override
@@ -28,7 +29,13 @@ class AssistidosModule extends Module {
           localStore: AssistidoStorageService(),
           configStore: ConfigStorageService(),
           remoteStore: AssistidoRemoteStorageService(provider: Dio()),
-          faceDetectionService: FaceDetectionService(),
+          faceDetectionService: FaceDetectionService(
+            faceDetector: FaceDetector(
+              options: FaceDetectorOptions(
+                  performanceMode: FaceDetectorMode.accurate,
+                  enableContours: true),
+            ),
+          ),
         ),
       ),
     );

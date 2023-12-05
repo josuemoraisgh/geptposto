@@ -14,7 +14,7 @@ abstract class AssistidoStorageInterface {
 
   Future<Assistido?> getRow(int rowId); //Retorna o valor das linhas
   Future<List<Assistido>> getAll(); //Retorno toda a base de dados
-  Future<Uint8List> getFile(String fileName); //Lê arquivo
+  Future<File> getFile(String fileName); //Lê arquivo
 
   Future<bool> delRow(String row); //Deleta um Linha
   Future<bool> delAll(); //Limpa o Banco de Dados
