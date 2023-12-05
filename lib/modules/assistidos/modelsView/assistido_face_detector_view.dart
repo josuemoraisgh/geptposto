@@ -95,8 +95,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       }
     } else {
       if ((widget.assistido != null) && (uint8ListImage != null)) {
-        widget.assistido?.addSetPhoto(uint8ListImage,
-            isUpload: true);
+        widget.assistido?.addSetPhoto(uint8ListImage);
         if (widget.isPhotoChanged != null) {
           widget.isPhotoChanged!.value = !widget.isPhotoChanged!.value;
         }

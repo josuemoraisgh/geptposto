@@ -63,20 +63,77 @@ class StreamAssistido extends Assistido {
     save();
   }
 
-  Future<Uint8List> addSetPhoto(final Uint8List uint8ListImage,
+  Future<Uint8List> get photoUint8List async {
+    Uint8List uint8ListImage = Uint8List(0);
+    if (photoName.isNotEmpty) {
+      final file = await assistidoStore.localStore.getFile(photoName);
+      if (await file.exists()) {
+        uint8ListImage = await file.readAsBytes();
+      } else {
+        var stringRemoteImage = await assistidoStore.remoteStore
+            .getFile('BDados_Images', photoName);
+        if ((stringRemoteImage != null) && (stringRemoteImage.isNotEmpty)) {
+          uint8ListImage = base64Decode(stringRemoteImage);
+          assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
+        }
+      }
+      final image = imglib.decodeJpg(uint8ListImage);
+      if (image != null) {
+        fotoPoints = (await assistidoStore.faceDetectionService
+            .classificatorImage(image));
+      }
+    }
+    return uint8ListImage;
+  }
+
+  Future<bool> addSetPhoto(final Uint8List uint8ListImage) async {
+    if (uint8ListImage.isNotEmpty) {
+      //Nomeando o arquivo
+      final now = DateTime.now();
+      final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
+      assistidoStore.localStore.delFile(photoName);
+      photoName =
+          '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg';
+      save();
+      //Criando o arquivo - Armazenamento Local
+      final file =
+          await assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
+      final inputImage = InputImage.fromFile(file);
+      final faceDetected = await assistidoStore
+          .faceDetectionService.faceDetector
+          .processImage(inputImage);
+      if (faceDetected.isNotEmpty) {
+        final image = imglib.decodeJpg(uint8ListImage);
+        if (image != null) {
+          fotoPoints = (await assistidoStore.faceDetectionService
+              .classificatorImage(image));
+          assistidoStore.localStore.addSetFile(
+            photoName,
+            imglib
+                .encodeJpg(cropFace(image, faceDetected[0], step: 80) ?? image),
+          );
+        }
+      }
+      //Salva a Imagem para o futuro
+      assistidoStore.syncStore.addSync('setImage', [photoName, uint8ListImage]);
+      return true;
+    }
+    return false;
+  }
+
+  Future<Uint8List> addSetPhoto4(final Uint8List uint8ListImage,
       {bool isUpload = true}) async {
-    String photoFileName;
     Uint8List resp = Uint8List(0);
     if (uint8ListImage.isNotEmpty) {
       //Nomeando o arquivo
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
-      photoFileName = (photoName == "")
-          ? '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg'
-          : photoName;
+      assistidoStore.localStore.delFile(photoName);
+      photoName =
+          '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg';
       //Criando o arquivo - Armazenamento Local
       final file =
-          await assistidoStore.localStore.addSetFile('aux.jpg', uint8ListImage);
+          await assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
       //Processando a imagem para o reconhecimento futuro
       imglib.Image? image = imglib.decodeJpg(uint8ListImage);
       if (image != null) {
@@ -89,15 +146,13 @@ class StreamAssistido extends Assistido {
               ? cropFace(image, faceDetected[0], step: 80) ?? image
               : image;
           resp = imglib.encodeJpg(image);
-          photoName = photoFileName;
-          photoIntList = resp;
           fotoPoints = (await assistidoStore.faceDetectionService
               .classificatorImage(image));
           saveJustLocal();
           if (isUpload) {
             assistidoStore.syncStore.addSync(
               'setImage',
-              [photoFileName, resp],
+              [photoName, resp],
             ).then((_) => saveJustRemote());
           }
         }
@@ -143,24 +198,9 @@ class StreamAssistido extends Assistido {
       parentescos = assistido.parentescos;
       nomesMoradores = assistido.nomesMoradores;
       datasNasc = assistido.datasNasc;
-      photoIntList = assistido.photoIntList;
-      //fotoPoints = assistido.fotoPoints;
+      fotoPoints = assistido.fotoPoints;
     }
     _chamadaController.sink.add(this);
-  }
-
-  Future<Uint8List> get photoUint8List async {
-    if (this.photoName.isNotEmpty) {
-      if (this.photoIntList.isNotEmpty) {
-        return Uint8List.fromList(super.photoIntList);
-      }
-      var remoteImage = await assistidoStore.remoteStore
-          .getFile('BDados_Images', this.photoName);
-      if ((remoteImage != null) && (remoteImage.isNotEmpty)) {
-        return this.addSetPhoto(base64Decode(remoteImage), isUpload: false);
-      }
-    }
-    return Uint8List(0);
   }
 
   @override

@@ -10,7 +10,7 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
   late final Dio provider;
   final String baseUrl = 'https://script.google.com';
   final DeviceInfoModel deviceInfoModel = DeviceInfoModel();
-  static int _countConnection = 0;
+  //static int _countConnection = 0;
 
   AssistidoRemoteStorageService({Dio? provider}) {
     this.provider = provider ?? Modular.get<Dio>();
@@ -29,11 +29,11 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
       dynamic p1,
       dynamic p2,
       dynamic p3}) async {
-    while (_countConnection >= 10) {
-      //so faz 10 requisições por vez.
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-    _countConnection++;
+    //while (_countConnection >= 15) {
+    //so faz 10 requisições por vez.
+    // await Future.delayed(const Duration(milliseconds: 500));
+    //}
+    //_countConnection++;
     var response = await provider.get(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
@@ -52,15 +52,19 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
         "p3": p3,
       },
     );
-    if (response.data != null) {
-      if ((response.data?["status"] ?? "Error") == "SUCCESS") {
-        return response.data!["items"];
-      } else {
-        debugPrint(
-            "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+    try {
+      if (response.data != null) {
+        if ((response.data?["status"] ?? "Error") == "SUCCESS") {
+          return response.data!["items"];
+        } else {
+          debugPrint(
+              "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+        }
       }
+    } catch (e) {
+      debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
     }
-    _countConnection--;
+    //_countConnection--;
     return null;
   }
 

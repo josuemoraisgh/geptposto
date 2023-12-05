@@ -1,6 +1,6 @@
 {
-    "name": "geptpostos",
-    "short_name": "geptpostos",
+    "name": "geptposto",
+    "short_name": "geptposto",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

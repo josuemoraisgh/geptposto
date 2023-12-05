@@ -52,12 +52,12 @@ class AssistidosController {
 
   Future<void> init() async {
     if (isInitedController.value == false) {
-      await assistidosProviderStore.init();      
+      await assistidosProviderStore.init();
       listenableAssistido =
           (await assistidosProviderStore.localStore.listenable());
       (await assistidosProviderStore.syncStore.listenable())
           .addListener(() => sync());
-      isInitedController.value = true;          
+      isInitedController.value = true;
     }
     sync();
   }
@@ -82,7 +82,15 @@ class AssistidosController {
                     ? _caracterMap[a[0]]!
                     : a[0]!)
             .contains(termosDeBusca.toLowerCase()))
-        .toList();
+        .toList()
+      ..sort((a, b) {
+        // Primeiro, comparar pelo campo nome
+        int comparacao = a.nomeM1.compareTo(b.nomeM1);
+        if (comparacao == 0) {
+          return a.ident < b.ident ? -1 : 1;
+        }
+        return comparacao;
+      });
   }
 
   Future<void> sync() async {
@@ -90,10 +98,10 @@ class AssistidosController {
     if (isRunningSync.value == false) {
       isRunningSync.value = true;
       countSync.value = await assistidosProviderStore.syncStore.length();
-      while ((await assistidosProviderStore.syncStore.length()) > 0) {
+      while (countSync.value > 0) {
         status = null;
-        var sync = await assistidosProviderStore.syncStore.getSync(0);
-        await assistidosProviderStore.syncStore.delSync(0);
+        var sync = await (assistidosProviderStore.syncStore.getSync(0)
+          ..whenComplete(() => assistidosProviderStore.syncStore.delSync(0)));
         if (sync != null) {
           if (sync.synckey == 'add') {
             status = await assistidosProviderStore.remoteStore
@@ -130,22 +138,27 @@ class AssistidosController {
                 (sync.syncValue as List<String>).sublist(1).toList(),
                 table: 'Config');
           }
-          if (status != null) {
-            countSync.value = await assistidosProviderStore.syncStore.length();
-          } else {
+          if (status == null) {
             await assistidosProviderStore.syncStore
                 .addSync(sync.synckey, sync.syncValue);
             break;
           }
         }
+        countSync.value = await assistidosProviderStore.syncStore.length();
       }
       var remoteConfigChanges =
           await assistidosProviderStore.remoteStore.getChanges(table: "Config");
       if (remoteConfigChanges != null && remoteConfigChanges.isNotEmpty) {
         for (List e in remoteConfigChanges) {
           e.removeWhere((element) => element == "");
-          await assistidosProviderStore.configStore
-              .addConfig(e[0], e.sublist(1).cast<String>());
+          final listString = e.sublist(1).cast<String>()[0];
+          await assistidosProviderStore.configStore.addConfig(
+            e[0],
+            listString.substring(listString.length - 1) == ";" &&
+                    listString.substring(listString.length - 2) != ";"
+                ? listString.substring(0, listString.length - 1).split(";")
+                : listString.split(";"),
+          );
         }
       }
       var remoteDataChanges =
