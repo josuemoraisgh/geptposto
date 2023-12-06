@@ -45,8 +45,8 @@ class StreamAssistido extends Assistido {
     }
   }
 
-  int get countPresente => countPresenteController.value;
-  set countPresente(int value) {
+  static int get countPresente => countPresenteController.value;
+  static set countPresente(int value) {
     Future.delayed(const Duration(seconds: 0),
         () => countPresenteController.value = value);
   }

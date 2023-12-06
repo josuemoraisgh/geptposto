@@ -22,68 +22,84 @@ class AssistidoListViewSilver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<BoxEvent>(
-      stream: controller.assistidosProviderStore.configStore
-          .watch("dateSelected")
-          .asBroadcastStream() as Stream<BoxEvent>,
-      builder: (BuildContext context, AsyncSnapshot<BoxEvent> dateSelected) {
-        final data = dateSelected.data?.value[0];
-        if (data != null && data != "") {
-          int count = 0;
-          for (var element in list) {
-            if (element.chamada.toLowerCase().contains(data)) count++;
-          }
-          StreamAssistido.countPresenteController.value = count;
-        }
-        return Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            if (faceDetectorView != null)
-              SizedBox(
-                  height: 300,
-                  width: MediaQuery.of(context).size.width,
-                  child: faceDetectorView!),
-            Expanded(
-              child: CustomScrollView(
-                semanticChildCount: list.length,
-                slivers: <Widget>[
-                  SliverSafeArea(
-                    top: false,
-                    minimum: const EdgeInsets.only(top: 8),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index < list.length) {
-                            return Column(
-                              children: <Widget>[
-                                row(list[index], data),
-                                index == list.length - 1
-                                    ? const Padding(
-                                        padding: EdgeInsets.only(bottom: 50))
-                                    : Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 100,
-                                          right: 16,
-                                        ),
-                                        child: Container(
-                                          height: 1,
-                                          color: Styles.linhaProdutoDivisor,
-                                        ),
-                                      ),
-                              ],
-                            );
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+    return FutureBuilder(
+      future: controller.assistidosProviderStore.configStore
+          .getConfig("dateSelected"),
+      builder: (BuildContext context, AsyncSnapshot<List<String>?> value) =>
+          value.hasData
+              ? StreamBuilder<BoxEvent>(
+                  initialData: BoxEvent("", value.data, false),
+                  stream: controller.assistidosProviderStore.configStore
+                      .watch("dateSelected")
+                      .asBroadcastStream() as Stream<BoxEvent>,
+                  builder: (BuildContext context,
+                      AsyncSnapshot<BoxEvent> dateSelected) {
+                    final data = dateSelected.data?.value[0];
+                    if (data != null && data != "") {
+                      int count = 0;
+                      for (var element in list) {
+                        if (element.chamada.toLowerCase().contains(data)) {
+                          count++;
+                        }
+                      }
+                      StreamAssistido.countPresente = count;
+                    }
+                    return Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        if (faceDetectorView != null)
+                          SizedBox(
+                              height: 300,
+                              width: MediaQuery.of(context).size.width,
+                              child: faceDetectorView!),
+                        Expanded(
+                          child: CustomScrollView(
+                            semanticChildCount: list.length,
+                            slivers: <Widget>[
+                              SliverSafeArea(
+                                top: false,
+                                minimum: const EdgeInsets.only(top: 8),
+                                sliver: SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                      if (index < list.length) {
+                                        return Column(
+                                          children: <Widget>[
+                                            row(list[index], data),
+                                            index == list.length - 1
+                                                ? const Padding(
+                                                    padding: EdgeInsets.only(
+                                                        bottom: 50))
+                                                : Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      left: 100,
+                                                      right: 16,
+                                                    ),
+                                                    child: Container(
+                                                      height: 1,
+                                                      color: Styles
+                                                          .linhaProdutoDivisor,
+                                                    ),
+                                                  ),
+                                          ],
+                                        );
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                )
+              : const Center(
+                  child: CircularProgressIndicator(),
+                ),
     );
   }
 

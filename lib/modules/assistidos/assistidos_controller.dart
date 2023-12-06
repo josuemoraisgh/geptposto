@@ -55,11 +55,6 @@ class AssistidosController {
           (await assistidosProviderStore.localStore.listenable());
       (await assistidosProviderStore.syncStore.listenable())
           .addListener(() => sync());
-
-      assistidosProviderStore.configStore.addConfig("dateSelected",
-          await assistidosProviderStore.configStore.getConfig("dateSelected"));
-      assistidosProviderStore.configStore.addConfig("itensList",
-          await assistidosProviderStore.configStore.getConfig("itensList"));
       isInitedController.value = true;
     }
     sync();
