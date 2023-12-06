@@ -32,10 +32,8 @@ Map<String, String> _caracterMap = {
 
 class AssistidosController {
   final textEditing = TextEditingController(text: "");
-  final countPresenteController = RxNotifier<int>(0);
   final isInitedController = RxNotifier<bool>(false);
   final focusNode = FocusNode();
-  final presentCount = RxNotifier<int>(0);
   final whatWidget = RxNotifier<int>(0);
   final assistidoProvavelList = RxNotifier<List<StreamAssistido>>([]);
   final faceDetector = RxNotifier<bool>(false);
@@ -57,15 +55,14 @@ class AssistidosController {
           (await assistidosProviderStore.localStore.listenable());
       (await assistidosProviderStore.syncStore.listenable())
           .addListener(() => sync());
+
+      assistidosProviderStore.configStore.addConfig("dateSelected",
+          await assistidosProviderStore.configStore.getConfig("dateSelected"));
+      assistidosProviderStore.configStore.addConfig("itensList",
+          await assistidosProviderStore.configStore.getConfig("itensList"));
       isInitedController.value = true;
     }
     sync();
-  }
-
-  int get countPresente => countPresenteController.value;
-  set countPresente(int value) {
-    Future.delayed(const Duration(seconds: 0),
-        () => countPresenteController.value = value);
   }
 
   List<StreamAssistido> search(

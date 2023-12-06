@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../assistidos_controller.dart';
 import '../../Styles/styles.dart';
@@ -12,14 +13,10 @@ class AssistidoListViewSilver extends StatelessWidget {
   final List<StreamAssistido> list;
   final AssistidosController controller;
   final AssistidoFaceDetectorView? faceDetectorView;
-  final void Function({StreamAssistido? assistido}) functionEdit;
-  final void Function(StreamAssistido pessoa) functionChamada;
   const AssistidoListViewSilver({
     super.key,
     required this.controller,
     required this.list,
-    required this.functionEdit,
-    required this.functionChamada,
     this.faceDetectorView,
   });
 
@@ -36,7 +33,7 @@ class AssistidoListViewSilver extends StatelessWidget {
           for (var element in list) {
             if (element.chamada.toLowerCase().contains(data)) count++;
           }
-          controller.countPresente = count;
+          StreamAssistido.countPresenteController.value = count;
         }
         return Column(
           mainAxisSize: MainAxisSize.max,
@@ -160,7 +157,8 @@ class AssistidoListViewSilver extends StatelessWidget {
                       AsyncSnapshot<StreamAssistido> assistido) {
                     return CupertinoButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () => functionChamada(assistido.data!),
+                      onPressed: () =>
+                          assistido.data!.chamadaToogleFunc(dateSelected),
                       child: assistido.data!.chamada
                               .toLowerCase()
                               .contains(dateSelected)
@@ -180,7 +178,10 @@ class AssistidoListViewSilver extends StatelessWidget {
                 ),
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: () => functionEdit(assistido: pessoa),
+            onPressed: () => Modular.to.pushNamed(
+              "insert",
+              arguments: {"assistido": pessoa},
+            ),
             child: const Icon(
               Icons.edit,
               size: 30.0,

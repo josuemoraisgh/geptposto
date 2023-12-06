@@ -12,6 +12,7 @@ import '../services/face_detection_service.dart';
 import '../../faces/painters/face_detector_painter.dart';
 import '../assistidos_controller.dart';
 import '../models/stream_assistido_model.dart';
+import 'package:image/image.dart' as imglib;
 
 class AssistidoFaceDetectorView extends StatefulWidget {
   final RxNotifier<List<StreamAssistido>>? assistidoProvavel;
@@ -36,7 +37,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   late Future<bool> isInited;
   late final AssistidosProviderStore assistidosProviderStore;
   late final FaceDetectionService faceDetectionService;
-  bool _canProcess = true, _isBusy = false;
+  bool _canProcess = true, _isBusy = false, _isFace = false;
 
   CameraService? _cameraService = Modular.get<CameraService>();
   CameraImage? cameraImage;
@@ -115,6 +116,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     _isBusy = true;
     faces = await faceDetectionService.faceDetector.processImage(inputImage);
     if (faces?.isEmpty ?? true) {
+      _isFace = true;
       _isBusy = false;
       return;
     }
@@ -126,7 +128,13 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     }
     _isBusy = false;
     if (mounted) {
-      setState(() {});
+      setState(() {
+        if (_isFace == true) {
+          _isFace = false;
+          _cameraTakeImage(imglib.encodeJpg(
+              convertCameraImageToImageWithRotate(cameraImage, rotation)));
+        }
+      });
     }
   }
 

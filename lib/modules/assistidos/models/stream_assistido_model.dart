@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:intl/intl.dart';
+import 'package:rx_notifier/rx_notifier.dart';
 
 import '../../faces/image_converter.dart';
 import '../provider/assistido_provider_store.dart';
@@ -13,7 +14,7 @@ class StreamAssistido extends Assistido {
   final AssistidosProviderStore assistidoStore;
   final StreamController<StreamAssistido> _chamadaController =
       StreamController<StreamAssistido>.broadcast();
-
+  static final countPresenteController = RxNotifier<int>(0);
   StreamAssistido(super.assistido, this.assistidoStore) : super.assistido();
   StreamAssistido.vazio(this.assistidoStore)
       : super(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
@@ -34,12 +35,20 @@ class StreamAssistido extends Assistido {
     if (chamada.toLowerCase().contains(dateSelected)) {
       changeItens("Chamada", chamada.replaceAll("$dateSelected,", ""));
       save();
+      countPresenteController.value--;
       return -1;
     } else {
       changeItens("Chamada", "$chamada$dateSelected,");
       save();
+      countPresenteController.value++;
       return 1;
     }
+  }
+
+  int get countPresente => countPresenteController.value;
+  set countPresente(int value) {
+    Future.delayed(const Duration(seconds: 0),
+        () => countPresenteController.value = value);
   }
 
   @override
@@ -119,46 +128,6 @@ class StreamAssistido extends Assistido {
       return true;
     }
     return false;
-  }
-
-  Future<Uint8List> addSetPhoto4(final Uint8List uint8ListImage,
-      {bool isUpload = true}) async {
-    Uint8List resp = Uint8List(0);
-    if (uint8ListImage.isNotEmpty) {
-      //Nomeando o arquivo
-      final now = DateTime.now();
-      final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
-      assistidoStore.localStore.delFile(photoName);
-      photoName =
-          '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg';
-      //Criando o arquivo - Armazenamento Local
-      final file =
-          await assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
-      //Processando a imagem para o reconhecimento futuro
-      imglib.Image? image = imglib.decodeJpg(uint8ListImage);
-      if (image != null) {
-        final inputImage = InputImage.fromFile(file);
-        final faceDetected = await assistidoStore
-            .faceDetectionService.faceDetector
-            .processImage(inputImage);
-        if (faceDetected.isNotEmpty) {
-          image = isUpload
-              ? cropFace(image, faceDetected[0], step: 80) ?? image
-              : image;
-          resp = imglib.encodeJpg(image);
-          fotoPoints = (await assistidoStore.faceDetectionService
-              .classificatorImage(image));
-          saveJustLocal();
-          if (isUpload) {
-            assistidoStore.syncStore.addSync(
-              'setImage',
-              [photoName, resp],
-            ).then((_) => saveJustRemote());
-          }
-        }
-      }
-    }
-    return resp;
   }
 
   @override

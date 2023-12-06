@@ -57,7 +57,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
                                 ? 'ATIVO'
                                 : 'INATIVO',
                       );
-                      controller.countPresente = 0;
                     }
                     return Scaffold(
                       appBar: customAppBar(isInited),
@@ -78,11 +77,12 @@ class _AssistidosPageState extends State<AssistidosPage> {
         title: RxBuilder(
           builder: (BuildContext context) => bg.Badge(
             badgeStyle: bg.BadgeStyle(
-                badgeColor:
-                    controller.countPresente == 0 ? Colors.red : Colors.green),
+                badgeColor: StreamAssistido.countPresenteController.value == 0
+                    ? Colors.red
+                    : Colors.green),
             position: bg.BadgePosition.topStart(top: -10, start: -15),
             badgeContent: Text(
-              '${controller.countPresente}',
+              '${StreamAssistido.countPresenteController.value}',
               style: const TextStyle(color: Colors.white, fontSize: 10.0),
             ),
             child: RxBuilder(
@@ -151,8 +151,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
             list: controller.faceDetector.value == true
                 ? controller.assistidoProvavelList.value
                 : assistidoList,
-            functionChamada: chamadaToogleFunc,
-            functionEdit: editAddFunc,
             faceDetectorView: controller.faceDetector.value == true
                 ? AssistidoFaceDetectorView(
                     assistidoList: assistidoList,
@@ -205,7 +203,10 @@ class _AssistidosPageState extends State<AssistidosPage> {
             backgroundColor: Colors.green,
             label: 'Inserir Usuário',
             labelStyle: const TextStyle(fontSize: 18.0),
-            onTap: editAddFunc,
+            onTap: () => Modular.to.pushNamed(
+              "insert",
+              arguments: {"assistido": null},
+            ),
           ),
           SpeedDialChild(
             child: const Icon(
@@ -220,29 +221,6 @@ class _AssistidosPageState extends State<AssistidosPage> {
           ),
         ],
       );
-
-  void editAddFunc({StreamAssistido? assistido}) {
-    Modular.to.pushNamed(
-      "insert",
-      arguments: {"assistido": assistido},
-    );
-  }
-
-  Future chamadaFunc(StreamAssistido assistido) async {
-    final dateSelected =
-        await controller.assistidosProviderStore.getConfig("dateSelected");
-    if (dateSelected != null && assistido.insertChamadaFunc(dateSelected[0])) {
-      controller.countPresente++;
-    }
-  }
-
-  Future chamadaToogleFunc(StreamAssistido pessoa) async {
-    final dateSelected =
-        await controller.assistidosProviderStore.getConfig("dateSelected");
-    if (dateSelected != null) {
-      controller.countPresente += pessoa.chamadaToogleFunc(dateSelected[0]);
-    }
-  }
 
   Future _checkDate(BuildContext context) async {
     showDialog(
