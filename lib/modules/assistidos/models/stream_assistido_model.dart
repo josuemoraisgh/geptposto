@@ -98,6 +98,7 @@ class StreamAssistido extends Assistido {
   Future<bool> addSetPhoto(final Uint8List uint8ListImage) async {
     if (uint8ListImage.isNotEmpty) {
       //Nomeando o arquivo
+      Uint8List uint8ListImageAux = uint8ListImage;
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
       assistidoStore.localStore.delFile(photoName);
@@ -116,15 +117,17 @@ class StreamAssistido extends Assistido {
         if (image != null) {
           fotoPoints = (await assistidoStore.faceDetectionService
               .classificatorImage(image));
+          uint8ListImageAux = imglib
+              .encodeJpg(cropFace(image, faceDetected[0], step: 80) ?? image);
           assistidoStore.localStore.addSetFile(
             photoName,
-            imglib
-                .encodeJpg(cropFace(image, faceDetected[0], step: 80) ?? image),
+            uint8ListImageAux,
           );
         }
       }
       //Salva a Imagem para o futuro
-      assistidoStore.syncStore.addSync('setImage', [photoName, uint8ListImage]);
+      assistidoStore.syncStore
+          .addSync('setImage', [photoName, uint8ListImageAux]);
       return true;
     }
     return false;

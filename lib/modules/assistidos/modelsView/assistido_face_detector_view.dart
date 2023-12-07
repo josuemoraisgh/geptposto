@@ -98,7 +98,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       if ((widget.assistido != null) && (uint8ListImage != null)) {
         widget.assistido?.addSetPhoto(uint8ListImage);
         if (widget.isPhotoChanged != null) {
-          widget.isPhotoChanged!.value = !widget.isPhotoChanged!.value;
+          widget.isPhotoChanged!.value = true;
         }
       }
       Modular.to.pop();
@@ -127,18 +127,19 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       _customPaint = CustomPaint(painter: painter);
     }
     _isBusy = false;
-    if (widget.assistidoList?.isEmpty ?? true) {
-      if (mounted) {
-        setState(
-          () {
+
+    if (mounted) {
+      setState(
+        () {
+          if (widget.assistidoList?.isEmpty ?? false) {
             if ((_isFace == true)) {
               _isFace = false;
               _cameraTakeImage(imglib.encodeJpg(
                   convertCameraImageToImageWithRotate(cameraImage, rotation)));
             }
-          },
-        );
-      }
+          }
+        },
+      );
     }
   }
 

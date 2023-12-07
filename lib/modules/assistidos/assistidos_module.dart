@@ -72,9 +72,10 @@ class AssistidosModule extends Module {
     r.child(
       '/faces',
       child: (_) => AssistidoFaceDetectorPage(
+        title: "Camera Ativa",
         assistido: r.args.data["assistido"],
         assistidos: r.args.data["assistidos"],
-        title: "Camera Ativa",
+        isPhotoChanged: r.args.data["isPhotoChanged"],
       ),
       transition: TransitionType.custom,
       customTransition: CustomTransition(

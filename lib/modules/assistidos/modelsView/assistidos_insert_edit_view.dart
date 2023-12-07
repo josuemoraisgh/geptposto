@@ -22,7 +22,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   late final StreamAssistido _assistido;
   final _assistidosProviderStore =
       Modular.get<AssistidosController>().assistidosProviderStore;
-  final isPhotoChanged = RxNotifier<bool>(true);
+  final isPhotoChanged = RxNotifier<bool>(false);
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
 
@@ -681,64 +681,67 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   Widget _getImage(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    return FutureBuilder(
-      future: _assistido.photoUint8List,
-      builder: (BuildContext context, AsyncSnapshot photoUint8List) {
-        return photoUint8List.hasData
-            ? Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: screenWidth,
-                    maxHeight: screenHeight,
+    return ValueListenableBuilder(
+      valueListenable: isPhotoChanged,
+      builder: (BuildContext context, bool isphoto, _) => FutureBuilder(
+        future: _assistido.photoUint8List,
+        builder: (BuildContext context, AsyncSnapshot photoUint8List) {
+          return photoUint8List.hasData
+              ? Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: screenWidth,
+                      maxHeight: screenHeight,
+                    ),
+                    child: (photoUint8List.data!.isNotEmpty)
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.memory(
+                                  Uint8List.fromList(photoUint8List.data)),
+                              const SizedBox(height: 4.0),
+                              FloatingActionButton(
+                                onPressed: () async {
+                                  await _assistido.delPhoto();
+                                  setState(() {});
+                                },
+                                backgroundColor: Colors.redAccent,
+                                tooltip: 'Delete',
+                                child: const Icon(Icons.delete),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                "assets/images/semFoto.png",
+                                fit: BoxFit.cover,
+                                width: 250,
+                                height: 250,
+                              ),
+                              const SizedBox(height: 20.0),
+                              FloatingActionButton(
+                                onPressed: () {
+                                  Modular.to.pushNamed("faces", arguments: {
+                                    'assistido': _assistido,
+                                    'isPhotoChanged': isPhotoChanged
+                                  });
+                                  setState(() {});
+                                },
+                                backgroundColor: Colors.green,
+                                tooltip: 'New',
+                                child: const Icon(Icons.add_a_photo),
+                              ),
+                            ],
+                          ),
                   ),
-                  child: (photoUint8List.data!.isNotEmpty)
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Image.memory(
-                                Uint8List.fromList(photoUint8List.data)),
-                            const SizedBox(height: 4.0),
-                            FloatingActionButton(
-                              onPressed: () async {
-                                await _assistido.delPhoto();
-                                setState(() {});
-                              },
-                              backgroundColor: Colors.redAccent,
-                              tooltip: 'Delete',
-                              child: const Icon(Icons.delete),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              "assets/images/semFoto.png",
-                              fit: BoxFit.cover,
-                              width: 250,
-                              height: 250,
-                            ),
-                            const SizedBox(height: 20.0),
-                            FloatingActionButton(
-                              onPressed: () {
-                                Modular.to.pushNamed("faces", arguments: {
-                                  'assistido': _assistido,
-                                  'isPhotoChanged': isPhotoChanged
-                                });
-                                setState(() {});
-                              },
-                              backgroundColor: Colors.green,
-                              tooltip: 'New',
-                              child: const Icon(Icons.add_a_photo),
-                            ),
-                          ],
-                        ),
-                ),
-              )
-            : const Center(child: CircularProgressIndicator());
-      },
+                )
+              : const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 
