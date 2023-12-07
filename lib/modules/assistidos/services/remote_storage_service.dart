@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +35,7 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
     // await Future.delayed(const Duration(milliseconds: 500));
     //}
     //_countConnection++;
-    var response = await provider.get(
+    provider.get(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
         "planilha": switch (planilha ?? "") {
@@ -53,21 +52,24 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
         "p2": p2,
         "p3": p3,
       },
-    );
-    try {
-      if (response.data != null) {
-        if ((response.data?["status"] ?? "Error") == "SUCCESS") {
-          return response.data!["items"];
-        } else {
-          debugPrint(
-              "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+    ).then(
+      (response) {
+        try {
+          if (response.data != null) {
+            if ((response.data?["status"] ?? "Error") == "SUCCESS") {
+              return response.data!["items"];
+            } else {
+              debugPrint(
+                  "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+            }
+          }
+        } catch (e) {
+          debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
         }
-      }
-    } catch (e) {
-      debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
-    }
-    //_countConnection--;
-    return null;
+        //_countConnection--;
+        return null;
+      },
+    );
   }
 
   Future<dynamic> sendPost(
@@ -83,7 +85,9 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
     // await Future.delayed(const Duration(milliseconds: 500));
     //}
     //_countConnection++;
-    var response = await provider.post(
+    //try {
+    provider
+        .post(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
         "planilha": switch (planilha ?? "") {
@@ -99,25 +103,31 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
         "p1": p1,
         "p2": p2,
       },
-      options: Options(
+      /*options: Options(
         headers: {
           HttpHeaders.contentTypeHeader: "application/json",
         },
-      ),
-      data: jsonEncode({'p3': base64.encode(p3)}),
-    );
-    try {
-      if (response.data != null) {
-        if ((response.data?["status"] ?? "Error") == "SUCCESS") {
-          return response.data!["items"];
+      ),*/
+      //data: FormData.fromMap({'p3': await MultipartFile.fromFile('./text.txt',filename: 'upload.txt')}),
+      data: jsonEncode({'p3': base64.encode(p3).toString()}),
+    )
+        .then(
+      (response) {
+        if (response.statusCode == 200) {
+          var map = response.data as Map;
+          if ((map["status"] ?? "ERROR") == "SUCCESS") {
+            return map["items"];
+          } else {
+            debugPrint("POST ERROR - ${map["status"]}");
+          }
         } else {
-          debugPrint(
-              "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+          debugPrint("POST ERROR - $response");
         }
-      }
-    } catch (e) {
-      debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
-    }
+      },
+    );
+    //} catch (e) {
+    //debugPrint("POST ERROR - $e");
+    //}
     //_countConnection--;
     return null;
   }

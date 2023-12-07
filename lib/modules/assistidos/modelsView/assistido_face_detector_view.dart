@@ -127,14 +127,18 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
       _customPaint = CustomPaint(painter: painter);
     }
     _isBusy = false;
-    if (mounted) {
-      setState(() {
-        if (_isFace == true) {
-          _isFace = false;
-          _cameraTakeImage(imglib.encodeJpg(
-              convertCameraImageToImageWithRotate(cameraImage, rotation)));
-        }
-      });
+    if (widget.assistidoList?.isEmpty ?? true) {
+      if (mounted) {
+        setState(
+          () {
+            if ((_isFace == true)) {
+              _isFace = false;
+              _cameraTakeImage(imglib.encodeJpg(
+                  convertCameraImageToImageWithRotate(cameraImage, rotation)));
+            }
+          },
+        );
+      }
     }
   }
 
