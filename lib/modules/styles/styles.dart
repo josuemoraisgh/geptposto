@@ -1,5 +1,27 @@
 import 'package:flutter/cupertino.dart';
 
+final Map<String, String> caracterMap = {
+  "â": "a",
+  "à": "a",
+  "á": "a",
+  "ã": "a",
+  "ê": "e",
+  "è": "e",
+  "é": "e",
+  "î": "i",
+  "ì": "i",
+  "í": "i",
+  "õ": "o",
+  "ô": "o",
+  "ò": "o",
+  "ó": "o",
+  "ü": "u",
+  "û": "u",
+  "ú": "u",
+  "ù": "u",
+  "ç": "c"
+};
+
 abstract class Styles {
   static const TextStyle linhaProdutoNomeDoItem = TextStyle(
     color: Color.fromRGBO(0, 0, 0, 0.8),

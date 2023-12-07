@@ -4,31 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:hive/hive.dart';
 import 'package:rx_notifier/rx_notifier.dart';
+import '../styles/styles.dart';
 import 'models/assistido_models.dart';
 import 'models/stream_assistido_model.dart';
 import 'provider/assistido_provider_store.dart';
-
-Map<String, String> _caracterMap = {
-  "â": "a",
-  "à": "a",
-  "á": "a",
-  "ã": "a",
-  "ê": "e",
-  "è": "e",
-  "é": "e",
-  "î": "i",
-  "ì": "i",
-  "í": "i",
-  "õ": "o",
-  "ô": "o",
-  "ò": "o",
-  "ó": "o",
-  "ü": "u",
-  "û": "u",
-  "ú": "u",
-  "ù": "u",
-  "ç": "c"
-};
 
 class AssistidosController {
   final textEditing = TextEditingController(text: "");
@@ -70,9 +49,8 @@ class AssistidosController {
             .toLowerCase()
             .replaceAllMapped(
                 RegExp(r'[\W\[\] ]'),
-                (Match a) => _caracterMap.containsKey(a[0])
-                    ? _caracterMap[a[0]]!
-                    : a[0]!)
+                (Match a) =>
+                    caracterMap.containsKey(a[0]) ? caracterMap[a[0]]! : a[0]!)
             .contains(termosDeBusca.toLowerCase()))
         .toList()
       ..sort((a, b) {

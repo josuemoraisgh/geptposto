@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 
 import '../../faces/image_converter.dart';
+import '../../styles/styles.dart';
 import '../provider/assistido_provider_store.dart';
 import 'package:image/image.dart' as imglib;
 import 'assistido_models.dart';
@@ -67,9 +68,9 @@ class StreamAssistido extends Assistido {
 
   Future<void> delPhoto() async {
     //Atualiza os arquivos
-    assistidoStore.syncStore.addSync('delImage', photoName);
+    await assistidoStore.syncStore.addSync('delImage', photoName);
     await assistidoStore.localStore.delFile(photoName);
-    save();
+    await save();
   }
 
   Future<Uint8List> get photoUint8List async {
@@ -103,7 +104,7 @@ class StreamAssistido extends Assistido {
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
       assistidoStore.localStore.delFile(photoName);
       photoName =
-          '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase()}_${formatter.format(now)}.jpg';
+          '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase().replaceAllMapped(RegExp(r'[\W\[\] ]'), (Match a) => caracterMap.containsKey(a[0]) ? caracterMap[a[0]]! : a[0]!)}_${formatter.format(now)}.jpg';
       save();
       //Criando o arquivo - Armazenamento Local
       final file =
@@ -119,6 +120,7 @@ class StreamAssistido extends Assistido {
               .classificatorImage(image));
           uint8ListImageAux = imglib
               .encodeJpg(cropFace(image, faceDetected[0], step: 80) ?? image);
+          //assistidoStore.localStore.delFile(photoName);
           assistidoStore.localStore.addSetFile(
             photoName,
             uint8ListImageAux,
