@@ -35,7 +35,7 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
     // await Future.delayed(const Duration(milliseconds: 500));
     //}
     //_countConnection++;
-    provider.get(
+    var response = await provider.get(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
         "planilha": switch (planilha ?? "") {
@@ -52,24 +52,21 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
         "p2": p2,
         "p3": p3,
       },
-    ).then(
-      (response) {
-        try {
-          if (response.data != null) {
-            if ((response.data?["status"] ?? "Error") == "SUCCESS") {
-              return response.data!["items"];
-            } else {
-              debugPrint(
-                  "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
-            }
-          }
-        } catch (e) {
-          debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
-        }
-        //_countConnection--;
-        return null;
-      },
     );
+    try {
+      if (response.data != null) {
+        if ((response.data?["status"] ?? "Error") == "SUCCESS") {
+          return response.data!["items"];
+        } else {
+          debugPrint(
+              "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+        }
+      }
+    } catch (e) {
+      debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
+    }
+    //_countConnection--;
+    return null;
   }
 
   Future<dynamic> sendPost(
@@ -86,8 +83,7 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
     //}
     //_countConnection++;
     //try {
-    provider
-        .post(
+    var response = await provider.post(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
         "planilha": switch (planilha ?? "") {
@@ -110,21 +106,18 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
       ),*/
       //data: FormData.fromMap({'p3': await MultipartFile.fromFile('./text.txt',filename: 'upload.txt')}),
       data: jsonEncode({'p3': base64.encode(p3).toString()}),
-    )
-        .then(
-      (response) {
-        if (response.statusCode == 200) {
-          var map = response.data as Map;
-          if ((map["status"] ?? "ERROR") == "SUCCESS") {
-            return map["items"];
-          } else {
-            debugPrint("POST ERROR - ${map["status"]}");
-          }
-        } else {
-          debugPrint("POST ERROR - $response");
-        }
-      },
     );
+    if (response.statusCode == 200) {
+      var map = response.data as Map;
+      if ((map["status"] ?? "Error") == "SUCCESS") {
+        return map["items"];
+      } else {
+        debugPrint("POST ERROR - ${map["status"]}");
+      }
+    } else {
+      debugPrint("POST ERROR - $response");
+    }
+
     //} catch (e) {
     //debugPrint("POST ERROR - $e");
     //}
