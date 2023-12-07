@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +53,58 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
         "p2": p2,
         "p3": p3,
       },
+    );
+    try {
+      if (response.data != null) {
+        if ((response.data?["status"] ?? "Error") == "SUCCESS") {
+          return response.data!["items"];
+        } else {
+          debugPrint(
+              "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+        }
+      }
+    } catch (e) {
+      debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
+    }
+    //_countConnection--;
+    return null;
+  }
+
+  Future<dynamic> sendPost(
+      {String? planilha,
+      String table = "BDados",
+      required String func,
+      required String type,
+      dynamic p1,
+      dynamic p2,
+      dynamic p3}) async {
+    //while (_countConnection >= 15) {
+    //so faz 10 requisições por vez.
+    // await Future.delayed(const Duration(milliseconds: 500));
+    //}
+    //_countConnection++;
+    var response = await provider.post(
+      '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
+      queryParameters: {
+        "planilha": switch (planilha ?? "") {
+          'Bezerra de Menezes' => '0',
+          'Mãe Zeferina' => '2',
+          'Simão Pedro' => '3',
+          _ => '1',
+        },
+        "table": table,
+        "func": func,
+        "type": type,
+        "userName": deviceInfoModel.identify,
+        "p1": p1,
+        "p2": p2,
+      },
+      options: Options(
+        headers: {
+          HttpHeaders.contentTypeHeader: "application/json",
+        },
+      ),
+      data: jsonEncode({'p3': base64.encode(p3)}),
     );
     try {
       if (response.data != null) {
@@ -193,7 +247,7 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
   @override
   Future<String?> setFile(
       String targetDir, String fileName, Uint8List data) async {
-    final String? response = await sendGet(
+    final String? response = await sendPost(
         func: 'set',
         type: 'file',
         p1: targetDir,
