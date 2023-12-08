@@ -54,13 +54,17 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
       },
     );
     try {
-      if (response.data != null) {
-        if ((response.data?["status"] ?? "Error") == "SUCCESS") {
-          return response.data!["items"];
+      if (response.data is Map) {
+        var map = response.data as Map;
+        if ((map["status"] ?? "ERROR") == "SUCCESS") {
+          return map["items"];
         } else {
           debugPrint(
-              "AssistidoRemoteStorageRepository - sendUrl - ${response.data["status"]}");
+              "AssistidoRemoteStorageRepository - sendUrl - ${map["status"]}");
         }
+      } else {
+        debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
+        return "";
       }
     } catch (e) {
       debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
@@ -83,7 +87,9 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
     //}
     //_countConnection++;
     //try {
-    var response = await provider.post(
+    dynamic resp;
+    await provider
+        .post(
       '$baseUrl/macros/s/AKfycbwKiHbY2FQ295UrySD3m8pG_JDJO5c8SFxQG4VQ9eo9pzZQMmEfpAZYKdhVJcNtznGV/exec',
       queryParameters: {
         "planilha": switch (planilha ?? "") {
@@ -99,6 +105,11 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
         "p1": p1,
         "p2": p2,
       },
+      options: Options(
+          followRedirects: false,
+          validateStatus: (status) {
+            return status! < 500;
+          }),
       /*options: Options(
         headers: {
           HttpHeaders.contentTypeHeader: "application/json",
@@ -106,23 +117,33 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
       ),*/
       //data: FormData.fromMap({'p3': await MultipartFile.fromFile('./text.txt',filename: 'upload.txt')}),
       data: jsonEncode({'p3': base64.encode(p3).toString()}),
+    )
+        .then(
+      (value) async {
+        Response response;
+        if (value.statusCode == 302) {
+          var location = value.headers["location"];
+          response = await provider.get(location![0]);
+        } else {
+          response = value;
+        }
+        if (response.statusCode == 200) {
+          var map = response.data as Map;
+          if ((map["status"] ?? "Error") == "SUCCESS") {
+            resp = map["items"];
+          } else {
+            debugPrint("POST ERROR - ${map["status"]}");
+          }
+        } else {
+          debugPrint("POST ERROR - $response");
+        }
+      },
     );
-    if (response.statusCode == 200) {
-      var map = response.data as Map;
-      if ((map["status"] ?? "Error") == "SUCCESS") {
-        return map["items"];
-      } else {
-        debugPrint("POST ERROR - ${map["status"]}");
-      }
-    } else {
-      debugPrint("POST ERROR - $response");
-    }
-
     //} catch (e) {
     //debugPrint("POST ERROR - $e");
     //}
     //_countConnection--;
-    return null;
+    return resp;
   }
 
   @override
