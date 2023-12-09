@@ -50,7 +50,7 @@ class Assistido extends HiveObject {
   List<double> fotoPoints;
 
   Assistido({
-    this.ident = -1,
+    this.ident = 0,
     this.updatedApps = "",
     required this.nomeM1,
     this.photoName = "",

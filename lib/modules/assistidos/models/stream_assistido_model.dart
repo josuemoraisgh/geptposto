@@ -20,33 +20,15 @@ class StreamAssistido extends Assistido {
   static final countPresenteController = RxNotifier<int>(0);
   StreamAssistido(super.assistido, this.assistidoStore) : super.assistido();
   StreamAssistido.vazio(this.assistidoStore)
-      : super(nomeM1: "Nome", logradouro: "Rua", endereco: "", numero: "0");
+      : super(
+            ident: 0,
+            nomeM1: "Nome",
+            logradouro: "Rua",
+            endereco: "",
+            numero: "0");
   Stream<StreamAssistido> get chamadaStream => _chamadaController.stream;
 
   Assistido get assistido => this;
-
-  bool insertChamadaFunc(dateSelected) {
-    if (!(chamada.toLowerCase().contains(dateSelected))) {
-      changeItens("Chamada", "$chamada$dateSelected,");
-      save();
-      return true;
-    }
-    return false;
-  }
-
-  int chamadaToogleFunc(dateSelected) {
-    if (chamada.toLowerCase().contains(dateSelected)) {
-      changeItens("Chamada", chamada.replaceAll("$dateSelected,", ""));
-      save();
-      countPresenteController.value--;
-      return -1;
-    } else {
-      changeItens("Chamada", "$chamada$dateSelected,");
-      save();
-      countPresenteController.value++;
-      return 1;
-    }
-  }
 
   static int get countPresente => countPresenteController.value;
   static set countPresente(int value) {
@@ -54,14 +36,13 @@ class StreamAssistido extends Assistido {
         () => countPresenteController.value = value);
   }
 
-  @override
-  Future<void> save() async {
+  Future<void> saveAll() async {
     await saveJustLocal();
     await saveJustRemote();
   }
 
   Future<void> saveJustLocal() async =>
-      await assistidoStore.saveJustLocal(this);
+      await assistidoStore.localStore.setRow(this);
   Future<void> saveJustRemote() async {
     if (isAddPhotoName == true) {
       await assistidoStore.syncStore
@@ -72,7 +53,7 @@ class StreamAssistido extends Assistido {
       await assistidoStore.syncStore.addSync('delImage', changedPhotoName);
       changedPhotoName = "";
     }
-    await assistidoStore.addSaveJustRemote(this);
+    await assistidoStore.syncStore.addSync('set', this);
   }
 
   @override
@@ -102,10 +83,12 @@ class StreamAssistido extends Assistido {
           assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
         }
       }
-      final image = imglib.decodeJpg(uint8ListImage);
-      if (image != null) {
-        fotoPoints = (await assistidoStore.faceDetectionService
-            .classificatorImage(image));
+      if (uint8ListImage.isNotEmpty) {
+        final image = imglib.decodeJpg(uint8ListImage);
+        if (image != null) {
+          fotoPoints = (await assistidoStore.faceDetectionService
+              .classificatorImage(image));
+        }
       }
     }
     return uint8ListImage;
@@ -136,11 +119,8 @@ class StreamAssistido extends Assistido {
               .classificatorImage(image));
           uint8ListImageAux = imglib
               .encodeJpg(cropFace(image, faceDetected[0], step: 80) ?? image);
-          //assistidoStore.localStore.delFile(photoName);
-          assistidoStore.localStore.addSetFile(
-            photoName,
-            uint8ListImageAux,
-          );
+          await assistidoStore.localStore
+              .addSetFile(photoName, uint8ListImageAux);
         }
       }
       saveJustLocal();
@@ -149,18 +129,35 @@ class StreamAssistido extends Assistido {
     return false;
   }
 
-  @override
-  void changeItens(String? itens, dynamic datas) {
-    if (itens != null && datas != null) {
-      switch (itens) {
-        case 'Chamada':
-          chamada = datas;
-          break;
-        default:
-          super.changeItens(itens, datas);
-          break;
-      }
+  bool insertChamadaFunc(dateSelected) {
+    if (!(chamada.toLowerCase().contains(dateSelected))) {
+      chamada = '$chamada$dateSelected,';
+      Future.delayed(
+          const Duration(seconds: 0), () => countPresenteController.value--);
+      return true;
     }
+    return false;
+  }
+
+  int chamadaToogleFunc(dateSelected) {
+    if (chamada.toLowerCase().contains(dateSelected)) {
+      chamada = chamada.replaceAll("$dateSelected,", "");
+      Future.delayed(
+          const Duration(seconds: 0), () => countPresenteController.value--);
+      return -1;
+    } else {
+      chamada = "$chamada$dateSelected,";
+      Future.delayed(
+          const Duration(seconds: 0), () => countPresenteController.value++);
+      return 1;
+    }
+  }
+
+  @override
+  set chamada(String value) {
+    super.chamada = value;
+    _chamadaController.sink.add(this);
+    saveAll();
   }
 
   @override
@@ -168,10 +165,10 @@ class StreamAssistido extends Assistido {
     if (value.isNotEmpty) {
       isAddPhotoName = true;
     }
-    if ((value.isEmpty) &&
-        (changedPhotoName.isEmpty) &&
-        (photoName.isNotEmpty)) {
-      changedPhotoName = photoName;
+    if ((value.isEmpty) && (photoName.isNotEmpty)) {
+      if (changedPhotoName.isEmpty) {
+        changedPhotoName = photoName;
+      }
       delPhoto();
     }
     super.photoName = value;
@@ -179,7 +176,7 @@ class StreamAssistido extends Assistido {
 
   void copy(StreamAssistido? assistido) {
     if (assistido != null) {
-      ident = assistido.ident;
+      //ident = assistido.ident;
       updatedApps = assistido.updatedApps;
       nomeM1 = assistido.nomeM1;
       photoName = assistido.photoName;
@@ -196,18 +193,28 @@ class StreamAssistido extends Assistido {
       complemento = assistido.complemento;
       cep = assistido.cep;
       obs = assistido.obs;
-      chamada = assistido.chamada;
+      super.chamada = assistido.chamada;
       parentescos = assistido.parentescos;
       nomesMoradores = assistido.nomesMoradores;
       datasNasc = assistido.datasNasc;
       fotoPoints = assistido.fotoPoints;
     }
-    _chamadaController.sink.add(this);
   }
 
   @override
-  set chamada(String data) {
-    super.chamada = data;
-    _chamadaController.sink.add(this);
+  void changeItens(String? itens, dynamic datas) {
+    if (itens != null && datas != null) {
+      switch (itens) {
+        case 'Chamada':
+          chamada = datas;
+          break;
+        case 'Foto':
+          photoName = datas;
+          break;
+        default:
+          super.changeItens(itens, datas);
+          break;
+      }
+    }
   }
 }

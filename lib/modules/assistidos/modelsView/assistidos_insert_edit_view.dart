@@ -30,12 +30,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   void initState() {
     _assistido = StreamAssistido.vazio(_assistidosProviderStore);
     _isAdd = widget.assistido == null ? true : false;
+    if (_isAdd == false) {
+      _assistido.copy(widget.assistido);
+    }
+    _assistido.saveJustLocal();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    _assistido.copy(widget.assistido);
     return Form(
       key: _formKey1,
       autovalidateMode: AutovalidateMode.always, //.onUserInteraction,
@@ -426,7 +429,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                               _assistido.saveJustRemote();
                             } else {
                               widget.assistido?.copy(_assistido);
-                              widget.assistido?.save();
+                              widget.assistido?.saveAll();
                             }
                             Modular.to.pop();
                           }
@@ -554,11 +557,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
             actions: [
               ElevatedButton(
                   onPressed: () {
-                    //setState(
-                    //() {
-                    isPhotoChanged.value = !isPhotoChanged.value;
-                    //},
-                    //);
+                    setState(() {});
                     Modular.to.pop();
                   },
                   child: const Text("Cancelar")),
@@ -715,7 +714,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                               const SizedBox(height: 4.0),
                               FloatingActionButton(
                                 onPressed: () async {
-                                  await _assistido.delPhoto();
+                                  _assistido.photoName = "";
                                   setState(() {});
                                 },
                                 backgroundColor: Colors.redAccent,
@@ -741,7 +740,6 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                                     'assistido': _assistido,
                                     'isPhotoChanged': isPhotoChanged
                                   });
-                                  setState(() {});
                                 },
                                 backgroundColor: Colors.green,
                                 tooltip: 'New',

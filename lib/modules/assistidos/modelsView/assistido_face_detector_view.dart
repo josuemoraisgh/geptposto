@@ -81,7 +81,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
   }
 
   Future<void> _cameraTakeImage(Uint8List? uint8ListImage) async {
-    if (widget.assistidoList?.isNotEmpty ?? false) {
+    if (widget.assistidoList != null) {
       if ((faces?.isNotEmpty ?? false) &&
           (cameraImage != null) &&
           (_cameraService?.camera != null)) {
@@ -131,7 +131,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     if (mounted) {
       setState(
         () {
-          if (widget.assistidoList?.isEmpty ?? false) {
+          if (widget.assistidoList != null) {
             if ((_isFace == true)) {
               _isFace = false;
               _cameraTakeImage(imglib.encodeJpg(

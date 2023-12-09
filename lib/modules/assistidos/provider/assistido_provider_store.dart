@@ -44,25 +44,6 @@ class AssistidosProviderStore {
     return resp;
   }
 
-  Future<bool> add(Assistido stAssist) async {
-    return addSaveJustRemote(stAssist, isAdd: true);
-  }
-
-  Future<String?> save(Assistido stAssist) async {
-    addSaveJustRemote(stAssist, isAdd: false);
-    return saveJustLocal(stAssist);
-  }
-
-  Future<bool> addSaveJustRemote(Assistido stAssist,
-      {bool isAdd = false}) async {
-    syncStore.addSync(isAdd ? 'add' : 'set', stAssist);
-    return true;
-  }
-
-  Future<String?> saveJustLocal(Assistido stAssist) async {
-    return localStore.setRow(stAssist);
-  }
-
   Future<bool> deleteAll() async {
     if (await localStore.delAll()) {
       return true;
