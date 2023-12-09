@@ -61,7 +61,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => _assistido.nomeM1 = v),
+              onChanged: (v) => _assistido.nomeM1 = v,
             ),
             const SizedBox(height: 15),
             Column(
@@ -108,7 +108,6 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                   onChanged: (String? novoItemSelecionado) {
                     if (novoItemSelecionado != null) {
                       _assistido.condicao = novoItemSelecionado;
-                      setState(() {});
                     }
                   },
                   value: _assistido.condicao.replaceAll(" ", ""),
@@ -135,7 +134,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                 }
                 return null;
               },
-              onChanged: (v) => setState(() => _assistido.dataNascM1 = v),
+              onChanged: (v) => _assistido.dataNascM1 = v,
             ),
             const SizedBox(height: 15),
             Row(children: [
@@ -180,62 +179,63 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
               ])
             ]),
             TextFormField(
-                initialValue: _assistido.fone,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.phone),
-                    labelText: 'Telefone'),
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  TelefoneInputFormatter(),
-                ],
-                validator: (value) {
-                  String pattern = r'(^\([0-9]{2}\) (?:9)?[0-9]{4}\-[0-9]{4}$)';
-                  RegExp regExp = RegExp(pattern);
-                  if (value != null) {
-                    if (value.isNotEmpty && !regExp.hasMatch(value)) {
-                      return 'Please enter valid mobile number';
-                    }
+              initialValue: _assistido.fone,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.phone),
+                  labelText: 'Telefone'),
+              keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                TelefoneInputFormatter(),
+              ],
+              validator: (value) {
+                String pattern = r'(^\([0-9]{2}\) (?:9)?[0-9]{4}\-[0-9]{4}$)';
+                RegExp regExp = RegExp(pattern);
+                if (value != null) {
+                  if (value.isNotEmpty && !regExp.hasMatch(value)) {
+                    return 'Please enter valid mobile number';
                   }
-                  return null;
-                },
-                onChanged: (v) => setState(
-                      () => _assistido.fone = v,
-                    )),
+                }
+                return null;
+              },
+              onChanged: (v) => _assistido.fone = v,
+            ),
             TextFormField(
-                initialValue: _assistido.rg,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.assignment_ind),
-                    labelText: "RG ou CNH"),
-                validator: (value) => null,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                onChanged: (v) => setState(() => _assistido.rg = v)),
+              initialValue: _assistido.rg,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.assignment_ind),
+                  labelText: "RG ou CNH"),
+              validator: (value) => null,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              onChanged: (v) => _assistido.rg = v,
+            ),
             TextFormField(
-                initialValue: _assistido.cpf,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.attribution),
-                    labelText: "CPF"),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  CpfInputFormatter(),
-                ],
-                autovalidateMode: AutovalidateMode.always,
-                validator: (value) {
-                  if (value != null) {
-                    if ((value.isNotEmpty) && (!isCpf(value))) {
-                      return 'CPF invalido!! Corriga por favor';
-                    }
+              initialValue: _assistido.cpf,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.attribution),
+                  labelText: "CPF"),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                CpfInputFormatter(),
+              ],
+              autovalidateMode: AutovalidateMode.always,
+              validator: (value) {
+                if (value != null) {
+                  if ((value.isNotEmpty) && (!isCpf(value))) {
+                    return 'CPF invalido!! Corriga por favor';
                   }
-                  return null;
-                },
-                onChanged: (v) => setState(() => _assistido.cpf = v)),
+                }
+                return null;
+              },
+              onChanged: (v) => _assistido.cpf = v,
+            ),
             const SizedBox(height: 15),
             Row(children: [
               const Icon(Icons.admin_panel_settings, color: Colors.black54),
@@ -281,35 +281,37 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
               ])
             ]),
             TextFormField(
-                initialValue: _assistido.endereco,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.place),
-                    labelText: "Endereço"),
-                autovalidateMode: AutovalidateMode.always,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor entre com um enderço válido';
-                  } else if (value.length < 4) {
-                    return 'Endereço muito pequeno';
-                  }
-                  return null;
-                },
-                onChanged: (v) => setState(() => _assistido.endereco = v)),
+              initialValue: _assistido.endereco,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.place),
+                  labelText: "Endereço"),
+              autovalidateMode: AutovalidateMode.always,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor entre com um enderço válido';
+                } else if (value.length < 4) {
+                  return 'Endereço muito pequeno';
+                }
+                return null;
+              },
+              onChanged: (v) => _assistido.endereco = v,
+            ),
             TextFormField(
-                initialValue: _assistido.numero,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.numbers),
-                    labelText: "Número"),
-                autovalidateMode: AutovalidateMode.always,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor entre com um número';
-                  }
-                  return null;
-                },
-                onChanged: (v) => setState(() => _assistido.numero = v)),
+              initialValue: _assistido.numero,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.numbers),
+                  labelText: "Número"),
+              autovalidateMode: AutovalidateMode.always,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor entre com um número';
+                }
+                return null;
+              },
+              onChanged: (v) => _assistido.numero = v,
+            ),
             TextFormField(
               initialValue: _assistido.bairro,
               decoration: const InputDecoration(
@@ -322,21 +324,23 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
               },
             ),
             TextFormField(
-                initialValue: _assistido.complemento,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.travel_explore),
-                    labelText: "Complemento"),
-                validator: (value) => null,
-                onChanged: (v) => setState(() => _assistido.complemento = v)),
+              initialValue: _assistido.complemento,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.travel_explore),
+                  labelText: "Complemento"),
+              validator: (value) => null,
+              onChanged: (v) => _assistido.complemento = v,
+            ),
             TextFormField(
-                initialValue: _assistido.cep,
-                decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
-                    icon: Icon(Icons.elevator_sharp),
-                    labelText: "CEP"),
-                validator: (value) => null,
-                onChanged: (v) => setState(() => _assistido.cep = v)),
+              initialValue: _assistido.cep,
+              decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  icon: Icon(Icons.elevator_sharp),
+                  labelText: "CEP"),
+              validator: (value) => null,
+              onChanged: (v) => _assistido.cep = v,
+            ),
             const SizedBox(height: 20),
             Table(
               border: TableBorder.all(),
@@ -549,7 +553,15 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
             actionsOverflowButtonSpacing: 20,
             actions: [
               ElevatedButton(
-                  onPressed: Modular.to.pop, child: const Text("Cancelar")),
+                  onPressed: () {
+                    //setState(
+                    //() {
+                    isPhotoChanged.value = !isPhotoChanged.value;
+                    //},
+                    //);
+                    Modular.to.pop();
+                  },
+                  child: const Text("Cancelar")),
               ElevatedButton(
                   onPressed: _formKey2.currentState?.validate() ?? false
                       ? () {

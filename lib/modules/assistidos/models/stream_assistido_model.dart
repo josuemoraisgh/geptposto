@@ -68,12 +68,9 @@ class StreamAssistido extends Assistido {
 
   Future<void> delPhoto() async {
     //Atualiza os arquivos
-    final mome = photoName;
-    photoName = "";
-    fotoPoints = [];
+    await assistidoStore.syncStore.addSync('delImage', photoName);
+    await assistidoStore.localStore.delFile(photoName);
     await save();
-    await assistidoStore.syncStore.addSync('delImage', mome);
-    await assistidoStore.localStore.delFile(mome);
   }
 
   Future<Uint8List> get photoUint8List async {
