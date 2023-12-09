@@ -12,6 +12,8 @@ import 'package:image/image.dart' as imglib;
 import 'assistido_models.dart';
 
 class StreamAssistido extends Assistido {
+  bool isAddPhotoName = false;
+  String changedPhotoName = "";
   final AssistidosProviderStore assistidoStore;
   final StreamController<StreamAssistido> _chamadaController =
       StreamController<StreamAssistido>.broadcast();
@@ -54,23 +56,36 @@ class StreamAssistido extends Assistido {
 
   @override
   Future<void> save() async {
-    assistidoStore.save(this);
+    await saveJustLocal();
+    await saveJustRemote();
   }
 
-  void saveJustLocal() => assistidoStore.saveJustLocal(this);
-  void saveJustRemote() => assistidoStore.addSaveJustRemote(this);
+  Future<void> saveJustLocal() async =>
+      await assistidoStore.saveJustLocal(this);
+  Future<void> saveJustRemote() async {
+    if (isAddPhotoName == true) {
+      await assistidoStore.syncStore
+          .addSync('setImage', [photoName, photoUint8List]);
+      isAddPhotoName = false;
+    }
+    if (changedPhotoName.isNotEmpty) {
+      await assistidoStore.syncStore.addSync('delImage', changedPhotoName);
+      changedPhotoName = "";
+    }
+    await assistidoStore.addSaveJustRemote(this);
+  }
 
   @override
   Future<void> delete() async {
+    if (photoName.isNotEmpty) {
+      assistidoStore.syncStore.addSync('delImage', photoName);
+    }
     delPhoto();
     assistidoStore.delete(this);
   }
 
   Future<void> delPhoto() async {
-    //Atualiza os arquivos
-    await assistidoStore.syncStore.addSync('delImage', photoName);
     await assistidoStore.localStore.delFile(photoName);
-    await save();
   }
 
   Future<Uint8List> get photoUint8List async {
@@ -102,10 +117,11 @@ class StreamAssistido extends Assistido {
       Uint8List uint8ListImageAux = uint8ListImage;
       final now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd_H-m-s');
-      assistidoStore.localStore.delFile(photoName);
+      if (photoName.isNotEmpty) {
+        assistidoStore.localStore.delFile(photoName);
+      }
       photoName =
           '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase().replaceAllMapped(RegExp(r'[\W\[\] ]'), (Match a) => caracterMap.containsKey(a[0]) ? caracterMap[a[0]]! : a[0]!)}_${formatter.format(now)}.jpg';
-      save();
       //Criando o arquivo - Armazenamento Local
       final file =
           await assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
@@ -127,9 +143,7 @@ class StreamAssistido extends Assistido {
           );
         }
       }
-      //Salva a Imagem para o futuro
-      assistidoStore.syncStore
-          .addSync('setImage', [photoName, uint8ListImageAux]);
+      saveJustLocal();
       return true;
     }
     return false;
@@ -147,6 +161,20 @@ class StreamAssistido extends Assistido {
           break;
       }
     }
+  }
+
+  @override
+  set photoName(String value) {
+    if (value.isNotEmpty) {
+      isAddPhotoName = true;
+    }
+    if ((value.isEmpty) &&
+        (changedPhotoName.isEmpty) &&
+        (photoName.isNotEmpty)) {
+      changedPhotoName = photoName;
+      delPhoto();
+    }
+    super.photoName = value;
   }
 
   void copy(StreamAssistido? assistido) {
