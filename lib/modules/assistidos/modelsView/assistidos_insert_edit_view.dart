@@ -28,10 +28,12 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
 
   @override
   void initState() {
-    _assistido = StreamAssistido.vazio(_assistidosProviderStore);
     _isAdd = widget.assistido == null ? true : false;
     if (_isAdd == false) {
       _assistido.copy(widget.assistido);
+      _assistido = StreamAssistido.vazio(_assistidosProviderStore, key: 0);
+    } else {
+      _assistido = StreamAssistido.vazio(_assistidosProviderStore, key: -1);
     }
     _assistido.saveJustLocal();
     super.initState();

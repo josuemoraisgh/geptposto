@@ -60,14 +60,14 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
           return map["items"];
         } else {
           debugPrint(
-              "AssistidoRemoteStorageRepository - sendUrl - ${map["status"]}");
+              "AssistidoRemoteStorageRepository - sendGet - ${map["status"]}");
         }
       } else {
-        debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
+        debugPrint("AssistidoRemoteStorageRepository - sendGet - $response");
         return "";
       }
     } catch (e) {
-      debugPrint("AssistidoRemoteStorageRepository - sendUrl - $response");
+      debugPrint("AssistidoRemoteStorageRepository - sendGet - $response");
     }
     //_countConnection--;
     return null;

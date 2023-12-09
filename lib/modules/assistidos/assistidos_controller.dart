@@ -73,10 +73,6 @@ class AssistidosController {
         var sync = await (assistidosProviderStore.syncStore.getSync(0)
           ..whenComplete(() => assistidosProviderStore.syncStore.delSync(0)));
         if (sync != null) {
-          if (sync.synckey == 'add') {
-            status = await assistidosProviderStore.remoteStore
-                .addData((sync.syncValue as Assistido).toList());
-          }
           if (sync.synckey == 'set') {
             status = await assistidosProviderStore.remoteStore.setData(
                 (sync.syncValue as Assistido).ident.toString(),

@@ -19,9 +19,9 @@ class StreamAssistido extends Assistido {
       StreamController<StreamAssistido>.broadcast();
   static final countPresenteController = RxNotifier<int>(0);
   StreamAssistido(super.assistido, this.assistidoStore) : super.assistido();
-  StreamAssistido.vazio(this.assistidoStore)
+  StreamAssistido.vazio(this.assistidoStore, {int key = -1})
       : super(
-            ident: 0,
+            ident: key,
             nomeM1: "Nome",
             logradouro: "Rua",
             endereco: "",
@@ -107,7 +107,7 @@ class StreamAssistido extends Assistido {
           '${nomeM1.replaceAll(RegExp(r"\s+"), "").toLowerCase().replaceAllMapped(RegExp(r'[\W\[\] ]'), (Match a) => caracterMap.containsKey(a[0]) ? caracterMap[a[0]]! : a[0]!)}_${formatter.format(now)}.jpg';
       //Criando o arquivo - Armazenamento Local
       final file =
-          await assistidoStore.localStore.addSetFile(photoName, uint8ListImage);
+          await assistidoStore.localStore.addSetFile("aux", uint8ListImage);
       final inputImage = InputImage.fromFile(file);
       final faceDetected = await assistidoStore
           .faceDetectionService.faceDetector
@@ -169,6 +169,7 @@ class StreamAssistido extends Assistido {
       if (changedPhotoName.isEmpty) {
         changedPhotoName = photoName;
       }
+      fotoPoints = [];
       delPhoto();
     }
     super.photoName = value;
@@ -177,7 +178,7 @@ class StreamAssistido extends Assistido {
   void copy(StreamAssistido? assistido) {
     if (assistido != null) {
       //ident = assistido.ident;
-      updatedApps = assistido.updatedApps;
+      //updatedApps = assistido.updatedApps;
       nomeM1 = assistido.nomeM1;
       photoName = assistido.photoName;
       condicao = assistido.condicao;
