@@ -34,7 +34,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<bool>(
         valueListenable: controller.isInitedController,
-        builder: (BuildContext context, bool isInited, _) => isInited == true
+        builder: (BuildContext context, bool isInited, _) => isInited
             ? ValueListenableBuilder<Box>(
                 valueListenable: controller
                     .listenableAssistido, //controller.assistidosStoreList.stream,
@@ -70,7 +70,14 @@ class _AssistidosPageState extends State<AssistidosPage> {
                   },
                 ),
               )
-            : const Center(child: CircularProgressIndicator()),
+            : Scaffold(
+                appBar: customAppBar(isInited),
+                body: isInited
+                    ? customBody(context, [])
+                    : const Center(child: CircularProgressIndicator()),
+                floatingActionButton:
+                    isInited ? customFloatingActionButton(context, []) : null,
+              ),
       );
 
   AppBar customAppBar(bool isInited) => AppBar(

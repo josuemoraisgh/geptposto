@@ -36,10 +36,12 @@ class AssistidoStorageService implements AssistidoStorageInterface {
 
   @override
   Future<String?> setRow(Assistido? data) async {
-    final box = await completerAssistidos.future;
     if (data != null) {
-      box.put(data.ident, data);
-      return "SUCCESS";
+      if (data.ident > 0) {
+        final box = await completerAssistidos.future;
+        box.put(data.ident, data);
+        return "SUCCESS";
+      }
     }
     return "ROW NOT FOUND";
   }

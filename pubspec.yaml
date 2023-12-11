@@ -39,6 +39,7 @@ dependencies:
   #tflite_flutter:
   #  path: assets/tflite_flutter
   ml_linalg: ^13.11.30
+  internet_connection_checker: ^1.0.0+1
   #flutter_sensors: ^1.0.1
   
 dev_dependencies:

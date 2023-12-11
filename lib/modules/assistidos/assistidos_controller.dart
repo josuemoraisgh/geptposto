@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:hive/hive.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import '../styles/styles.dart';
 import 'models/assistido_models.dart';
@@ -33,11 +34,11 @@ class AssistidosController {
       listenableAssistido =
           (await assistidosProviderStore.localStore.listenable());
       (await assistidosProviderStore.syncStore.listenable())
-          .addListener(() async => await sync());
+          .addListener(() => sync());
       await sync();
       isInitedController.value = true;
     } else {
-      await sync();
+      sync();
     }
   }
 
@@ -66,83 +67,85 @@ class AssistidosController {
   }
 
   Future<void> sync() async {
-    dynamic status;
-    if (isRunningSync.value == false) {
-      isRunningSync.value = true;
-      countSync.value = await assistidosProviderStore.syncStore.length();
-      while (countSync.value > 0) {
-        status = null;
-        var sync = await (assistidosProviderStore.syncStore.getSync(0)
-          ..whenComplete(() => assistidosProviderStore.syncStore.delSync(0)));
-        if (sync != null) {
-          if (sync.synckey == 'set') {
-            status = await assistidosProviderStore.remoteStore.setData(
-                (sync.syncValue as Assistido).ident.toString(),
-                (sync.syncValue as Assistido).toList());
-          }
-          if (sync.synckey == 'del') {
-            status = await assistidosProviderStore.remoteStore
-                .deleteData((sync.syncValue as String));
-          }
-          if (sync.synckey == 'addImage') {
-            status = await assistidosProviderStore.remoteStore.addFile(
-                'BDados_Images',
-                (sync.syncValue[0] as String),
-                (sync.syncValue[1] as Uint8List));
-          }
-          if (sync.synckey == 'setImage') {
-            status = await assistidosProviderStore.remoteStore.setFile(
-                'BDados_Images',
-                (sync.syncValue[0] as String),
-                (sync.syncValue[1] as Uint8List));
-          }
-          if (sync.synckey == 'delImage') {
-            status = await assistidosProviderStore.remoteStore
-                .deleteFile('BDados_Images', sync.syncValue);
-          }
-          if (sync.synckey == 'setConfig') {
-            status = await assistidosProviderStore.remoteStore.setData(
-                (sync.syncValue as List<String>)[0].toString(),
-                (sync.syncValue as List<String>).sublist(1).toList(),
-                table: 'Config');
-          }
-          if (status == null) {
-            await assistidosProviderStore.syncStore
-                .addSync(sync.synckey, sync.syncValue);
-            break;
-          }
-        }
+    if (await InternetConnectionChecker().hasConnection) {
+      dynamic status;
+      if (isRunningSync.value == false) {
+        isRunningSync.value = true;
         countSync.value = await assistidosProviderStore.syncStore.length();
-      }
-      var remoteConfigChanges =
-          await assistidosProviderStore.remoteStore.getChanges(table: "Config");
-      if (remoteConfigChanges != null && remoteConfigChanges.isNotEmpty) {
-        for (List e in remoteConfigChanges) {
-          e.removeWhere((element) => element == "");
-          final listString = e.sublist(1).cast<String>()[0];
-          await assistidosProviderStore.configStore.addConfig(
-            e[0],
-            listString.substring(listString.length - 1) == ";" &&
-                    listString.substring(listString.length - 2) != ";"
-                ? listString.substring(0, listString.length - 1).split(";")
-                : listString.split(";"),
-          );
+        while (countSync.value > 0) {
+          status = null;
+          var sync = await (assistidosProviderStore.syncStore.getSync(0)
+            ..whenComplete(() => assistidosProviderStore.syncStore.delSync(0)));
+          if (sync != null) {
+            if (sync.synckey == 'set') {
+              status = await assistidosProviderStore.remoteStore.setData(
+                  (sync.syncValue as Assistido).ident.toString(),
+                  (sync.syncValue as Assistido).toList());
+            }
+            if (sync.synckey == 'del') {
+              status = await assistidosProviderStore.remoteStore
+                  .deleteData((sync.syncValue as String));
+            }
+            if (sync.synckey == 'addImage') {
+              status = await assistidosProviderStore.remoteStore.addFile(
+                  'BDados_Images',
+                  (sync.syncValue[0] as String),
+                  (sync.syncValue[1] as Uint8List));
+            }
+            if (sync.synckey == 'setImage') {
+              status = await assistidosProviderStore.remoteStore.setFile(
+                  'BDados_Images',
+                  (sync.syncValue[0] as String),
+                  (sync.syncValue[1] as Uint8List));
+            }
+            if (sync.synckey == 'delImage') {
+              status = await assistidosProviderStore.remoteStore
+                  .deleteFile('BDados_Images', sync.syncValue);
+            }
+            if (sync.synckey == 'setConfig') {
+              status = await assistidosProviderStore.remoteStore.setData(
+                  (sync.syncValue as List<String>)[0].toString(),
+                  (sync.syncValue as List<String>).sublist(1).toList(),
+                  table: 'Config');
+            }
+            if (status == null) {
+              await assistidosProviderStore.syncStore
+                  .addSync(sync.synckey, sync.syncValue);
+              break;
+            }
+          }
+          countSync.value = await assistidosProviderStore.syncStore.length();
         }
-      }
-      var remoteDataChanges =
-          await assistidosProviderStore.remoteStore.getChanges();
-      if (remoteDataChanges != null) {
-        for (var e in remoteDataChanges) {
-          final stAssist =
-              StreamAssistido(Assistido.fromList(e), assistidosProviderStore);
-          assistidosProviderStore.localStore.setRow(stAssist);
+        var remoteConfigChanges = await assistidosProviderStore.remoteStore
+            .getChanges(table: "Config");
+        if (remoteConfigChanges != null && remoteConfigChanges.isNotEmpty) {
+          for (List e in remoteConfigChanges) {
+            e.removeWhere((element) => element == "");
+            final listString = e.sublist(1).cast<String>()[0];
+            await assistidosProviderStore.configStore.addConfig(
+              e[0],
+              listString.substring(listString.length - 1) == ";" &&
+                      listString.substring(listString.length - 2) != ";"
+                  ? listString.substring(0, listString.length - 1).split(";")
+                  : listString.split(";"),
+            );
+          }
         }
+        var remoteDataChanges =
+            await assistidosProviderStore.remoteStore.getChanges();
+        if (remoteDataChanges != null) {
+          for (var e in remoteDataChanges) {
+            final stAssist =
+                StreamAssistido(Assistido.fromList(e), assistidosProviderStore);
+            assistidosProviderStore.localStore.setRow(stAssist);
+          }
+        }
+        isRunningSync.value = false;
+      } else {
+        await Future.delayed(
+            const Duration(milliseconds: 500)); //so faz 10 requisições por vez.
+        sync();
       }
-      isRunningSync.value = false;
-    } else {
-      await Future.delayed(
-          const Duration(milliseconds: 500)); //so faz 10 requisições por vez.
-      sync();
     }
   }
 }
