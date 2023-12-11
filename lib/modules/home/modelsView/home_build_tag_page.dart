@@ -63,9 +63,8 @@ class BuildTagPage extends StatelessWidget {
                       tag: 'LogIn',
                       icon: const Icon(Icons.login)),
                   BuildTagButton(
-                      listaTelas: listaTelas,
                       activeTagButtom: activeTagButtom,
-                      tag: 'Configurações',
+                      tag: 'Reset App',
                       icon: const Icon(Icons.settings)),
                   BuildTagButton(
                       listaTelas: listaTelas,

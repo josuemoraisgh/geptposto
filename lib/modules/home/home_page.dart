@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import '../assistidos/services/remote_storage_service.dart';
 import 'modelsView/home_build_navegator.dart';
 import 'modelsView/home_build_tag_page.dart';
 import 'home_controller.dart';
@@ -23,6 +24,15 @@ class HomePageState extends State<HomePage> {
         });
       }
     });
+    controller.activeTagButtom.addListener(
+      () async {
+        if (controller.activeTagButtom.value == "Reset App") {
+          await AssistidoRemoteStorageService().init();
+          await AssistidoRemoteStorageService()
+              .sendGet(func: "reset", type: "all");
+        }
+      },
+    );
     super.initState();
   }
 

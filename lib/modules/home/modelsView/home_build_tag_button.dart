@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/home_models.dart';
 
 class BuildTagButton extends StatelessWidget {
-  final ValueNotifier<List<Map<String, dynamic>>> listaTelas;
+  final ValueNotifier<List<Map<String, dynamic>>>? listaTelas;
   final ValueNotifier<String> activeTagButtom;
   final String tag;
   final Icon icon;
@@ -12,7 +12,7 @@ class BuildTagButton extends StatelessWidget {
       required this.activeTagButtom,
       required this.tag,
       required this.icon,
-      required this.listaTelas});
+      this.listaTelas});
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +37,10 @@ class BuildTagButton extends StatelessWidget {
             ],
           ),
           onPressed: () {
-            activeTagButtom.value = tag;
-            listaTelas.value = mapTelas[tag]!;
+            if (listaTelas != null) {
+              activeTagButtom.value = tag;
+              listaTelas!.value = mapTelas[tag]!;
+            }
           },
         ));
   }
