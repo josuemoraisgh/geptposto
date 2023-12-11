@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../assistidos_controller.dart';
 import '../../Styles/styles.dart';
 import '../models/stream_assistido_model.dart';
@@ -149,9 +151,22 @@ class AssistidoListViewSilver extends StatelessWidget {
                     style: Styles.linhaProdutoNomeDoItem,
                   ),
                   const Padding(padding: EdgeInsets.only(top: 8)),
-                  Text(
-                    pessoa.fone,
-                    style: Styles.linhaProdutoPrecoDoItem,
+                  Row(
+                    children: [
+                      Text(
+                        pessoa.fone,
+                        style: Styles.linhaProdutoPrecoDoItem,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chat),
+                        onPressed: () async {
+                          await abrirWhatsApp(pessoa.fone);
+                        },
+                      ),
+                    ],
                   )
                 ],
               ),
@@ -208,5 +223,26 @@ class AssistidoListViewSilver extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> abrirWhatsApp(String phoneNumber) async {
+    late final String whatsappUrl;
+    final phoneNumberClean = phoneNumber
+        .replaceAll("-", "")
+        .replaceAll("(", "")
+        .replaceAll(")", "")
+        .replaceAll(" ", "");
+    //if (Platform.isAndroid) {
+    //  whatsappUrl = "https://wa.me/55$phoneNumberClean&text=Olá";
+    //} else {
+    whatsappUrl = "whatsapp://send?phone=55$phoneNumberClean&text=Olá";
+    //}
+    //Insert above line in android manifest
+    //<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+      await launchUrl(Uri.parse(whatsappUrl));
+    } else {
+      throw 'Could not launch $whatsappUrl';
+    }
   }
 }
