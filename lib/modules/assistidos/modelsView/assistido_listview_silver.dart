@@ -1,6 +1,5 @@
-import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -151,23 +150,27 @@ class AssistidoListViewSilver extends StatelessWidget {
                     style: Styles.linhaProdutoNomeDoItem,
                   ),
                   const Padding(padding: EdgeInsets.only(top: 8)),
-                  Row(
-                    children: [
-                      Text(
-                        pessoa.fone,
-                        style: Styles.linhaProdutoPrecoDoItem,
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.chat),
-                        onPressed: () async {
-                          await abrirWhatsApp(pessoa.fone);
-                        },
-                      ),
-                    ],
-                  )
+                  if (pessoa.fone.isNotEmpty)
+                    Row(
+                      children: [
+                        Text(
+                          pessoa.fone,
+                          style: Styles.linhaProdutoPrecoDoItem,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        IconButton(
+                          icon: const FaIcon(
+                            FontAwesomeIcons.whatsapp,
+                            color: Colors.green,
+                          ),
+                          onPressed: () async {
+                            await abrirWhatsApp(pessoa.fone);
+                          },
+                        ),
+                      ],
+                    )
                 ],
               ),
             ),
@@ -235,7 +238,7 @@ class AssistidoListViewSilver extends StatelessWidget {
     //if (Platform.isAndroid) {
     //  whatsappUrl = "https://wa.me/55$phoneNumberClean&text=Olá";
     //} else {
-    whatsappUrl = "whatsapp://send?phone=55$phoneNumberClean&text=Olá";
+    whatsappUrl = "whatsapp://send?phone=55$phoneNumberClean&text=";
     //}
     //Insert above line in android manifest
     //<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
