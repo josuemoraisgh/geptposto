@@ -202,6 +202,35 @@ class StreamAssistido extends Assistido {
     }
   }
 
+  StreamAssistido copyWith() {
+    return StreamAssistido(
+        Assistido(
+          ident: 0,
+          updatedApps: updatedApps,
+          nomeM1: nomeM1,
+          photoName: photoName,
+          condicao: condicao,
+          dataNascM1: dataNascM1,
+          estadoCivil: estadoCivil,
+          fone: fone,
+          rg: rg,
+          cpf: cpf,
+          logradouro: logradouro,
+          endereco: endereco,
+          numero: numero,
+          bairro: bairro,
+          complemento: complemento,
+          cep: cep,
+          obs: obs,
+          chamada: chamada,
+          parentescos: parentescos,
+          nomesMoradores: nomesMoradores,
+          datasNasc: datasNasc,
+          fotoPoints: fotoPoints,
+        ),
+        assistidoStore);
+  }
+
   @override
   void changeItens(String? itens, dynamic datas) {
     if (itens != null && datas != null) {

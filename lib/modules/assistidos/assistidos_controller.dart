@@ -33,10 +33,12 @@ class AssistidosController {
       listenableAssistido =
           (await assistidosProviderStore.localStore.listenable());
       (await assistidosProviderStore.syncStore.listenable())
-          .addListener(() => sync());
+          .addListener(() async => await sync());
+      await sync();
       isInitedController.value = true;
+    } else {
+      await sync();
     }
-    sync();
   }
 
   List<StreamAssistido> search(

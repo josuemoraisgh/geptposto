@@ -30,8 +30,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
   void initState() {
     _isAdd = widget.assistido == null ? true : false;
     if (_isAdd == false) {
-      _assistido = StreamAssistido.vazio(_assistidosProviderStore, key: 0);
-      _assistido.copy(widget.assistido);
+      _assistido = widget.assistido!.copyWith();
     } else {
       _assistido = StreamAssistido.vazio(_assistidosProviderStore, key: -1);
     }
@@ -430,7 +429,7 @@ class _AssistidosInsertEditViewState extends State<AssistidosInsertEditView> {
                             if (_isAdd) {
                               _assistido.saveJustRemote();
                             } else {
-                              widget.assistido?.copy(_assistido);
+                              widget.assistido?.copy(_assistido.copyWith());
                               widget.assistido?.saveAll();
                             }
                             Modular.to.pop();
