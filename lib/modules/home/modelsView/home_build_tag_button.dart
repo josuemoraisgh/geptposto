@@ -37,9 +37,9 @@ class BuildTagButton extends StatelessWidget {
             ],
           ),
           onPressed: () {
+            activeTagButtom.value = tag;
             if (listaTelas != null) {
-              activeTagButtom.value = tag;
-              listaTelas!.value = mapTelas[tag]!;
+              listaTelas?.value = mapTelas[tag]!;
             }
           },
         ));

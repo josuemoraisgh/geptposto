@@ -10,7 +10,8 @@ import '../models/device_info_model.dart';
 class AssistidoRemoteStorageService implements RemoteStorageInterface {
   late final Dio provider;
   final String baseUrl = 'https://script.google.com';
-  final DeviceInfoModel deviceInfoModel = DeviceInfoModel();
+  final DeviceInfoModel deviceInfoModel = DeviceInfoModel()
+    ..initPlatformState();
   //static int _countConnection = 0;
 
   AssistidoRemoteStorageService({Dio? provider}) {
@@ -302,5 +303,14 @@ class AssistidoRemoteStorageService implements RemoteStorageInterface {
       p2: fileName,
     );
     return response;
+  }
+
+  @override
+  Future<String?> resetAll({String? planilha = "Euripedes Barsanulfo"}) async {
+    await sendGet(
+        planilha: planilha, table: "Config", func: 'reset', type: 'all');
+    await sendGet(
+        planilha: planilha, table: "BDados", func: 'reset', type: 'all');
+    return "ok";
   }
 }

@@ -63,9 +63,8 @@ class _AssistidosPageState extends State<AssistidosPage> {
                       body: isInited
                           ? customBody(context, list)
                           : const Center(child: CircularProgressIndicator()),
-                      floatingActionButton: isInited
-                          ? customFloatingActionButton(context, list)
-                          : null,
+                      floatingActionButton:
+                          customFloatingActionButton(context, list),
                     );
                   },
                 ),
@@ -75,8 +74,7 @@ class _AssistidosPageState extends State<AssistidosPage> {
                 body: isInited
                     ? customBody(context, [])
                     : const Center(child: CircularProgressIndicator()),
-                floatingActionButton:
-                    isInited ? customFloatingActionButton(context, []) : null,
+                floatingActionButton: customFloatingActionButton(context, []),
               ),
       );
 
@@ -184,6 +182,15 @@ class _AssistidosPageState extends State<AssistidosPage> {
         elevation: 8.0,
         shape: const CircleBorder(),
         children: [
+          SpeedDialChild(
+            child: const Icon(Icons.collections),
+            backgroundColor: Colors.purple,
+            label: 'Reset Comunication',
+            labelStyle: const TextStyle(fontSize: 18.0),
+            onTap: () async {
+              await controller.assistidosProviderStore.remoteStore.resetAll();
+            },
+          ),
           SpeedDialChild(
             child: const Icon(Icons.collections),
             backgroundColor: Colors.red,
