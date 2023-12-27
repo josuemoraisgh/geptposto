@@ -43,7 +43,7 @@ class AssistidosController {
   }
 
   List<StreamAssistido> search(
-      List<StreamAssistido> assistidoList, termosDeBusca, String condicao) {
+      List<StreamAssistido> assistidoList,String termosDeBusca, String condicao) {
     return assistidoList
         .where((assistido) =>
             // ignore: prefer_interpolation_to_compose_strings
