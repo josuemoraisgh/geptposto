@@ -6,8 +6,7 @@ import 'camera_controle_service.dart';
 
 class CameraPreviewWithPaint extends StatefulWidget {
   final CameraService? cameraService;
-  final Future<void> Function(CameraImage cameraImage, int sensorOrientation,
-      Orientation orientation)? onPaintLiveImageFunc;
+  final Future<void> Function(CameraImage cameraImage)? onPaintLiveImageFunc;
   final Future<void> Function(Uint8List? uint8ListImage)? takeImageFunc;
   final dynamic Function()? switchLiveCameraFunc;
   final CameraLensDirection initialDirection;
@@ -160,8 +159,7 @@ class _CameraPreviewWithPaintState extends State<CameraPreviewWithPaint> {
           });
           if (widget.onPaintLiveImageFunc != null) {
             _cameraService.cameraController?.startImageStream((cameraImage) {
-              widget.onPaintLiveImageFunc!(cameraImage,
-                  _cameraService.camera!.sensorOrientation, _orientation);
+              widget.onPaintLiveImageFunc!(cameraImage);
             });
           }
           setState(() {});

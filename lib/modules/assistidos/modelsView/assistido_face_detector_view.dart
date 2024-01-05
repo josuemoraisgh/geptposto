@@ -90,7 +90,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         }
         await faceDetectionService.predict(
             cameraImage!,
-            _cameraService!.camera!.sensorOrientation,
+            _cameraService!.camera!,
             widget.assistidoList!,
             widget.assistidoProvavel!);
       }
@@ -105,13 +105,11 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     }
   }
 
-  Future<void> _processImage(CameraImage cameraImage, int sensorOrientation,
-      Orientation orientation) async {
+  Future<void> _processImage(CameraImage cameraImage) async {
     this.cameraImage = cameraImage;
-    final rotation = getImageRotation(sensorOrientation, orientation);
+    //final rotation = getImageRotation(sensorOrientation, orientation);
     InputImage? inputImage =
-        await convertCameraImageToInputImageWithRotate(cameraImage, rotation);
-
+        inputImageFromCameraImage(cameraImage, _cameraService!.camera!);
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
     faces = await faceDetectionService.faceDetector.processImage(inputImage);
@@ -122,8 +120,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     }
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
-      final painter = FaceDetectorPainter(
-          [], faces!, inputImage.metadata!.size, sensorOrientation, rotation);
+      final painter = FaceDetectorPainter(faces!, inputImage.metadata!.size,
+          inputImage.metadata!.rotation, _cameraService!.camera!.lensDirection);
       _customPaint = CustomPaint(painter: painter);
     }
     _isBusy = false;
@@ -134,8 +132,11 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
           if (widget.assistidoList != null) {
             if ((_isFace == true)) {
               _isFace = false;
-              _cameraTakeImage(imglib.encodeJpg(
-                  convertCameraImageToImageWithRotate(cameraImage, rotation)));
+              final image = imgLibImageFromCameraImage(
+                  cameraImage, _cameraService!.camera!);
+              if (image != null) {
+                _cameraTakeImage(imglib.encodeJpg(image));
+              }
             }
           }
         },

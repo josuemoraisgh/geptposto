@@ -102,7 +102,7 @@ class FaceDetectionService extends Disposable {
 
   Future<void> predict(
       CameraImage cameraImage,
-      int rotation,
+      CameraDescription camera,
       List<StreamAssistido> assistidos,
       RxNotifier<List<StreamAssistido>> assistidoProvavel) async {
     List<StreamAssistido> assistidosIdentList = [];
@@ -110,11 +110,9 @@ class FaceDetectionService extends Disposable {
     double min = 2.0;
     Map<int, List<List<double>>> outputs = {};
     int i = 0, j = 0, k = 0;
-    imglib.Image image =
-        convertCameraImageToImageWithRotate(cameraImage, rotation);
-    InputImage? inputImage =
-        await convertCameraImageToInputImageWithRotate(cameraImage, rotation);
-    if (inputImage != null) {
+    imglib.Image? image = imgLibImageFromCameraImage(cameraImage, camera);
+    InputImage? inputImage = inputImageFromCameraImage(cameraImage, camera);
+    if (image != null && inputImage != null) {
       final List<Face> facesDetected =
           await faceDetector.processImage(inputImage);
       if (facesDetected.isNotEmpty) {
@@ -171,7 +169,7 @@ class FaceDetectionService extends Disposable {
       //final uint8List = Uint8List.fromList(imglib.encodeJpg(imageResized));
       //final img2 = imglib.decodeJpg(uint8List);
       //if (img2 != null) {
-      Float32List imageAsList = imageByteToFloat32Normal(imageResized);
+      Float32List imageAsList = float32ListFromImgLibImage(imageResized);
       return imageAsList;
       //}
     }
