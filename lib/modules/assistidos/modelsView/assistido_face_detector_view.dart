@@ -20,13 +20,14 @@ class AssistidoFaceDetectorView extends StatefulWidget {
   final StreamAssistido? assistido;
   final List<StreamAssistido>? assistidoList;
   final StackFit? stackFit;
-  const AssistidoFaceDetectorView(
-      {super.key,
-      this.assistidoList,
-      this.assistidoProvavel,
-      this.assistido,
-      this.stackFit,
-      this.isPhotoChanged});
+  const AssistidoFaceDetectorView({
+    super.key,
+    this.assistidoList,
+    this.assistidoProvavel,
+    this.assistido,
+    this.stackFit,
+    this.isPhotoChanged,
+  });
 
   @override
   State<AssistidoFaceDetectorView> createState() =>
@@ -72,7 +73,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
             takeImageFunc: _cameraTakeImage,
             isRealTime: widget.assistidoList != null,
             stackFit: widget.stackFit,
-            initialDirection: CameraLensDirection.back,
+            threshold: faceDetectionService.threshold,
           );
         }
         return const Center(child: CircularProgressIndicator());
@@ -88,11 +89,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
         if (faces!.length > 1) {
           debugPrint("duas faces");
         }
-        await faceDetectionService.predict(
-            cameraImage!,
-            _cameraService!.camera!,
-            widget.assistidoList!,
-            widget.assistidoProvavel!);
+        await faceDetectionService.predict(cameraImage!, _cameraService!,
+            widget.assistidoList!, widget.assistidoProvavel!);
       }
     } else {
       if ((widget.assistido != null) && (uint8ListImage != null)) {
@@ -109,7 +107,7 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
     this.cameraImage = cameraImage;
     //final rotation = getImageRotation(sensorOrientation, orientation);
     InputImage? inputImage =
-        inputImageFromCameraImage(cameraImage, _cameraService!.camera!);
+        inputImageFromCameraImage(cameraImage, _cameraService!);
     if (inputImage == null || !_canProcess || _isBusy) return;
     _isBusy = true;
     faces = await faceDetectionService.faceDetector.processImage(inputImage);
@@ -132,8 +130,8 @@ class _AssistidoFaceDetectorViewState extends State<AssistidoFaceDetectorView> {
           if (widget.assistidoList != null) {
             if ((_isFace == true)) {
               _isFace = false;
-              final image = imgLibImageFromCameraImage(
-                  cameraImage, _cameraService!.camera!);
+              final image =
+                  imgLibImageFromCameraImage(cameraImage, _cameraService!);
               if (image != null) {
                 _cameraTakeImage(imglib.encodeJpg(image));
               }

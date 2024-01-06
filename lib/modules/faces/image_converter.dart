@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:geptposto/modules/faces/camera_controle_service.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as imglib;
 import 'package:camera/camera.dart';
@@ -13,31 +14,25 @@ final _orientations = {
 };
 
 InputImage? inputImageFromCameraImage(
-    CameraImage image, CameraDescription camera) {
+    CameraImage cameraImage, CameraService cameraService) {
   // get image rotation
   // it is used in android to convert the InputImage from Dart to Java
   // `rotation` is not used in iOS to convert the InputImage from Dart to Obj-C
   // in both platforms `rotation` and `camera.lensDirection` can be used to compensate `x` and `y` coordinates on a canvas
   //final camera = (await availableCameras())[0];
-  final sensorOrientation = camera.sensorOrientation;
-
-  final controller = CameraController(
-    camera,
-    ResolutionPreset.max,
-    enableAudio: false,
-    imageFormatGroup: Platform.isAndroid
-        ? ImageFormatGroup.nv21 // for Android
-        : ImageFormatGroup.bgra8888, // for iOS
-  );
+  if (cameraService.camera == null || cameraService.cameraController == null) {
+    return null;
+  }
+  final sensorOrientation = cameraService.camera!.sensorOrientation;
 
   InputImageRotation? rotation;
   if (Platform.isIOS) {
     rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
   } else if (Platform.isAndroid) {
     var rotationCompensation =
-        _orientations[controller.value.deviceOrientation];
+        _orientations[cameraService.cameraController?.value.deviceOrientation];
     if (rotationCompensation == null) return null;
-    if (camera.lensDirection == CameraLensDirection.front) {
+    if (cameraService.camera?.lensDirection == CameraLensDirection.front) {
       // front-facing
       rotationCompensation = (sensorOrientation + rotationCompensation) % 360;
     } else {
@@ -50,27 +45,33 @@ InputImage? inputImageFromCameraImage(
   if (rotation == null) return null;
 
   // get image format
-  final format = InputImageFormatValue.fromRawValue(image.format.raw);
+  final format = InputImageFormatValue.fromRawValue(cameraImage.format.raw);
   // validate format depending on platform
   // only supported formats:
   // * nv21 for Android
   // * bgra8888 for iOS
-  if (format == null ||
-      (Platform.isAndroid && format != InputImageFormat.nv21) ||
-      (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
-
   // since format is constraint to nv21 or bgra8888, both only have one plane
-  if (image.planes.length != 1) return null;
-  final plane = image.planes.first;
+  if (format == null ||
+      ((cameraImage.planes.length != 1) &&
+          ((Platform.isAndroid && format == InputImageFormat.nv21) ||
+              (Platform.isIOS && format == InputImageFormat.bgra8888)))) {
+    return null;
+  }
+
+  final WriteBuffer allBytes = WriteBuffer();
+  for (final Plane plane in cameraImage.planes) {
+    allBytes.putUint8List(plane.bytes);
+  }
+  final bytes = allBytes.done().buffer.asUint8List();
 
   // compose InputImage using bytes
   return InputImage.fromBytes(
-    bytes: plane.bytes,
+    bytes: bytes,
     metadata: InputImageMetadata(
-      size: Size(image.width.toDouble(), image.height.toDouble()),
+      size: Size(cameraImage.width.toDouble(), cameraImage.height.toDouble()),
       rotation: rotation, // used only in Android
       format: format, // used only in iOS
-      bytesPerRow: plane.bytesPerRow, // used only in iOS
+      bytesPerRow: cameraImage.planes[0].bytesPerRow, // used only in iOS
     ),
   );
 }
@@ -136,9 +137,9 @@ InputImage inputImageFromImgLibImage(imglib.Image image) {
 /// Converts a [CameraImage] in YUV420 format to [image_lib.Image] in RGB format
 ///
 imglib.Image? imgLibImageFromCameraImage(
-    CameraImage cameraImage, CameraDescription camera) {
+    CameraImage cameraImage, CameraService cameraService) {
   if (cameraImage.format.group == ImageFormatGroup.nv21) {
-    var inputImage = inputImageFromCameraImage(cameraImage, camera);
+    var inputImage = inputImageFromCameraImage(cameraImage, cameraService);
     return inputImage != null ? imgLibImageFromInputImage(inputImage) : null;
   } else if (cameraImage.format.group == ImageFormatGroup.yuv420) {
     return imgLibImageFromCameraImageYUV420(cameraImage);
@@ -299,22 +300,6 @@ imglib.Image? cropFace(imglib.Image image, Face faceDetected, {int step = 10}) {
   final imageResp = imglib.copyCrop(image,
       x: x.round(), y: y.round(), width: w.round(), height: h.round());
   return imglib.decodeJpg(imglib.encodeJpg(imageResp));
-}
-
-Float32List listFloat32FromImgLibImage(imglib.Image image) {
-  var convertedBytes = Float32List(1 * 112 * 112 * 3);
-  var buffer = Float32List.view(convertedBytes.buffer);
-  int pixelIndex = 0;
-
-  for (var i = 0; i < 112; i++) {
-    for (var j = 0; j < 112; j++) {
-      var pixel = image.getPixelSafe(j, i);
-      buffer[pixelIndex++] = (pixel.r - 128) / 128;
-      buffer[pixelIndex++] = (pixel.g - 128) / 128;
-      buffer[pixelIndex++] = (pixel.b - 128) / 128;
-    }
-  }
-  return convertedBytes.buffer.asFloat32List();
 }
 
 Float32List float32ListFromImgLibImage(imglib.Image imageResized) {

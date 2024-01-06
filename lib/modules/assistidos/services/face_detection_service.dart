@@ -11,6 +11,7 @@ import 'package:ml_linalg/vector.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import '../../faces/camera_controle_service.dart';
 import '../../faces/image_converter.dart';
 import '../models/stream_assistido_model.dart';
 
@@ -47,7 +48,7 @@ class FaceDetectionService extends Disposable {
   //late IsolateInterpreter isolateInterpreter;
   late final FaceDetector faceDetector;
   //late SensorOrientationDetector orientation;
-  static const double threshold = 1.0;
+  final threshold = RxNotifier<double>(1.5);
 
   static const pontosdoModelo = 192; //512
   static const nomedoInterpreter =
@@ -102,7 +103,7 @@ class FaceDetectionService extends Disposable {
 
   Future<void> predict(
       CameraImage cameraImage,
-      CameraDescription camera,
+      CameraService cameraService,
       List<StreamAssistido> assistidos,
       RxNotifier<List<StreamAssistido>> assistidoProvavel) async {
     List<StreamAssistido> assistidosIdentList = [];
@@ -110,8 +111,10 @@ class FaceDetectionService extends Disposable {
     double min = 2.0;
     Map<int, List<List<double>>> outputs = {};
     int i = 0, j = 0, k = 0;
-    imglib.Image? image = imgLibImageFromCameraImage(cameraImage, camera);
-    InputImage? inputImage = inputImageFromCameraImage(cameraImage, camera);
+    imglib.Image? image =
+        imgLibImageFromCameraImage(cameraImage, cameraService);
+    InputImage? inputImage =
+        inputImageFromCameraImage(cameraImage, cameraService);
     if (image != null && inputImage != null) {
       final List<Face> facesDetected =
           await faceDetector.processImage(inputImage);
@@ -134,7 +137,7 @@ class FaceDetectionService extends Disposable {
               final aux = vector1.distanceTo(vectorOut / n2,
                   distance: Distance.euclidean);
               //debugPrint(aux.toString());
-              if (aux <= threshold) {
+              if (aux <= threshold.value) {
                 if (aux < min) {
                   min = aux;
                   assistidosIdentList = [assistidos[i]] + assistidosIdentList;
